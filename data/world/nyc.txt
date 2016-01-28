@@ -1,0 +1,1 @@
+`nyc.json` was compiled from <http://www.nyc.gov/html/dcp/pdf/census/puma_cd_map.pdf>
