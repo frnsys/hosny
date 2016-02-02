@@ -3,9 +3,9 @@ import random
 
 def random_choice(choices):
     """returns a random choice
-    from a dict of {choice: probability}"""
+    from a list of (choice, probability)"""
     # sort by probability
-    choices = sorted(choices.items(), key=lambda x:x[1])
+    choices = sorted(choices, key=lambda x:x[1])
     roll = random.random()
 
     acc_prob = 0

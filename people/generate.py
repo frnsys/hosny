@@ -7,12 +7,15 @@ based on PUMS data
 import json
 import random
 import pandas as pd
+import config
 from . import attribs
 from enum import Enum
 from models.bnet import BNet
+from world import rent
 
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
+occupations = json.load(open('data/people/occupations.json', 'r'))
 puma_to_neighborhoods = {int(k): v for k, v in world_data['puma_to_neighborhoods'].items()}
 
 
@@ -25,6 +28,7 @@ class Var(Enum):
     income = 'INCTOT'
     employed = 'EMPSTAT'
     occupation = 'OCC2010'
+    year = 'YEAR'
 
 nodes = list(Var)
 edges = [
@@ -41,6 +45,7 @@ edges = [
     (Var.age, Var.income),
     (Var.race, Var.income),
     (Var.employed, Var.income),
+    (Var.occupation, Var.income),
 
     (Var.education, Var.employed),
     (Var.sex, Var.employed),
@@ -52,24 +57,35 @@ edges = [
     (Var.sex, Var.occupation),
     (Var.age, Var.occupation),
     (Var.race, Var.occupation),
+
+    (Var.year, Var.employed),
+    (Var.year, Var.income),
 ]
 
 df = pd.read_csv('data/people/gen/pums_nyc.csv')
 bins = {
     #Var.income: np.linspace(df.INCTOT.min(), df.INCTOT.max(), 10)
-    Var.income: [-20000, -10000, 0, 10000, 20000, 30000, 50000, 70000, 90000, 110000, 200000, 500000, 9999998, 9999999]
+    Var.income: config.INCOME_BRACKETS
 }
 pgm = BNet(nodes, edges, df, bins)
 
 
-def generate():
+def generate(year, given=None):
     """generates a single person"""
-    sample = pgm.sample()
+    given = given or {}
+    given = {Var[k]: v for k, v in given.items()}
+    given[Var.year] = year
+
+    sample = pgm.sample(sampled=given)
 
     # 9999999 means N/A
     # https://usa.ipums.org/usa-action/variables/INCTOT#codes_section
-    if sample[Var.income] == '(9999998, 9999999]':
-        sample[Var.income] = None
+    income_bracket = sample[Var.income]
+    if income_bracket == '(9999998, 9999999]':
+        sample[Var.income] = 0
+    else:
+        lbound, ubound = income_bracket[1:-1].split(',')
+        sample[Var.income] = random.randint(int(lbound), int(ubound))
 
     # convert to enums
     for var, enum in [
@@ -83,7 +99,14 @@ def generate():
     # rename keys
     sample = {k.name: v for k,v in sample.items()}
 
+    sample['income_bracket'] = income_bracket
+
     # grab a neighborhood
     sample['neighborhood'] = random.choice(puma_to_neighborhoods[sample['puma']])
+
+    sample['rent'] = rent.sample_rent(year, sample['puma'])
+
+    sample['occupation_code'] = sample['occupation']
+    sample['occupation'] = random.choice(occupations[str(sample['occupation_code'])])
 
     return sample

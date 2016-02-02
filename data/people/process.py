@@ -1,5 +1,5 @@
 """
-processes PUMS data for the years 2005-2014.
+processes individual PUMS data for the years 2005-2014.
 data was retrieved from:
 
     IPUMS USA, Minnesota Population Center, University of Minnesota

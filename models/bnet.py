@@ -50,7 +50,10 @@ class BNet():
                     # and count the corresponding bin
                     grouper = pd.cut(df_g[key.value], bins)
                     subgroup = df_g.groupby(grouper)
-                    likelihood *= len(subgroup.get_group(val))/group_size
+                    try:
+                        likelihood *= len(subgroup.get_group(val))/group_size
+                    except KeyError:
+                        likelihood = 0
 
             probs[group] = prior_prob * likelihood
 
