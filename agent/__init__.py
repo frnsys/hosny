@@ -1,5 +1,5 @@
 from mesa import Agent
-from .search import Planner, expand_graph
+from .search import Planner
 from .utility import Utility
 from .action import Action, Goal
 from .prereq import Prereq
@@ -14,7 +14,7 @@ class Agent(Agent):
         self.goals = set(goals)
         self.actions = actions
         self.utility = Utility(utility_funcs)
-        self.planner = Planner(self._plan_succ_func, self.utility.utility)
+        self.planner = Planner(self._succ_func, self.utility.utility)
 
     def actions_for_state(self, state):
         """the agent's possible actions
@@ -50,19 +50,9 @@ class Agent(Agent):
         i.e. the prerequisites for an action"""
         return self.planner.ida(self, state, goal.as_action())
 
-    def _graph_succ_func(self, node):
-        """successor function compatible with the expand graph func"""
+    def _succ_func(self, node):
         act, (state, goals) = node
         return self.successors(state, goals)
-
-    def _plan_succ_func(self, state):
-        """successor function compatible with the expand graph func"""
-        # assume goals=[], that is, ignore other goals for subplanning
-        # should we change this?
-        for action, node in self.successors(state, []):
-            # discard the remaining goals
-            state, _ = node
-            yield action, state
 
     def score_path(self, path):
         """good paths get agents closer to high-priority goals
@@ -85,7 +75,7 @@ class Agent(Agent):
         plans = [[(action, node)] for action, node in succs]
 
         # generate the graph
-        plans = [path for path in expand_graph(plans, self._graph_succ_func, max_depth=depth)]
+        plans = [path for path in self.planner.expand_graph(plans, max_depth=depth)]
 
         # rank plans by utilities of the expected states
         plans = sorted(plans, key=lambda p: self.score_path(p), reverse=True)

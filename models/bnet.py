@@ -77,7 +77,7 @@ class BNet():
                 if parent not in sampled:
                     sampled = self.sample_node(parent, sampled)
             prob_dist = self.probs_given(n, given=sampled)
-        sampled[n] = random_choice(prob_dist)
+        sampled[n] = random_choice(prob_dist.items())
         return sampled
 
     def sample(self, sampled=None):

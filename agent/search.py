@@ -6,15 +6,17 @@ class Planner():
         self.succ_func = succ_func
         self.util_func = util_func
 
-    def heuristic(self, state, goal):
+    def heuristic(self, node, goal):
         """an admissible heuristic never overestimates the distance to the goal"""
 
         # TODO come up with a good admissible heuristic
         return 0 # TEMPORARY
 
-    def distance(self, from_state, to_state, action):
+    def distance(self, from_node, to_node, action):
         """we define distance so that we minimize cost
         and maximize expected utility, but prioritize expected utility"""
+        from_state, _ = from_node
+        to_state, _ = to_node
         cost = action.cost()
         util = self.util_func(from_state, to_state)
         util = 1
@@ -30,7 +32,8 @@ class Planner():
         f = length + self.heuristic(node, goal)
         if f > depth: return f, None
 
-        if goal.satisfied(node):
+        state, _ = node
+        if goal.satisfied(state):
             return f, path
 
         # extended list filtering:
@@ -62,12 +65,11 @@ class Planner():
             depth += 1
         return solution
 
-
-def expand_graph(fringe, succ_func, max_depth=None):
-    """exhaustively expand a search graph"""
-    while fringe:
-        path = fringe.pop()
-        yield path
-        if max_depth is None or len(path) < max_depth:
-            node = path[-1]
-            fringe.extend(reversed([path + [child] for child in succ_func(node)]))
+    def expand_graph(self, fringe, max_depth=None):
+        """exhaustively expand a search graph"""
+        while fringe:
+            path = fringe.pop()
+            yield path
+            if max_depth is None or len(path) < max_depth:
+                node = path[-1]
+                fringe.extend(reversed([path + [child] for child in self.succ_func(node)]))

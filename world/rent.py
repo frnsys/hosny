@@ -79,7 +79,7 @@ def sample_rent(year, puma):
     rent = 0
     rent_info = rent_dists[year][puma]
     if random.random() < rent_info['p_owned']:
-        ownership = random_choice(rent_info['p_ownership'])
+        ownership = random_choice(rent_info['p_ownership'].items())
         if ownership == 'free':
             rent = 0
         elif ownership == 'mortgage1':

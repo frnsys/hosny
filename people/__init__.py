@@ -1,8 +1,8 @@
 import config
-import operator
+#import operator
 from uuid import uuid4
-from agent import Agent
-from agent.action import Goal, Outcome, Prereq, PrereqsUnsatisfied
+from agent import Agent, Prereq, Goal
+from agent.action import PrereqsUnsatisfied
 from .names import generate_name
 from .generate import generate
 
@@ -33,13 +33,14 @@ class Person(Agent):
 
         # long-term goals
         # TODO rent goal should renew every month
-        goals = [Goal(
-            'pay rent',
-            prereqs={'cash': Prereq(operator.ge, self.rent)},
-            outcomes=[Outcome({'stress': -0.1, 'rent_fail': -1000}, 1.)],
-            failures=[Outcome({'stress': 1, 'rent_fail': 1}, 1.)],
-            time=2
-        )]
+        #goals = [Goal(
+            #'pay rent',
+            #prereqs={'cash': Prereq(operator.ge, self.rent)},
+            #outcomes=[Outcome({'stress': -0.1, 'rent_fail': -1000}, 1.)],
+            #failures=[Outcome({'stress': 1, 'rent_fail': 1}, 1.)],
+            #time=2
+        #)]
+        goals = []
 
         super().__init__(
             state={
@@ -87,10 +88,16 @@ class Person(Agent):
                     self.action_cooldown = time_taken
                     action_taken = True
                     print('I did', action)
-                    self.diary.append(action.name)
+
+                    # record (action, success, resulting state)
+                    self.diary.append((action.name, True, self.state.copy()))
+
                 except PrereqsUnsatisfied:
                     # replan
                     print(action, 'FAILED, REPLANNING')
+                    # record (action, success, failing state)
+                    self.diary.append((action.name, False, self.state.copy()))
+
                     self.dayplan = self.plan_day(model.state)
 
     def actions_for_state(self, state):

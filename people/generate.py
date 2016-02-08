@@ -16,6 +16,7 @@ from world import rent
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
 occupations = json.load(open('data/people/occupations.json', 'r'))
+industries = json.load(open('data/people/industries.json', 'r'))
 puma_to_neighborhoods = {int(k): v for k, v in world_data['puma_to_neighborhoods'].items()}
 
 
@@ -28,6 +29,7 @@ class Var(Enum):
     income = 'INCTOT'
     employed = 'EMPSTAT'
     occupation = 'OCC2010'
+    industry = 'IND'
     year = 'YEAR'
 
 nodes = list(Var)
@@ -46,12 +48,20 @@ edges = [
     (Var.race, Var.income),
     (Var.employed, Var.income),
     (Var.occupation, Var.income),
+    (Var.industry, Var.income),
 
     (Var.education, Var.employed),
     (Var.sex, Var.employed),
     (Var.age, Var.employed),
     (Var.race, Var.employed),
 
+    (Var.sex, Var.industry),
+    (Var.age, Var.industry),
+    (Var.race, Var.industry),
+    (Var.education, Var.industry),
+    (Var.employed, Var.industry),
+
+    (Var.industry, Var.occupation),
     (Var.employed, Var.occupation),
     (Var.education, Var.occupation),
     (Var.sex, Var.occupation),
@@ -108,5 +118,8 @@ def generate(year, given=None):
 
     sample['occupation_code'] = sample['occupation']
     sample['occupation'] = random.choice(occupations[str(sample['occupation_code'])])
+
+    sample['industry_code'] = sample['industry']
+    sample['industry'] = industries[str(sample['industry_code'])]
 
     return sample
