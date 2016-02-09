@@ -65,6 +65,7 @@ class Planner():
             depth += 1
         return solution
 
+    @profile
     def expand_graph(self, fringe, max_depth=None):
         """exhaustively expand a search graph"""
         while fringe:

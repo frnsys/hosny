@@ -5,6 +5,15 @@ class Utility():
     def __init__(self, utility_funcs):
         self.ufuncs = utility_funcs
 
+    def __call__(self, state):
+        """computes utility for a state"""
+        utility = 0
+        for attr, value in state.items():
+            if attr in self.ufuncs:
+                utility += self.ufuncs[attr](state[attr])
+        return utility
+
+    @profile
     def utility(self, curr_state, state):
         """compute the utility for a state change"""
         utility = 0

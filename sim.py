@@ -15,6 +15,8 @@ from dateutil.relativedelta import relativedelta
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
 
+# precompute and cache to save a lot of time
+emp_dist = work.precompute_employment_dist()
 
 class City(Model):
     def __init__(self, population):
@@ -30,18 +32,9 @@ class City(Model):
             'year': self.date.year
         }
 
-        self.pop = []
-        for i in range(population):
-            agent = Person.generate(config.START_DATE.year)
+        for agent in population:
             self.geography.place_agent(agent, agent.puma)
             self.schedule.add(agent)
-            self.pop.append(agent)
-            print(agent, 'is moving into', agent.neighborhood)
-            print(','.join([agent.occupation, str(agent.sex), str(agent.race), agent.neighborhood, str(agent.education), str(agent.rent)]))
-
-        social_network = social.social_network(self.pop, base_prob=0.4)
-        for i, person in enumerate(self.pop):
-            person.friends = [self.pop[j] for _, j in social_network.edges(i)]
 
     def step(self):
         """one time step in the model (an hour)"""
@@ -51,11 +44,12 @@ class City(Model):
     def _update_datetime(self):
         next = self.date + relativedelta(hours=1)
         if next.day != self.date.day:
+            print('~~~ NEW DAY ~~~')
             self.state['time'] = config.START_HOUR
         else:
             self.state['time'] += 1
         self.state['month'] = next.month
-        self.state['year'] = next.month
+        self.state['year'] = next.year
         self.date = next
 
     def affect(self, agent):
@@ -77,7 +71,7 @@ class City(Model):
                 change = work.income_change(self.date.year, self.date.year + 1, agent.sex, agent.race, agent.income_bracket)
                 agent.state['income'] += change # TODO this needs to change their income bracket if appropriate
             else:
-                employment_dist = work.employment_dist(self.date.year, self.date.month, agent.sex, agent.race)
+                employment_dist = emp_dist[self.date.year][self.date.month][agent.race.name][agent.sex.name]
                 p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
                 # fired
                 if random.random() < p_unemployed:
@@ -90,14 +84,28 @@ class City(Model):
             pass # TODO
 
         # tick goals/check failures
-        remaining_goals = []
+        remaining_goals = set()
         for goal in agent.goals:
             goal.tick()
             if goal.time <= 0:
                 agent.state = goal.fail(agent.state)
             else:
-                remaining_goals.append(goal)
+                remaining_goals.add(goal)
         agent.goals = remaining_goals
+
+
+def generate_population(n):
+    population = []
+    for i in range(n):
+        agent = Person.generate(config.START_DATE.year)
+        population.append(agent)
+        print(agent, 'is moving into', agent.neighborhood)
+        print('  ', ','.join([agent.occupation, str(agent.sex), str(agent.race), agent.neighborhood, str(agent.education), str(agent.rent)]))
+
+    social_network = social.social_network(population, base_prob=0.4)
+    for i, person in enumerate(population):
+        person.friends = [population[j] for _, j in social_network.edges(i)]
+    return population
 
 
 def run_simulation(population, days):
@@ -109,4 +117,25 @@ def run_simulation(population, days):
 
 
 if __name__ == '__main__':
-    run_simulation(10, 10)
+    import os
+    from time import time
+    from datetime import timedelta, datetime
+
+    session_id = datetime.now().isoformat()
+
+    #population = generate_population(2)
+    population = [
+        Person.generate(config.START_DATE.year, {'employed': 0}),
+        #Person.generate(config.START_DATE.year, {'employed': 1})
+    ]
+
+    log_dir = 'logs/{}'.format(session_id)
+    os.makedirs(log_dir)
+    for person in population:
+        slug = person.name.lower().replace(' ', '_')
+        person.set_logger('{}/{}.log'.format(log_dir, slug))
+
+    print('running simulation...')
+    s = time()
+    run_simulation(population, 5)
+    print('elapsed:', str(timedelta(seconds=time() - s)))

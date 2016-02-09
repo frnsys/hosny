@@ -77,7 +77,7 @@ bins = {
     #Var.income: np.linspace(df.INCTOT.min(), df.INCTOT.max(), 10)
     Var.income: config.INCOME_BRACKETS
 }
-pgm = BNet(nodes, edges, df, bins)
+pgm = BNet(nodes, edges, df, bins, precompute=True)
 
 
 def generate(year, given=None):

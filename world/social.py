@@ -20,7 +20,7 @@ def friendship_matrix(people, base_prob):
     if they are exactly the same.
     """
     mat = np.array([[p.race, p.sex, p.age, p.education] for p in people])
-    adj_mat = np.zeros(mat.shape)
+    adj_mat = np.zeros((mat.shape[0], mat.shape[0]))
 
     for idx, row in enumerate(mat):
         # only build lower triangle

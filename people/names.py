@@ -20,9 +20,9 @@ race_map = {
 
 
 def generate_name(sex, race):
-    name = random_choice(name_given_sex[sex.name])
+    name = random_choice(name_given_sex[sex.name].items())
     race = race_map[race.name]
     if isinstance(race, list):
         race = random.choice(race)
-    surname = random_choice(surname_given_race[race])
+    surname = random_choice(surname_given_race[race].items())
     return '{} {}'.format(name, surname).title()

@@ -7,6 +7,7 @@
 """
 
 import json
+import random
 import config
 import numpy as np
 import pandas as pd
@@ -18,12 +19,13 @@ monthly_df = pd.read_csv('data/world/src/unemployment.csv', index_col='Year')
 df = pd.read_csv('data/people/gen/pums_nyc.csv')
 years = df.groupby('YEAR')
 
-
 # offer probabilities
 p_offer = json.load(open('data/world/gen/job_offer_probs.json', 'r'))
 
 
 def employment_dist(year, month, sex, race):
+    return {'employed': 0.5, 'unemployed': 0.5}
+
     """probability of employment/unemployment
     given year, month (int, zero-indexed), sex, and race"""
 
@@ -53,11 +55,40 @@ def employment_dist(year, month, sex, race):
 
 
 def offer_prob(year, month, sex, race, referral):
-    """probability of a job offer"""
+    """probability of a job offer
+    referral keys: ['previous_contractor', 'other', 'headhunter_or_campus_recruiter', 'friend', 'ad_or_cold_call']
+    race keys: ['nativeamerican', 'hispanic', 'black', 'asian', 'white']
+    """
     emp = employment_dist(year, month, sex, race)
+
+    # quick-and-dirty mapping to race keys
+    if not isinstance(race, str):
+        if race.name == 'aian':
+            race = 'nativeamerican'
+        elif race.name == 'white':
+            # b/c white and hispanic are merged together
+            # TODO find dataset that separates these?
+            race = random.choice(['hispanic', 'white'])
+        elif race.name in ['chinese', 'japanese', 'api']:
+            race = 'asian'
+        elif race.name == 'black':
+            race = 'black'
+
+        # mean of two random races. this is a sloppy guessj,
+        # since the actual evidence may not work this way
+        elif race.name in ['other', 'two', 'three_plus']:
+            races = list(p_offer['offered']['race'].keys())
+            op1 = _offer_prob(sex, random.choice(races), referral, emp)
+            op2 = _offer_prob(sex, random.choice(races), referral, emp)
+            return (op1 + op2)/2
+
+    return _offer_prob(sex, race, referral, emp)
+
+
+def _offer_prob(sex, race, referral, emp):
     p_o, p_no = p_offer['offered'], p_offer['not_offered']
-    prob = p_o['sex'][sex.name] * p_o['race'][race.name] * p_o['referral'][referral] * emp['employed']
-    not_prob = p_no['sex'][sex.name] * p_no['race'][race.name] * p_no['referral'][referral] * emp['unemployed']
+    prob = p_o['sex'][sex.name] * p_o['race'][race] * p_o['referral'][referral] * emp['employed']
+    not_prob = p_no['sex'][sex.name] * p_no['race'][race] * p_no['referral'][referral] * emp['unemployed']
     return prob/(prob + not_prob)
 
 
@@ -81,6 +112,41 @@ def income_change(from_year, to_year, sex, race, income_bracket):
     # tbh this is a pretty abritrary choice of standard deviation
     # need to revisit this
     return np.random.normal(mean_diff, abs((ubound-lbound)/2))
+
+
+def job(year, sex, race, education):
+    from people.generate import generate
+    # sample a new person with this person's characteristics
+    p = generate(year, {
+        'sex': sex,
+        'race': race,
+        'education': education,
+        'employed': 1
+    })
+    return {
+        'income': p['income'],
+        'income_bracket': p['income_bracket'],
+        'occupation_code': p['occupation_code'],
+        'occupation': p['occupation'],
+        'industry_code': p['industry_code'],
+        'industry': p['industry']
+    }
+
+
+def precompute_employment_dist():
+    from people.attribs import Sex, Race
+
+    emp_dist = {}
+    for year in range(2005, 2014+1):
+        yr = {}
+        for month in range(0, 12):
+            yr[month] = {}
+            for race in Race:
+                yr[month][race.name] = {}
+                for sex in Sex:
+                    yr[month][race.name][sex.name] = employment_dist(year, month, sex, race)
+        emp_dist[year] = yr
+    return emp_dist
 
 
 if __name__ == '__main__':

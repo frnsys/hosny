@@ -28,40 +28,60 @@ class Outcomes():
         for u, p in zip(updates, dist):
             yield u, p
 
+    @profile
     def resolve(self, state):
         """choose a random outcome, apply to the state,
         and return the new state"""
         update = random_choice((u, p) for u, p in self(state))
-        return self._update(state, update)
+        state = self._update(state, update)
+
+        # only when resolving do we apply the special state function
+        if '~' in update:
+            state.update(update['~'](state))
+        return state
 
     def states(self, state):
         """yield all outcome states, with probabilities"""
         for o, p in self(state):
-            yield self._update(o, state), p
+            yield self._update(o, state, expected=True), p
 
     def expected_state(self, state):
         """computes an expected state from a given state
         over a set of possible outcomes"""
         expstate = defaultdict(list)
         for update, prob in self(state):
-            outcome_state = self._update(state, update)
+            outcome_state = self._update(state, update, expected=True)
             for k, v in outcome_state.items():
-                expstate[k].append(v * prob)
+                try:
+                    expstate[k].append(v * prob)
+
+                # for non-numerical types
+                except TypeError:
+                    expstate[k].append((v, prob))
+
         for k in expstate.keys():
-            expstate[k] = sum(expstate[k])
+            try:
+                expstate[k] = sum(expstate[k])
+
+            # non-numerical types: most likely value rather than the mean
+            except TypeError:
+                expstate[k] = max(expstate[k], key=lambda x: x[1])[0]
         return dict(expstate)
 
-    def _update(self, state, update):
+    @profile
+    def _update(self, state, update, expected=False):
         """generates a new state based on the specified update dict"""
         state = state.copy()
         for k, v in update.items():
+            # ignore keys not in state
             if k not in state:
                 continue
 
             # v can be a callable, taking the state,
             # or an int/float
             try:
-                state[k] += v(state)
+                val, exp = v(state)
+                state[k] += (exp if expected else val)
             except TypeError:
                 state[k] += v
         return state

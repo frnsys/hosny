@@ -49,7 +49,3 @@ class Employer(IntEnum):
     none        = 0
     self        = 1
     someone     = 2 # "works for wages"
-
-
-class Occupation(IntEnum):
-    pass
