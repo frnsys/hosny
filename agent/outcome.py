@@ -1,87 +1,61 @@
-from collections import defaultdict
 from util import random_choice
+from collections import defaultdict
+from .state import update_state
 
 
-class Outcomes():
-    def __init__(self, updates, dist):
-        """`updates` is a list of update dictionaries and `dist` is
-        either a list of probabilities for each corresponding state update,
-        or a callable which returns such a list of probabilities"""
-        self.updates = updates
-        self.dist = dist
+def update_dist(state, updates, dist):
+    """yields outcomes updates and their probability"""
+    if not isinstance(dist, list):
+        dist = dist(state)
 
-    def __call__(self, state):
-        """yields outcomes updates and their probability"""
-        dist = self.dist
-        updates = self.updates
+    # add missing mass if necessary
+    # with a "no effect" outcome
+    mass = sum(dist)
+    if mass < 1:
+        updates.append({})
+        dist.append(1 - mass)
 
-        if not isinstance(dist, list):
-            dist = dist(state)
+    for u, p in zip(updates, dist):
+        yield u, p
 
-        # add missing mass if necessary
-        # with a "no effect" outcome
-        mass = sum(dist)
-        if mass < 1:
-            updates.append({})
-            dist.append(1 - mass)
 
-        for u, p in zip(updates, dist):
-            yield u, p
+def outcome_dist(state, updates, dist):
+    """yield all (expected) outcome states, with probabilities"""
+    for u, p in update_dist(state, updates, dist):
+        yield update_state(state, u, expected=True), p
 
-    @profile
-    def resolve(self, state):
-        """choose a random outcome, apply to the state,
-        and return the new state"""
-        update = random_choice((u, p) for u, p in self(state))
-        state = self._update(state, update)
 
-        # only when resolving do we apply the special state function
-        if '~' in update:
-            state.update(update['~'](state))
-        return state
+def resolve_outcomes(state, updates, dist):
+    """choose a random outcome, apply to the state,
+    and return the new state"""
+    update = random_choice((u, p) for u, p in update_dist(state, updates, dist))
+    state = update_state(state, update, expected=False)
 
-    def states(self, state):
-        """yield all outcome states, with probabilities"""
-        for o, p in self(state):
-            yield self._update(o, state, expected=True), p
+    # only when resolving do we apply the special state function
+    if '~' in update:
+        state.update(update['~'](state))
+    return state
 
-    def expected_state(self, state):
-        """computes an expected state from a given state
-        over a set of possible outcomes"""
-        expstate = defaultdict(list)
-        for update, prob in self(state):
-            outcome_state = self._update(state, update, expected=True)
-            for k, v in outcome_state.items():
-                try:
-                    expstate[k].append(v * prob)
 
-                # for non-numerical types
-                except TypeError:
-                    expstate[k].append((v, prob))
-
-        for k in expstate.keys():
+def expected_state(state, updates, dist):
+    """computes an expected state from a given state
+    over a set of possible outcomes"""
+    expstate = defaultdict(list)
+    for update, prob in update_dist(state, updates, dist):
+        outcome_state = update_state(state, update, expected=True)
+        for k, v in outcome_state.items():
             try:
-                expstate[k] = sum(expstate[k])
+                expstate[k].append(v * prob)
 
-            # non-numerical types: most likely value rather than the mean
+            # for non-numerical types
             except TypeError:
-                expstate[k] = max(expstate[k], key=lambda x: x[1])[0]
-        return dict(expstate)
+                expstate[k].append((v, prob))
 
-    @profile
-    def _update(self, state, update, expected=False):
-        """generates a new state based on the specified update dict"""
-        state = state.copy()
-        for k, v in update.items():
-            # ignore keys not in state
-            if k not in state:
-                continue
+    for k in expstate.keys():
+        try:
+            expstate[k] = sum(expstate[k])
 
-            # v can be a callable, taking the state,
-            # or an int/float
-            try:
-                val, exp = v(state)
-                state[k] += (exp if expected else val)
-            except TypeError:
-                state[k] += v
-        return state
+        # non-numerical types: most likely value rather than the mean
+        except TypeError:
+            expstate[k] = max(expstate[k], key=lambda x: x[1])[0]
+    return dict(expstate)

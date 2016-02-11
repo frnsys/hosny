@@ -4,7 +4,7 @@ from agent import Agent, Action, Goal, Prereq
 
 
 class AgentTests(unittest.TestCase):
-    def test_score_plan(self):
+    def test_score_successor(self):
         utility_funcs = {
             'cash': lambda x: x
         }
@@ -12,28 +12,15 @@ class AgentTests(unittest.TestCase):
         goal = Goal('money', {'cash': Prereq(operator.ge, 200)}, ([{'cash': 1000}], [1.]))
         agent = Agent({'cash':0}, [action], [goal], utility_funcs, {})
 
-        path_a = [(action, ({'cash': -100}, []))]
-        path_b = [(action, ({'cash': 100}, []))]
-        path_c = [(action, ({'cash': 200}, []))]
-        path_d = [(action, ({'cash': 300}, []))]
+        from_state = {'cash': 0}
+        state_a = {'cash': -100}
+        state_b = {'cash': 100}
+        state_c = {'cash': 200}
+        state_d = {'cash': 300}
 
-        self.assertTrue(agent.score_plan(path_a) < agent.score_plan(path_b))
-        self.assertTrue(agent.score_plan(path_b) < agent.score_plan(path_c))
-        self.assertTrue(agent.score_plan(path_c) < agent.score_plan(path_d))
-
-    def test_make_plans(self):
-        utility_funcs = {
-            'cash': lambda x: x
-        }
-        action = Action('work', {}, ([{'cash': 100}, {'cash': 50}], [0.5, 0.5]))
-        goal = Goal('money', {'cash': Prereq(operator.ge, 200)}, ([{'cash': 1000}], [1.]))
-        agent = Agent({'cash':0}, [action], [goal], utility_funcs, {})
-        plans = agent.make_plans(agent.state, agent.goals, depth=3)
-        expected_plans = [
-            [(action, ({'cash': 75.0}, {goal})), (action, ({'cash': 150.0}, {goal})), (action, ({'cash': 225.0}, {goal}))],
-            [(action, ({'cash': 75.0}, {goal})), (action, ({'cash': 150.0}, {goal}))],
-            [(action, ({'cash': 75.0}, {goal}))]]
-        self.assertEqual(plans, expected_plans)
+        self.assertTrue(agent._score_successor(from_state, state_a) < agent._score_successor(from_state, state_b))
+        self.assertTrue(agent._score_successor(from_state, state_b) < agent._score_successor(from_state, state_c))
+        self.assertTrue(agent._score_successor(from_state, state_c) < agent._score_successor(from_state, state_d))
 
     def test_plan(self):
         utility_funcs = {
@@ -54,3 +41,20 @@ class AgentTests(unittest.TestCase):
 
         # returned plan should not contain unsatisfiable actions
         self.assertEqual(plan, expected_plan)
+
+    def test_state(self):
+        var_constraints = {
+            'stress': [0., 1.]
+        }
+
+        agent = Agent({'stress':0.5}, [], [], {}, var_constraints)
+        self.assertEqual(agent['stress'], 0.5)
+
+        agent['stress'] = 100
+        self.assertEqual(agent['stress'], 1.)
+
+        agent['stress'] = -100
+        self.assertEqual(agent['stress'], 0.)
+
+        agent.state = {'stress': 100}
+        self.assertEqual(agent['stress'], 1.)

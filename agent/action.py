@@ -1,4 +1,4 @@
-from .outcome import Outcomes
+from .outcome import resolve_outcomes, expected_state, outcome_dist
 
 
 class PrereqsUnsatisfied(Exception):
@@ -9,9 +9,13 @@ class Action():
     """an action an agent can take. actions has a distribution
     of possible outcomes and may have prerequisites"""
     def __init__(self, name, prereqs, outcomes):
+        """`outcomes` is a tuple of `(updates, dist)`,
+        where `updates` is a list of update dictionaries and `dist` is
+        either a list of probabilities for each corresponding state update,
+        or a callable which returns such a list of probabilities"""
         self.name = name
         self.prereqs = prereqs
-        self.outcomes = Outcomes(*outcomes)
+        self.updates, self.dist = outcomes
 
     def __repr__(self):
         return 'Action({})'.format(self.name)
@@ -21,7 +25,7 @@ class Action():
         returning an outcome state"""
         if not self.satisfied(state):
             raise PrereqsUnsatisfied
-        return self.outcomes.resolve(state)
+        return resolve_outcomes(state, self.updates, self.dist)
 
     def satisfied(self, state):
         """check that the action's prereqs are satisfied by the specified state"""
@@ -31,7 +35,7 @@ class Action():
         return 1 # TODO TEMP
 
     def expected_state(self, state):
-        return self.outcomes.expected_state(state)
+        return expected_state(state, self.updates, self.dist)
 
 
 class Goal(Action):
@@ -40,10 +44,9 @@ class Goal(Action):
         super().__init__(name, prereqs, outcomes)
         self.time = time
 
-        if failures is not None:
-            self.failures = Outcomes(*failures)
-        else:
-            self.failures = None
+        if failures is None:
+            failures = ([{}], [1.])
+        self.fail_updates, self.fail_dist = failures
 
     def __repr__(self):
         return 'Goal({})'.format(self.name)
@@ -53,13 +56,11 @@ class Goal(Action):
             self.time -= 1
 
     def fail(self, state):
-        """fail to complete this goal,
-        returning the resulting state"""
-        if self.failures is not None:
-            return self.failures.resolve(state)
-        return state
+        """fail to complete this goal, returning the resulting state"""
+        return resolve_outcomes(state, self.fail_updates, self.fail_dist)
 
     def expected_failure_state(self, state):
-        if self.failures is not None:
-            return self.failures.expected_state(state)
-        return state
+        return expected_state(state, self.fail_updates, self.fail_dist)
+
+    def outcomes(self, state):
+        return outcome_dist(state, self.updates, self.dist)

@@ -19,7 +19,6 @@ class Planner():
         to_state, _ = to_node
         cost = action.cost()
         util = self.util_func(from_state, to_state)
-        util = 1
         if util < 0:
             return cost * pow(util, 2)
         else:
@@ -35,6 +34,7 @@ class Planner():
         state, _ = node
         if goal.satisfied(state):
             return f, path
+
 
         # extended list filtering:
         # skip nodes we have already seen
@@ -65,12 +65,46 @@ class Planner():
             depth += 1
         return solution
 
-    @profile
-    def expand_graph(self, fringe, max_depth=None):
-        """exhaustively expand a search graph"""
-        while fringe:
-            path = fringe.pop()
-            yield path
-            if max_depth is None or len(path) < max_depth:
-                node = path[-1]
-                fringe.extend(reversed([path + [child] for child in self.succ_func(node)]))
+
+def hill_climbing(root, succ_func, valid_func, depth):
+    """always choose the best node next.
+    this only terminates if the succ_func eventually returns nothing.
+    assumes the succ_func returns child nodes in descending order of value.
+    this may not find the highest-scoring path (since it's possible that the highest-scoring path
+    goes through a low-scoring node), but this saves _a lot_ of time"""
+    new_goals = set()
+    seen = set()
+    fringe = [[root]]
+    while fringe:
+        path = fringe.pop(0)
+        node = path[-1]
+        act, (state, goals) = node
+
+        # extended list filtering:
+        # skip nodes we have already seen
+        nhash = hash(frozenset(state.items()))
+        if nhash in seen: continue
+        seen.add(nhash)
+
+        # check that the next move is valid,
+        # given the past node,
+        # if not, save as a goal and backtrack
+        if len(path) >= 2 and not valid_func(node, path[-2]):
+            new_goals.add(act)
+            continue
+
+        # if we terminate at a certain depth, break when we reach it
+        if depth is not None and len(path) > depth:
+            break
+
+        succs = succ_func(node)
+        # if no more successors, we're done
+        if not succs:
+            break
+
+        # assumed that these are best-ordered successors
+        fringe = [path + [succ] for succ in succs] + fringe
+
+    # remove the root
+    path.pop(0)
+    return path, new_goals
