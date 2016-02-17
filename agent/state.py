@@ -9,7 +9,7 @@ def update_state(state, update, expected=False):
 
         # get the type of the value
         # to coerce it back if necessary
-        typ = type(v)
+        typ = type(state[k])
 
         # v can be a callable, taking the state,
         # or an int/float

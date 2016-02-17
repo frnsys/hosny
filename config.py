@@ -15,24 +15,18 @@ INCOME_BRACKETS = [-20000, -10000, 0, 1000, 5000, 10000, 20000, 25000, 30000, 35
                    200000, 500000, 9999998, 9999999]
 SICK_PROB = 1/365 # arbitrary, what should this be?
 
-RANGES = {
+CONSTRAINTS = {
     'stress': [0., None],
     'fatigue': [0., 1.],
-}
-DTYPES = {
-    'world.year': int,
-    'world.month': int,
-    'world.time': int,
-    'cash': int,
-    'education': int,
-    'fatigue': lambda v: math.ceil(v*100)/100,
-    'stress': lambda v: math.ceil(v*100)/100
+    'health': [0., 1.],
+    'rent_fail': [0, None],
 }
 
 # utility functions
 # note that infinities do not work well here;
 # they make it harder to compare utilities
 UTILITY_FUNCS = {
+    'health': lambda x: -10000 if x <= 0 else math.sqrt(x) * 100,
     'stress': lambda x: -(2**x) if x > 1 else 0.5 * math.log(-x+1+1e12) + 0.1,
     'fatigue': lambda x: -(2**x) if x > 1 else 0.5 * math.log(-x+1+1e12) + 0.1,
     'cash': lambda x: -1*(x+1) if x <= 0 else 400/(1 + math.exp(-x/20000)) - (400/2), # sigmoid for x > 0, linear otherwise
@@ -40,20 +34,17 @@ UTILITY_FUNCS = {
 }
 
 def hire_dist(state):
-    from people.attribs import Race, Sex # bleh TODO
     # more employed friends, more likely to have a referral
     p_referral = st.beta.rvs(state['employed_friends'] + 1, 10)
     if random.random() < p_referral:
         referral = 'friend'
     else:
         referral = 'ad_or_cold_call'
-    p = offer_prob(int(state['world.year']), int(state['world.month']), Sex(state['sex']), Race(state['race']), referral)
-    return [0., 1.]
+    p = offer_prob(state['world.year'], state['world.month'], state['sex'], state['race'], referral)
     return [1-p, p]
 
 def get_job(state):
-    from people.attribs import Race, Sex, Education # bleh TODO
-    return job(int(state['world.year']), Sex(state['sex']), Race(state['race']), Education(state['education']))
+    return job(state['world.year'], state['sex'], state['race'], state['education'])
 
 def dist(dist_name, params, factor=1):
     d = getattr(st, dist_name)(*params)
@@ -102,6 +93,14 @@ ACTIONS = [
             {'stress': dist('beta', (2,4)), 'world.time': 4,
              'employed': 1, '~': get_job, 'income': 1000} # for the purposes of planning, put in an exact income. the "~" function will compute the agent's actual income.
         ], hire_dist)),
+
+    Action('visit doctor',
+           prereqs={
+               'cash': Prereq(operator.ge, 100)
+           },
+           outcomes=([
+               {'health': 1., 'world.time': 2, 'cash': -100}
+           ], [1.])),
 
     # TODO ideally we have some flexible-time thing happening
     # we need some action that takes only 1hr to fill in gaps

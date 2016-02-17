@@ -11,10 +11,10 @@ ufuncs = {
 
 
 class UtilityTests(unittest.TestCase):
-    def test_utility(self):
+    def test_change_utility(self):
         state = {'cash': 0}
         to_state = {'cash': 1000}
-        util = utility.utility(ufuncs, state, to_state)
+        util = utility.change_utility(ufuncs, state, to_state)
         self.assertEqual(util, 1000)
 
     def test_expected_utility(self):

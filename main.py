@@ -5,8 +5,7 @@ the simulation
 import json
 import config
 import random
-from mesa import Model
-from mesa.time import RandomActivation
+from sim import Simulator
 from scipy import stats
 from people import Person
 from world import work, social
@@ -18,9 +17,8 @@ world_data = json.load(open('data/world/nyc.json', 'r'))
 # precompute and cache to save a lot of time
 emp_dist = work.precompute_employment_dist()
 
-class City(Model):
+class City(Simulator):
     def __init__(self, population):
-        self.schedule = RandomActivation(self)
         self.geography = Space([int(n) for n in world_data['puma_to_neighborhoods'].keys()],
                                world_data['edges'])
 
@@ -34,11 +32,11 @@ class City(Model):
 
         for agent in population:
             self.geography.place_agent(agent, agent.puma)
-            self.schedule.add(agent)
+        super().__init__(population)
 
     def step(self):
         """one time step in the model (an hour)"""
-        self.schedule.step()
+        super().step()
         self._update_datetime()
 
     def _update_datetime(self):
@@ -55,31 +53,33 @@ class City(Model):
     def affect(self, agent):
         """apply random effects to agent"""
         # TODO better structure this section?
+        if self.state['time'] != config.START_HOUR:
+            return
 
         # if an agent ends the day with <= 0 health, they are dead
-        if agent.state['health'] <= 0:
+        if agent['health'] <= 0:
             agent.dead = True
             return
 
         # getting sick
         if random.random() < config.SICK_PROB:
-            agent.state['health'] -= stats.beta.rvs(2, 10)
+            agent['health'] -= stats.beta.rvs(2, 10)
 
-        if agent.state['employed'] == 1:
+        if agent['employed'] == 1:
             # wage change
             if random.random() < 1/365: # arbitrary probability, what should this be?
                 change = work.income_change(self.date.year, self.date.year + 1, agent.sex, agent.race, agent.income_bracket)
-                agent.state['income'] += change # TODO this needs to change their income bracket if appropriate
+                agent['income'] += change # TODO this needs to change their income bracket if appropriate
             else:
                 employment_dist = emp_dist[self.date.year][self.date.month][agent.race.name][agent.sex.name]
                 p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
                 # fired
                 if random.random() < p_unemployed:
-                    agent.state['employed'] = 0
+                    agent['employed'] = 0
 
         # if the agent fails to pay rent/mortgage 3 months in a row,
         # they get evicted/lose their house
-        if agent.state['rent_fail'] >= 3:
+        if agent['rent_fail'] >= 3:
             # what are the effects of this?
             pass # TODO
 

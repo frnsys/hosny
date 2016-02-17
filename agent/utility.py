@@ -1,16 +1,16 @@
 from .prereq import distance_to_prereqs
 
 
-# def utility(ufuncs, state):
-    # """computes utility for a state"""
-    # utility = 0
-    # for attr, value in state.items():
-        # if attr in ufuncs:
-            # utility += ufuncs[attr](state[attr])
-    # return utility
+def utility(ufuncs, state):
+    """computes utility for a state"""
+    utility = 0
+    for attr, value in state.items():
+        if attr in ufuncs:
+            utility += ufuncs[attr](state[attr])
+    return utility
 
 
-def utility(ufuncs, curr_state, state):
+def change_utility(ufuncs, curr_state, state):
     """compute the utility for a state change"""
     utility = 0
     for attr, value in state.items():
@@ -26,7 +26,7 @@ def expected_utility(ufuncs, state, outcomes):
     a given state to a set of possible outcomes"""
     eu = 0
     for state_, prob in outcomes:
-        eu += prob * utility(ufuncs, state, state_)
+        eu += prob * change_utility(ufuncs, state, state_)
     return eu
 
 
@@ -51,7 +51,7 @@ def goal_utility(ufuncs, state, goal):
         tempd = 1/(goal.time + eps)
         # expected failure state and utility
         expfs = goal.failures.expected_state(state)
-        expfu = utility(ufuncs, state, expfs)
+        expfu = change_utility(ufuncs, state, expfs)
 
     # if there is no goal time sensitivity,
     # we assume there are no failure states (should this change?)

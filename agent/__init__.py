@@ -1,4 +1,3 @@
-from mesa import Agent
 from .search import Planner, hill_climbing
 from .action import Action, Goal
 from .prereq import Prereq
@@ -7,17 +6,17 @@ from agent import utility
 from functools import partial
 
 
-class Agent(Agent):
+class Agent():
     """an (expected) utility maximizing agent,
     capable of managing long-term goals"""
 
-    def __init__(self, state, actions, goals, utility_funcs, var_constraints=None, debug=True):
+    def __init__(self, state, actions, goals, utility_funcs, constraints=None, debug=True):
         self.goals = set(goals)
         self.actions = actions
         self.ufuncs = utility_funcs
         self.utility = partial(utility.utility, self.ufuncs)
         self.planner = Planner(self._succ_func, self.utility)
-        self.var_constraints = var_constraints or {}
+        self.constraints = constraints or {}
         self.state = state
         self.debug = debug
 
@@ -53,7 +52,7 @@ class Agent(Agent):
         return succs
 
     def _score_successor(self, from_state, to_state):
-        return self.utility(from_state, to_state)\
+        return utility.change_utility(self.ufuncs, from_state, to_state)\
             + utility.goals_utility(self.ufuncs, to_state, self.goals)
 
     def subplan(self, state, goal):
@@ -84,11 +83,11 @@ class Agent(Agent):
         """computes expected state for an action/goal,
         attenuating it if necessary"""
         state = action.expected_state(state)
-        return attenuate_state(state, self.var_constraints)
+        return attenuate_state(state, self.constraints)
 
     def __setitem__(self, key, val):
-        if key in self.var_constraints:
-            val = attenuate_value(val, self.var_constraints[key])
+        if key in self.constraints:
+            val = attenuate_value(val, self.constraints[key])
         self._state[key] = val
 
     def __getitem__(self, key):
@@ -100,4 +99,4 @@ class Agent(Agent):
 
     @state.setter
     def state(self, state):
-        self._state = attenuate_state(state, self.var_constraints)
+        self._state = attenuate_state(state, self.constraints)
