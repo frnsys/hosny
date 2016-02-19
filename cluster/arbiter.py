@@ -26,7 +26,6 @@ class Arbiter(Server):
     @asyncio.coroutine
     def call_agents(self, data):
         """call a method on all agents"""
-        logger.info('calling `{}` on all agents'.format(data['func']))
         tasks = []
         for id, worker in self.workers.items():
             # just fwd call to workers

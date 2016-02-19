@@ -53,10 +53,10 @@ class Server():
             return {'exception': 'handler not found for {}'.format(cmd)}
 
     @coroutine
-    def start(self, loop, host='127.0.0.1', port=8888):
+    def start(self, host, port):
         """start the server"""
-        logger.info('running server at {}:{}'.format(host, port))
-        self.server = yield from streams.start_server(self._accept_client, host, port, loop=loop)
+        logger.info('started at {}:{}'.format(host, port))
+        self.server = yield from streams.start_server(self._accept_client, host, port)
 
     @coroutine
     def stop(self):

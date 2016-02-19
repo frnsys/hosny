@@ -5,7 +5,7 @@ import traceback
 from uuid import uuid4
 from .client import Client
 from .server import Server
-from cluster import AgentProxy
+from agent import AgentProxy
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class Worker(Server):
     def __init__(self):
         self.agents = {}
-        self.client = None # connection to arbiter
+        self.arbiter = None
         super().__init__()
         self.handlers = {
             'populate': self.populate,
@@ -24,13 +24,13 @@ class Worker(Server):
         self.id = uuid4().hex
 
     @asyncio.coroutine
-    def start(self, loop, arbiter_host, arbiter_port, host='127.0.0.1', port=8899):
+    def start(self, arbiter_host, arbiter_port, host='127.0.0.1', port=8899):
         """start the worker, specifying the arbiter host/port
         and host/port for the worker"""
-        yield from super().start(loop, host, port)
-        self.client = Client(arbiter_host, arbiter_port)
+        yield from super().start(host, port)
+        self.arbiter = Client(arbiter_host, arbiter_port)
         try:
-            yield from self.client.send_recv({
+            yield from self.arbiter.send_recv({
                 'cmd': 'register',
                 'id': self.id,
                 'host': host,
@@ -43,13 +43,9 @@ class Worker(Server):
     @asyncio.coroutine
     def populate(self, data):
         """populate this worker with agents"""
+        # so AgentProxies in this process reference this worker
+        AgentProxy.worker = self
         self.agents = {a.id: a for a in data['agents']}
-        logger.info('populated with {} agents'.format(len(self.agents)))
-        ids = list(self.agents.keys())
-        id1 = ids[0]
-        id2 = ids[1]
-        self.agents[id2].friends = [AgentProxy(self.agents[id1].id, self)]
-        logger.info('friends {}'.format(self.agents[id2].friends))
         return {'status': 'ok'}
 
     @asyncio.coroutine
@@ -58,9 +54,12 @@ class Worker(Server):
         try:
             d = {'args': [], 'kwargs': {}}
             d.update(data)
-            results = [getattr(agent, d['func'])(*d['args'], **d['kwargs']) for agent in self.agents.values()]
-            if inspect.isgenerator(results[0]):
-                results = yield from asyncio.gather(*results)
+            if self.agents:
+                results = [getattr(agent, d['func'])(*d['args'], **d['kwargs']) for agent in self.agents.values()]
+                if inspect.isgenerator(results[0]):
+                    results = yield from asyncio.gather(*results)
+            else:
+                results = []
             return {'status': 'ok', 'results': results}
         except Exception as e:
             tb = traceback.format_exc()
@@ -78,11 +77,15 @@ class Worker(Server):
         # check locally
         if id in self.agents:
             agent = self.agents[id]
-            return getattr(agent, d['func'])(*d['args'], **d['kwargs'])
+            result = getattr(agent, d['func'])(*d['args'], **d['kwargs'])
+            if inspect.isgenerator(result):
+                result = yield from result
+            return result
 
         # pass request to the arbiter
         else:
-            return (yield from self.client.send_recv(d))
+            d['cmd'] = 'call_agent'
+            return (yield from self.arbiter.send_recv(d))
 
     @asyncio.coroutine
     def query_agent(self, data):
@@ -96,4 +99,5 @@ class Worker(Server):
 
         # pass request to the arbiter
         else:
-            return (yield from self.client.send_recv(data))
+            data['cmd'] = 'query_agent'
+            return (yield from self.arbiter.send_recv(data))

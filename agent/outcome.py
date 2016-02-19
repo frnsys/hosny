@@ -33,6 +33,7 @@ def resolve_outcomes(state, updates, dist):
     state = update_state(state, update, expected=False)
 
     # only when resolving do we apply the special state function
+    # note this does NOT re-cast or attenuate values, that is up to you
     if '~' in update:
         state.update(update['~'](state))
     return state

@@ -1,25 +1,29 @@
 import os
 import math
 import config
+import random
 import logging
 import asyncio
-from uuid import uuid4
 from util import ewms
-from agent import Agent
+from scipy import stats
+from agent import Agent, Goal
 from agent.action import PrereqsUnsatisfied
+from world import work
 from .names import generate_name
 from .generate import generate
 
-from cluster import AgentProxy
 
+# precompute and cache to save a lot of time
+emp_dist = work.precompute_employment_dist()
 
 
 class Person(Agent):
     @classmethod
-    def generate(cls, year, given=None):
+    def generate(cls, year, given=None, **kwargs):
         """generate a random person"""
         attribs = generate(year, given)
         attribs.pop('year', None)
+        attribs.update(kwargs)
         return cls(**attribs)
 
     """an individual in the city"""
@@ -27,11 +31,11 @@ class Person(Agent):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        self.id = uuid4().hex
         self.name = generate_name(self.sex, self.race)
         self.dead = False
         self.action_cooldown = 0
 
+        self.last_utility = None
         self.mean_utility = None
         self.var_utility = 0
 
@@ -41,22 +45,11 @@ class Person(Agent):
         # keep track of past day's actions
         self.diary = []
 
-        # long-term goals
-        # TODO rent goal should renew every month
-        #goals = [Goal(
-            #'pay rent',
-            #prereqs={'cash': Prereq(operator.ge, self.rent)},
-            #outcomes=[Outcome({'stress': -0.1, 'rent_fail': -1000}, 1.)],
-            #failures=[Outcome({'stress': 1, 'rent_fail': 1}, 1.)],
-            #time=2
-        #)]
-        goals = []
-
         super().__init__(
             state={
-                'health': 0.2,
+                'health': 1.,
                 'stress': 0.5,
-                'fatigue': 0,
+                'fatigue': 0.,
                 'cash': 0,
                 'employed': self.employed,
                 'income': self.income,
@@ -66,7 +59,7 @@ class Person(Agent):
                 'education': self.education
             },
             actions=config.ACTIONS,
-            goals=goals,
+            goals=[],
             utility_funcs=config.UTILITY_FUNCS,
             constraints=config.CONSTRAINTS)
 
@@ -81,7 +74,7 @@ class Person(Agent):
 
         if world['time'] == config.START_HOUR:
             # new day, see what happens
-            # model.affect(self)
+            self.daily_effects(world)
 
             # keep track of person's utility at "end" (of the previous) day
             self.last_utility = self.utility(self.state)
@@ -91,13 +84,17 @@ class Person(Agent):
                 self.mean_utility, self.var_utility = ewms(self.mean_utility, self.var_utility, self.last_utility)
 
             # update friends
-            self['employed_friends'] = sum(1 if (yield from f['employed']) > 0 else 0 for f in self.friends)
+            emp_friends = 0
+            for f in self.friends:
+                emp = yield from f['employed']
+                if emp > 0:
+                    emp_friends += 1
+            self['employed_friends'] = emp_friends
 
             # make a plan for day
-            self.check_friends()
-            self.logger.info('planning day')
-            self.dayplan, _ = self.plan_day(world)
-            self.logger.info('plan for the day: {}'.format(self.dayplan))
+            yield from self.check_friends()
+            self.dayplan, goals = self.plan_day(world)
+            self.logger.info('--->plan for the day: {}'.format([action for action, _ in self.dayplan]))
 
 
         # if an action is still "executing",
@@ -130,7 +127,6 @@ class Person(Agent):
                     self.logger.info('  {} FAILED, REPLANNING'.format(action))
                     # record (action, success, failing state)
                     self.diary.append((action.name, False, self.state.copy()))
-
                     self.dayplan, _ = self.plan_day(world)
 
     def actions_for_state(self, state):
@@ -178,18 +174,18 @@ class Person(Agent):
                 agent[k] = v
         return agent, world
 
+    @asyncio.coroutine
     def check_friends(self):
         """see how friends are doing"""
         for friend in self.friends:
-            pass # TODO rewrite this to support remote stuff
-            # if friend.diary:
-                # action, success, state = friend.diary[-1]
-                # if friend.utility > friend.utility + 2*math.sqrt(friend.var_utility):
-                    # print('friend had a good day')
-                    # self['stress'] = max(0, self['stress'] - 0.005)
-                # elif friend.utility < friend.utility - 2*math.sqrt(friend.var_utility):
-                    # print('friend had a bad day')
-                    # self['stress'] = min(1, self['stress'] + 0.005)
+            utility, var_utility = yield from friend.request(['last_utility', 'var_utility'])
+            if utility is not None:
+                if utility > utility + 2*math.sqrt(var_utility):
+                    # friend had a good day
+                    self['stress'] = max(0, self['stress'] - 0.005)
+                elif utility < utility - 2*math.sqrt(var_utility):
+                    # friend had a bad day
+                    self['stress'] = min(1, self['stress'] + 0.005)
 
     def set_logger(self, log_dir):
         """creates a logger. only run this _after_ agents have
@@ -207,3 +203,45 @@ class Person(Agent):
         logger.addHandler(fh)
         logger.setLevel(logging.INFO)
         self.logger = logger
+
+    def daily_effects(self, world):
+        """apply daily effects to agent"""
+        # if an agent ends the day with <= 0 health, they are dead
+        if self.state['health'] <= 0:
+            self.dead = True
+            return
+
+        # getting sick
+        if random.random() < config.SICK_PROB:
+            self['health'] -= stats.beta.rvs(2, 10)
+
+        if self.state['employed'] > 0:
+            # wage change
+            if random.random() < 1/365: # arbitrary probability, what should this be?
+                change = work.income_change(world['year'], world['year'] + 1, self.sex, self.race, self.income_bracket)
+                self['income'] += change # TODO this needs to change their income bracket if appropriate
+            else:
+                employment_dist = emp_dist[world['year']][world['month']][self.race.name][self.sex.name]
+                p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
+                # fired
+                if random.random() < p_unemployed:
+                    self['employed'] = 0
+
+        # if the agent fails to pay rent/mortgage 3 months in a row,
+        # they get evicted/lose their house
+        if self.state['rent_fail'] >= 3:
+            # what are the effects of this?
+            pass # TODO
+
+        # tick goals/check failures
+        remaining_goals = set()
+        for goal in self.goals:
+            if isinstance(goal, Goal):
+                goal.tick()
+                if goal.time <= 0:
+                    self.state = goal.fail(self.state)
+                else:
+                    remaining_goals.add(goal)
+            else:
+                remaining_goals.add(goal)
+        self.goals = remaining_goals

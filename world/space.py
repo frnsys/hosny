@@ -1,7 +1,3 @@
-"""
-represent the city's geography
-"""
-
 import networkx as nx
 
 
@@ -9,8 +5,7 @@ class Space():
     def __init__(self, nodes, edges):
         """the geography of the city"""
         self.geo = nx.Graph()
-        self.geo.add_nodes_from([
-            (n, {'agents':[]}) for n in nodes])
+        self.geo.add_nodes_from([(n, {'agents':[]}) for n in nodes])
         self.geo.add_edges_from(edges)
 
         # keep track of agent positions

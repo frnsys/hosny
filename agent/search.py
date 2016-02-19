@@ -9,8 +9,8 @@ class Planner():
     def heuristic(self, node, goal):
         """an admissible heuristic never overestimates the distance to the goal"""
 
-        # TODO come up with a good admissible heuristic
-        return 0 # TEMPORARY
+        # override this with a better heuristic
+        return 0
 
     def distance(self, from_node, to_node, action):
         """we define distance so that we minimize cost
@@ -34,7 +34,6 @@ class Planner():
         state, _ = node
         if goal.satisfied(state):
             return f, path
-
 
         # extended list filtering:
         # skip nodes we have already seen

@@ -2,10 +2,8 @@ import json
 import random
 from util import random_choice
 
-with open('data/names/gen/surname_given_race.json', 'r') as f:
-    surname_given_race = json.load(f)
-with open('data/names/gen/name_given_sex.json', 'r') as f:
-    name_given_sex = json.load(f)
+surname_given_race = json.load(open('data/names/gen/surname_given_race.json', 'r'))
+name_given_sex = json.load(open('data/names/gen/name_given_sex.json', 'r'))
 
 race_map = {
     # in the PUMS data, "white" encompasses "hispanic" as well

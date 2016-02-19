@@ -27,6 +27,8 @@ def update_state(state, update, expected=False):
 
 
 def attenuate_state(state, ranges):
+    """attenuates a state so that its values
+    are within the specified ranges"""
     for k, v in state.items():
         if k in ranges:
             state[k] = attenuate_value(v, ranges[k])
@@ -34,6 +36,7 @@ def attenuate_state(state, ranges):
 
 
 def attenuate_value(value, range):
+    """attenuates a value to be within the specified range"""
     mn, mx = range
     if mn is not None: value = max(mn, value)
     if mx is not None: value = min(mx, value)

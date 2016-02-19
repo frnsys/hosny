@@ -2,9 +2,25 @@ import math
 import random
 import operator
 import scipy.stats as st
-from agent import Action, Prereq
+from agent import Action, Prereq, Goal
 from datetime import datetime
 from world.work import offer_prob, job
+
+# long-term goals
+def goals_for_agent(agent):
+    return [Goal(
+        'pay rent',
+        prereqs={'cash': Prereq(operator.ge, agent.rent)},
+        outcomes=(
+            [{'stress': -0.1, 'rent_fail': -1000}],
+            [1.]
+        ),
+        failures=(
+            [{'stress': 1, 'rent_fail': 1}],
+            [1.]
+        ),
+        time=2
+    )]
 
 
 START_DATE = datetime(day=1, month=1, year=2005)

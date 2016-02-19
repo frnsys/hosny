@@ -20,8 +20,7 @@ df = pd.read_csv('data/people/gen/pums_nyc.csv')
 years = df.groupby('YEAR')
 
 # offer probabilities
-with open('data/world/gen/job_offer_probs.json', 'r') as f:
-    p_offer = json.load(f)
+p_offer = json.load(open('data/world/gen/job_offer_probs.json', 'r'))
 
 
 def employment_dist(year, month, sex, race):
@@ -148,22 +147,3 @@ def precompute_employment_dist():
                     yr[month][race.name][sex.name] = employment_dist(year, month, sex, race)
         emp_dist[year] = yr
     return emp_dist
-
-
-if __name__ == '__main__':
-    from people.attribs import Sex, Race
-
-    # pre-financial crisis
-    print(employment_dist(2005, 5, Sex.male, Race.black))
-    print(employment_dist(2005, 5, Sex.male, Race.white))
-
-    # post-financial crisis
-    print(employment_dist(2009, 5, Sex.male, Race.black))
-    print(employment_dist(2009, 5, Sex.male, Race.white))
-
-    print(income_change(2008, 2009, Sex.male, Race.black, '(20000, 25000]'))
-    print(income_change(2008, 2009, Sex.male, Race.white, '(20000, 25000]'))
-    print(income_change(2008, 2009, Sex.male, Race.api, '(20000, 25000]'))
-
-    print(offer_prob(2005, 5, Sex.male, Race.white, 'friend'))
-    print(offer_prob(2005, 5, Sex.male, Race.black, 'friend'))

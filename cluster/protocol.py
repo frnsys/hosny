@@ -2,11 +2,10 @@ import asyncio
 import pickle
 import logging
 import dill
-# import cloudpickle
 from hashlib import md5
 
-logger = logging.getLogger(__name__)
-sentinel = md5(b'7f57da0f9202f6b4df78e251058be6f0').hexdigest().encode()
+logger = logging.getLogger('cluster')
+sentinel = md5(b'SENTINEL').hexdigest().encode() # eh what should this be
 
 
 def dumps(x):

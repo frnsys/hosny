@@ -8,7 +8,7 @@ class PrereqsUnsatisfied(Exception):
 class Action():
     """an action an agent can take. actions has a distribution
     of possible outcomes and may have prerequisites"""
-    def __init__(self, name, prereqs, outcomes):
+    def __init__(self, name, prereqs, outcomes, cost=1):
         """`outcomes` is a tuple of `(updates, dist)`,
         where `updates` is a list of update dictionaries and `dist` is
         either a list of probabilities for each corresponding state update,
@@ -16,6 +16,7 @@ class Action():
         self.name = name
         self.prereqs = prereqs
         self.updates, self.dist = outcomes
+        self._cost = cost
 
     def __repr__(self):
         return 'Action({})'.format(self.name)
@@ -32,7 +33,7 @@ class Action():
         return all(prereq(state[k]) for k, prereq in self.prereqs.items())
 
     def cost(self):
-        return 1 # TODO TEMP
+        return self._cost
 
     def expected_state(self, state):
         return expected_state(state, self.updates, self.dist)
