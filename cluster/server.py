@@ -1,5 +1,5 @@
 import logging
-import protocol
+from . import protocol
 from asyncio import streams, coroutine, Task
 
 logger = logging.getLogger(__name__)

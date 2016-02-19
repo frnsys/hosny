@@ -1,9 +1,11 @@
 import logging
+import inspect
 import asyncio
-import multiprocessing
+import traceback
 from uuid import uuid4
-from client import Client
-from server import Server
+from .client import Client
+from .server import Server
+from cluster import AgentProxy
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +16,10 @@ class Worker(Server):
         self.client = None # connection to arbiter
         super().__init__()
         self.handlers = {
-            'step': self.step,
             'populate': self.populate,
             'call_agent': self.call_agent,
             'query_agent': self.query_agent,
+            'call_agents': self.call_agents,
         }
         self.id = uuid4().hex
 
@@ -33,27 +35,38 @@ class Worker(Server):
                 'id': self.id,
                 'host': host,
                 'port': port,
-                'ncores': multiprocessing.cpu_count(),
                 'type': 'worker'})
         except ConnectionRefusedError:
             logger.exception('could not connect to arbiter at {}:{}'.format(host, port))
             raise
 
     @asyncio.coroutine
-    def step(self, data):
-        """advance each of this worker's agents a step"""
-        coros = []
-        for agent in self.agents.values():
-            coros.append(agent.step(self))
-        if coros:
-            yield from asyncio.wait(coros)
-        return {'status': 'ok'}
-
-    @asyncio.coroutine
     def populate(self, data):
         """populate this worker with agents"""
         self.agents = {a.id: a for a in data['agents']}
+        logger.info('populated with {} agents'.format(len(self.agents)))
+        ids = list(self.agents.keys())
+        id1 = ids[0]
+        id2 = ids[1]
+        self.agents[id2].friends = [AgentProxy(self.agents[id1].id, self)]
+        logger.info('friends {}'.format(self.agents[id2].friends))
         return {'status': 'ok'}
+
+    @asyncio.coroutine
+    def call_agents(self, data):
+        """call a method on all agents"""
+        try:
+            d = {'args': [], 'kwargs': {}}
+            d.update(data)
+            results = [getattr(agent, d['func'])(*d['args'], **d['kwargs']) for agent in self.agents.values()]
+            if inspect.isgenerator(results[0]):
+                results = yield from asyncio.gather(*results)
+            return {'status': 'ok', 'results': results}
+        except Exception as e:
+            tb = traceback.format_exc()
+            logger.exception(e)
+            logger.exception(tb)
+            return {'status': 'failed', 'exception': e, 'traceback': tb}
 
     @asyncio.coroutine
     def call_agent(self, data):
@@ -79,24 +92,8 @@ class Worker(Server):
         # check locally
         if id in self.agents:
             agent = self.agents[id]
-            return agent[data['key']]
+            return (yield from agent[data['key']])
 
         # pass request to the arbiter
         else:
             return (yield from self.client.send_recv(data))
-
-
-if __name__ == '__main__':
-    import sys
-    import asyncio
-    loop = asyncio.get_event_loop()
-    worker = Worker()
-    loop.run_until_complete(worker.start(loop, '127.0.0.1', 8888, port=sys.argv[1]))
-
-    # creates a client and connects to our server
-    try:
-        loop.run_forever()
-    finally:
-        loop.run_until_complete(worker.stop())
-        loop.close()
-

@@ -1,13 +1,17 @@
+import os
 import math
 import config
 import logging
-#import operator
+import asyncio
 from uuid import uuid4
 from util import ewms
 from agent import Agent
 from agent.action import PrereqsUnsatisfied
 from .names import generate_name
 from .generate import generate
+
+from cluster import AgentProxy
+
 
 
 class Person(Agent):
@@ -69,6 +73,7 @@ class Person(Agent):
     def __repr__(self):
         return self.name
 
+    @asyncio.coroutine
     def step(self, world):
         """one time-step"""
         if self.dead:
@@ -86,13 +91,13 @@ class Person(Agent):
                 self.mean_utility, self.var_utility = ewms(self.mean_utility, self.var_utility, self.last_utility)
 
             # update friends
-            self['employed_friends'] = sum(f['employed'] for f in self.friends)
+            self['employed_friends'] = sum(1 if (yield from f['employed']) > 0 else 0 for f in self.friends)
 
             # make a plan for day
             self.check_friends()
-            print('planning day')
+            self.logger.info('planning day')
             self.dayplan, _ = self.plan_day(world)
-            # print('plan for the day', self.dayplan)
+            self.logger.info('plan for the day: {}'.format(self.dayplan))
 
 
         # if an action is still "executing",
@@ -108,21 +113,21 @@ class Person(Agent):
                     action, expected_state = self.dayplan.pop(0)
                 except IndexError:
                     # if no more of the day is planned, replan from this point
-                    print('ran out of things to do, replanning')
+                    self.logger.info('ran out of things to do, replanning')
                     self.dayplan, _ = self.plan_day(world)
                     continue
                 try:
                     time_taken = self.take_action(action, world)
                     self.action_cooldown = time_taken
                     action_taken = True
-                    print(self.name, 'did', action)
+                    self.logger.info('{} did {}'.format(self.name, action))
 
                     # record (action, success, resulting state)
                     self.diary.append((action.name, True, self.state.copy()))
 
                 except PrereqsUnsatisfied:
                     # replan
-                    print('  ', action, 'FAILED, REPLANNING')
+                    self.logger.info('  {} FAILED, REPLANNING'.format(action))
                     # record (action, success, failing state)
                     self.diary.append((action.name, False, self.state.copy()))
 
@@ -176,25 +181,29 @@ class Person(Agent):
     def check_friends(self):
         """see how friends are doing"""
         for friend in self.friends:
-            if friend.diary:
-                action, success, state = friend.diary[-1]
-                if friend.utility > friend.utility + 2*math.sqrt(friend.var_utility):
-                    print('friend had a good day')
-                    self['stress'] = max(0, self['stress'] - 0.005)
-                elif friend.utility < friend.utility - 2*math.sqrt(friend.var_utility):
-                    print('friend had a bad day')
-                    self['stress'] = min(1, self['stress'] + 0.005)
+            pass # TODO rewrite this to support remote stuff
+            # if friend.diary:
+                # action, success, state = friend.diary[-1]
+                # if friend.utility > friend.utility + 2*math.sqrt(friend.var_utility):
+                    # print('friend had a good day')
+                    # self['stress'] = max(0, self['stress'] - 0.005)
+                # elif friend.utility < friend.utility - 2*math.sqrt(friend.var_utility):
+                    # print('friend had a bad day')
+                    # self['stress'] = min(1, self['stress'] + 0.005)
 
-    def set_logger(self, log_path):
-        """creates a logger"""
-        logger = logging.getLogger(self.name)
+    def set_logger(self, log_dir):
+        """creates a logger. only run this _after_ agents have
+        been distributed to workers; this opens a file which can't be pickled"""
+        slug = self.name.lower().replace(' ', '_')
+        logger = logging.getLogger(slug)
 
         # configure the logger
-        logger.setLevel(logging.INFO)
         formatter = logging.Formatter('%(name)s - %(message)s')
 
         # output to file
-        fh = logging.FileHandler(log_path)
+        fh = logging.FileHandler(os.path.join(log_dir, '{}.log'.format(slug)))
+        fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
+        logger.setLevel(logging.INFO)
         self.logger = logger

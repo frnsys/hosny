@@ -37,6 +37,9 @@ class Action():
     def expected_state(self, state):
         return expected_state(state, self.updates, self.dist)
 
+    def outcomes(self, state):
+        return outcome_dist(state, self.updates, self.dist)
+
 
 class Goal(Action):
     """a goal that can timeout and fail"""
@@ -61,6 +64,3 @@ class Goal(Action):
 
     def expected_failure_state(self, state):
         return expected_state(state, self.fail_updates, self.fail_dist)
-
-    def outcomes(self, state):
-        return outcome_dist(state, self.updates, self.dist)

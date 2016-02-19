@@ -1,3 +1,4 @@
+from enum import Enum
 from util import random_choice
 from collections import defaultdict
 from .state import update_state
@@ -45,7 +46,10 @@ def expected_state(state, updates, dist):
         outcome_state = update_state(state, update, expected=True)
         for k, v in outcome_state.items():
             try:
-                expstate[k].append(v * prob)
+                if isinstance(v, Enum):
+                    expstate[k].append((v, prob))
+                else:
+                    expstate[k].append(v * prob)
 
             # for non-numerical types
             except TypeError:

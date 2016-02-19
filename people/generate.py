@@ -14,9 +14,15 @@ from models.bnet import BNet
 from world import rent
 
 
-world_data = json.load(open('data/world/nyc.json', 'r'))
-occupations = json.load(open('data/people/occupations.json', 'r'))
-industries = json.load(open('data/people/industries.json', 'r'))
+with open('data/world/nyc.json', 'r') as f:
+    world_data = json.load(f)
+
+with open('data/people/occupations.json', 'r') as f:
+    occupations = json.load(f)
+
+with open('data/people/industries.json', 'r') as f:
+    industries = json.load(f)
+
 puma_to_neighborhoods = {int(k): v for k, v in world_data['puma_to_neighborhoods'].items()}
 
 

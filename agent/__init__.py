@@ -1,3 +1,4 @@
+import asyncio
 from .search import Planner, hill_climbing
 from .action import Action, Goal
 from .prereq import Prereq
@@ -43,7 +44,7 @@ class Agent():
                 expstate = self._expected_state(goal, state)
                 remaining_goals = goals.copy()
                 remaining_goals.remove(goal)
-                succs.append((action, (expstate, remaining_goals)))
+                succs.append((goal, (expstate, remaining_goals)))
 
         # sort by expected utility, desc
         succs = sorted(succs,
@@ -79,6 +80,12 @@ class Agent():
         self.goals = self.goals | goals
         return plan, self.goals
 
+    @asyncio.coroutine
+    def step(self, world):
+        """this method is a coroutine because
+        it may involve interaction with remote agents"""
+        raise NotImplementedError
+
     def _expected_state(self, action, state):
         """computes expected state for an action/goal,
         attenuating it if necessary"""
@@ -90,6 +97,7 @@ class Agent():
             val = attenuate_value(val, self.constraints[key])
         self._state[key] = val
 
+    @asyncio.coroutine
     def __getitem__(self, key):
         return self._state[key]
 

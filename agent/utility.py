@@ -47,7 +47,7 @@ def goal_utility(ufuncs, state, goal):
     expu = expected_utility(ufuncs, state, goal.outcomes(state))
 
     # time left until goal failure (temporal discounting)
-    if goal.time is not None:
+    if hasattr(goal, 'time') and goal.time is not None:
         tempd = 1/(goal.time + eps)
         # expected failure state and utility
         expfs = goal.failures.expected_state(state)

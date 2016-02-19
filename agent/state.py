@@ -14,7 +14,11 @@ def update_state(state, update, expected=False):
         # v can be a callable, taking the state,
         # or an int/float
         try:
-            val, exp = v(state)
+            val = v(state)
+            if isinstance(val, tuple):
+                val, exp = val
+            else:
+                exp = val
             state[k] += (exp if expected else val)
         except TypeError:
             state[k] += v

@@ -26,7 +26,11 @@ class Prereq():
         # if satisfied, distance = 0
         if self(val):
             return 0
-        return ((self.target - val)/self.target)**2
+        if self.target == 0:
+            # TODO is this the right way to handle 0?
+            return (self.target - val)**2
+        else:
+            return ((self.target - val)/self.target)**2
 
 
 class OrPrereq(Prereq):

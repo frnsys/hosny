@@ -91,7 +91,7 @@ ACTIONS = [
         outcomes=([
             {'stress': dist('beta', (2,4)), 'world.time': 4},
             {'stress': dist('beta', (2,4)), 'world.time': 4,
-             'employed': 1, '~': get_job, 'income': 1000} # for the purposes of planning, put in an exact income. the "~" function will compute the agent's actual income.
+             'employed': lambda s: 1 if s['employed'] == 0 else 0, '~': get_job, 'income': 1000} # for the purposes of planning, put in an exact income. the "~" function will compute the agent's actual income.
         ], hire_dist)),
 
     Action('visit doctor',

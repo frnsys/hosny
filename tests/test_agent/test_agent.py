@@ -1,9 +1,14 @@
+import asyncio
 import unittest
 import operator
 from agent import Agent, Action, Goal, Prereq
 
 
 class AgentTests(unittest.TestCase):
+    def _coro(self, coro):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(coro)
+
     def test_score_successor(self):
         utility_funcs = {
             'cash': lambda x: x
@@ -48,13 +53,13 @@ class AgentTests(unittest.TestCase):
         }
 
         agent = Agent({'stress':0.5}, [], [], {}, var_constraints)
-        self.assertEqual(agent['stress'], 0.5)
+        self.assertEqual(self._coro(agent['stress']), 0.5)
 
         agent['stress'] = 100
-        self.assertEqual(agent['stress'], 1.)
+        self.assertEqual(self._coro(agent['stress']), 1.)
 
         agent['stress'] = -100
-        self.assertEqual(agent['stress'], 0.)
+        self.assertEqual(self._coro(agent['stress']), 0.)
 
         agent.state = {'stress': 100}
-        self.assertEqual(agent['stress'], 1.)
+        self.assertEqual(self._coro(agent['stress']), 1.)

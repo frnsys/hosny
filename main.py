@@ -2,23 +2,27 @@
 the simulation
 """
 
+import os
 import json
 import config
 import random
-from sim import Simulator
+from sim import Simulation
 from scipy import stats
 from people import Person
 from world import work, social
 from world.space import Space
 from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
-world_data = json.load(open('data/world/nyc.json', 'r'))
+with open('data/world/nyc.json', 'r') as f:
+    world_data = json.load(f)
 
 # precompute and cache to save a lot of time
 emp_dist = work.precompute_employment_dist()
 
-class City(Simulator):
-    def __init__(self, population):
+class City(Simulation):
+    def __init__(self, population, distributed=False):
+        super().__init__(population, distributed)
         self.geography = Space([int(n) for n in world_data['puma_to_neighborhoods'].keys()],
                                world_data['edges'])
 
@@ -32,7 +36,15 @@ class City(Simulator):
 
         for agent in population:
             self.geography.place_agent(agent, agent.puma)
-        super().__init__(population)
+
+        session_id = datetime.now().isoformat()
+        log_dir = 'logs/{}'.format(session_id)
+        os.makedirs(log_dir)
+        if self.distributed:
+            self.cluster.submit('call_agents', func='set_logger', args=(log_dir,))
+        else:
+            for agent in self.agents:
+                agent.set_logger(log_dir)
 
     def step(self):
         """one time step in the model (an hour)"""
@@ -109,7 +121,7 @@ def generate_population(n):
 
 
 def run_simulation(population, days):
-    model = City(population)
+    model = City(population, distributed=True)
     hours = 0
     while hours <= days * 24:
         model.step()
@@ -117,23 +129,10 @@ def run_simulation(population, days):
 
 
 if __name__ == '__main__':
-    import os
     from time import time
-    from datetime import timedelta, datetime
+    from datetime import timedelta
 
-    session_id = datetime.now().isoformat()
-
-    #population = generate_population(2)
-    population = [
-        Person.generate(config.START_DATE.year, {'employed': 0}),
-        #Person.generate(config.START_DATE.year, {'employed': 1})
-    ]
-
-    log_dir = 'logs/{}'.format(session_id)
-    os.makedirs(log_dir)
-    for person in population:
-        slug = person.name.lower().replace(' ', '_')
-        person.set_logger('{}/{}.log'.format(log_dir, slug))
+    population = generate_population(2)
 
     print('running simulation...')
     s = time()

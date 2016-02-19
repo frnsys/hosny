@@ -20,7 +20,8 @@ df = pd.read_csv('data/people/gen/pums_nyc.csv')
 years = df.groupby('YEAR')
 
 # offer probabilities
-p_offer = json.load(open('data/world/gen/job_offer_probs.json', 'r'))
+with open('data/world/gen/job_offer_probs.json', 'r') as f:
+    p_offer = json.load(f)
 
 
 def employment_dist(year, month, sex, race):

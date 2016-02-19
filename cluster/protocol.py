@@ -1,7 +1,8 @@
 import asyncio
 import pickle
 import logging
-import cloudpickle
+import dill
+# import cloudpickle
 from hashlib import md5
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ sentinel = md5(b'7f57da0f9202f6b4df78e251058be6f0').hexdigest().encode()
 def dumps(x):
     """serialize python object(s)"""
     try:
-        return cloudpickle.dumps(x, protocol=pickle.HIGHEST_PROTOCOL)
+        return dill.dumps(x, protocol=pickle.HIGHEST_PROTOCOL)
     except Exception as e:
         logger.info("Failed to serialize %s", x)
         logger.exception(e)
@@ -21,7 +22,7 @@ def dumps(x):
 def loads(x):
     """deserialize python object(s)"""
     try:
-        return cloudpickle.loads(x)
+        return dill.loads(x)
     except Exception as e:
         logger.exception(e)
         raise
