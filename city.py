@@ -1,9 +1,7 @@
 import os
 import json
 import config
-import random
 from sim import Simulation
-from scipy import stats
 from world.space import Space
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
@@ -53,3 +51,10 @@ class City(Simulation):
         self.state['month'] = next.month
         self.state['year'] = next.year
         self.date = next
+
+    def history(self):
+        """get history of all agents"""
+        if self.cluster:
+            return self.cluster.submit('call_agents', func='salient_lifetime_actions')
+        else:
+            return [agent.salient_lifetime_actions() for agent in self.agents]

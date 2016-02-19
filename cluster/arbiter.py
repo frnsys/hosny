@@ -30,8 +30,7 @@ class Arbiter(Server):
         for id, worker in self.workers.items():
             # just fwd call to workers
             tasks.append(asyncio.Task(worker.send_recv(data)))
-        yield from asyncio.gather(*tasks)
-        return {'success': 'ok'}
+        return (yield from asyncio.gather(*tasks))
 
     @asyncio.coroutine
     def populate(self, data):

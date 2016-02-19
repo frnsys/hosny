@@ -1,13 +1,14 @@
 import os
-import math
 import config
 import random
 import logging
 import asyncio
+import numpy as np
 from util import ewms
 from scipy import stats
 from agent import Agent, Goal
 from agent.action import PrereqsUnsatisfied
+from collections import defaultdict
 from world import work
 from .names import generate_name
 from .generate import generate
@@ -35,15 +36,26 @@ class Person(Agent):
         self.dead = False
         self.action_cooldown = 0
 
+        # days to "burn in" agent, so mean utility and stuff settle
+        self.burn_in = 14
+
         self.last_utility = None
         self.mean_utility = None
-        self.var_utility = 0
+        self.stddev_utility = 0
 
         # the world initializes this
         self.friends = []
 
         # keep track of past day's actions
         self.diary = []
+
+        # keep track of "life" history
+        self.history = {
+            'salient_actions': [],
+            'accomplished_goals': [],
+            'failed_actions': defaultdict(int),
+            'succeeded_actions': defaultdict(int)
+        }
 
         super().__init__(
             state={
@@ -66,6 +78,14 @@ class Person(Agent):
     def __repr__(self):
         return self.name
 
+    def _is_significant(self, utility, mean, stddev):
+        """determines if a utility is significant or not"""
+        if utility >= mean + 2.5 * stddev:
+            return True
+        elif utility <= mean - 2.5 * stddev:
+            return True
+        return False
+
     @asyncio.coroutine
     def step(self, world):
         """one time-step"""
@@ -73,15 +93,29 @@ class Person(Agent):
             return
 
         if world['time'] == config.START_HOUR:
-            # new day, see what happens
-            self.daily_effects(world)
-
             # keep track of person's utility at "end" (of the previous) day
             self.last_utility = self.utility(self.state)
             if self.mean_utility is None:
                 self.mean_utility = self.last_utility
             else:
-                self.mean_utility, self.var_utility = ewms(self.mean_utility, self.var_utility, self.last_utility)
+                self.mean_utility, self.stddev_utility = ewms(self.mean_utility, self.stddev_utility, self.last_utility)
+
+            if self.burn_in == 0:
+                # get salient actions for yesterday
+                self.history['salient_actions'].extend([(a, u) for a, s, u in self.diary
+                                                        if self._is_significant(
+                                                            u, self.mean_utility, self.stddev_utility)])
+            else:
+                self.burn_in -= 1
+
+            # reset diary for new day
+            self.diary = []
+
+            # new day, see what happens
+            self.daily_effects(world)
+
+            # update last utility after day's effects
+            self.last_utility = self.utility(self.state)
 
             # update friends
             emp_friends = 0
@@ -118,15 +152,28 @@ class Person(Agent):
                     action_taken = True
                     self.logger.info('{} did {}'.format(self.name, action))
 
-                    # record (action, success, resulting state)
-                    self.diary.append((action.name, True, self.state.copy()))
+                    if isinstance(action, Goal):
+                        self.history['accomplished_goals'].append(action)
+
+                    # record (action, resulting state, utility)
+                    self.last_utility = self.utility(self.state)
+                    self.diary.append((action.name, self.state.copy(), self.last_utility))
+                    self.history['succeeded_actions'][action] += 1
 
                 except PrereqsUnsatisfied:
                     # replan
+                    self.history['failed_actions'][action] += 1
+
                     self.logger.info('  {} FAILED, REPLANNING'.format(action))
-                    # record (action, success, failing state)
-                    self.diary.append((action.name, False, self.state.copy()))
                     self.dayplan, _ = self.plan_day(world)
+
+    def salient_lifetime_actions(self):
+        utilities = [u for a, u in self.history['salient_actions']]
+        if utilities:
+            mean, std = np.mean(utilities), np.std(utilities)
+            self.history['salient_actions'] = [(a, u) for a, u in self.history['salient_actions'] if self._is_significant(u, mean, std)]
+            return self.history['salient_actions']
+        return []
 
     def actions_for_state(self, state):
         time = state['world.time']
@@ -177,12 +224,12 @@ class Person(Agent):
     def check_friends(self):
         """see how friends are doing"""
         for friend in self.friends:
-            utility, var_utility = yield from friend.request(['last_utility', 'var_utility'])
+            utility, stddev_utility = yield from friend.request(['last_utility', 'stddev_utility'])
             if utility is not None:
-                if utility > utility + 2*math.sqrt(var_utility):
+                if utility > utility + 1.5*stddev_utility:
                     # friend had a good day
                     self['stress'] = max(0, self['stress'] - 0.005)
-                elif utility < utility - 2*math.sqrt(var_utility):
+                elif utility < utility - 1.5*stddev_utility:
                     # friend had a bad day
                     self['stress'] = min(1, self['stress'] + 0.005)
 

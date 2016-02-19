@@ -37,6 +37,9 @@ def run_simulation(population, days, arbiter):
         hours += 1
     print('elapsed:', str(timedelta(seconds=time() - s)))
 
+    print('SALIENT HISTORIES~~~~~')
+    print(model.history())
+
 
 def generate_population(n):
     population = []

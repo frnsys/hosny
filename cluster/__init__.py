@@ -17,6 +17,7 @@ class Cluster(Client):
         for result in results:
             if 'exception' in result:
                 print(result['traceback'])
+        return results
 
 
 def proxy_agents(agent):
