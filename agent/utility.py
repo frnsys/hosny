@@ -50,7 +50,7 @@ def goal_utility(ufuncs, state, goal):
     if hasattr(goal, 'time') and goal.time is not None:
         tempd = 1/(goal.time + eps)
         # expected failure state and utility
-        expfs = goal.failures.expected_state(state)
+        expfs = goal.expected_failure_state(state)
         expfu = change_utility(ufuncs, state, expfs)
 
     # if there is no goal time sensitivity,

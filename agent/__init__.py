@@ -54,8 +54,9 @@ class Agent():
 
     def _score_successor(self, from_state, to_state):
         """score a successor based how it changes from the previous state"""
-        return utility.change_utility(self.ufuncs, from_state, to_state)\
-            + utility.goals_utility(self.ufuncs, to_state, self.goals)
+        chutil = utility.change_utility(self.ufuncs, from_state, to_state)
+        goutil = utility.goals_utility(self.ufuncs, to_state, self.goals)
+        return chutil + goutil
 
     def subplan(self, state, goal):
         """create a subplan to achieve a goal;

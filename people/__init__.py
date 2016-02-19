@@ -96,7 +96,6 @@ class Person(Agent):
             self.dayplan, goals = self.plan_day(world)
             self.logger.info('--->plan for the day: {}'.format([action for action, _ in self.dayplan]))
 
-
         # if an action is still "executing",
         # skip this step
         if self.action_cooldown > 0:

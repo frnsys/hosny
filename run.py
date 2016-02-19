@@ -11,13 +11,19 @@ from datetime import timedelta
 @click.command()
 @click.argument('population', 'number of simulated citizens', type=int)
 @click.argument('days', '(simulated) days to run', type=int)
-@click.argument('arbiter', default=None)
+@click.argument('arbiter', default=[])
+def run(population, days, arbiter):
+    run_simulation(population, days, arbiter)
+
+
 def run_simulation(population, days, arbiter):
     logging.basicConfig(level=logging.INFO)
 
-    if arbiter is not None:
+    if arbiter:
         host, port = arbiter.split(':')
         arbiter = (host, int(port))
+    else:
+        arbiter = None
 
     print('generating population...')
     pop = generate_population(population)
@@ -47,4 +53,4 @@ def generate_population(n):
 
 
 if __name__ == '__main__':
-    run_simulation()
+    run()

@@ -63,12 +63,14 @@ def get_job(state):
     return job(state['world.year'], state['sex'], state['race'], state['education'])
 
 def dist(dist_name, params, factor=1):
+    """warning: this can be quite slow, depending on the dist"""
     d = getattr(st, dist_name)(*params)
     def f(state):
         return factor * d.rvs(), factor * d.mean()
     return f
 
 def dyndist(dist_name, param_func, factor=1):
+    """warning: this can be quite slow, depending on the dist"""
     d = getattr(st, dist_name)
     def f(state):
         dist = d(*param_func(state))
@@ -92,8 +94,8 @@ ACTIONS = [
             'world.time': (Prereq(operator.ge, 6) & Prereq(operator.le, 18))
         },
         outcomes=([
-            {'stress': dist('beta', (1,10)), 'cash': dyndist('gamma', lambda s: (max(s['income']/365, 1e-10), 10)), 'fatigue': 0.5, 'world.time': 4},
-            {'stress': dist('beta', (1,8)), 'cash': dyndist('gamma', lambda s: (max(s['income']/365, 1e-10), 10)), 'fatigue': 0.6, 'world.time': 4}
+            {'stress': dist('beta', (1,10)), 'cash': lambda s: s['income']/365, 'fatigue': 0.5, 'world.time': 4},
+            {'stress': dist('beta', (1,8)), 'cash': lambda s: s['income']/365, 'fatigue': 0.6, 'world.time': 4}
         ], [0.8, 0.2])),
     Action('sleep',
         prereqs={},
