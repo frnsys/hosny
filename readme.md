@@ -36,7 +36,7 @@ You can generate a simulated New Yorker like so:
 
 Individual-level New Yorker data (see the IPUMS resources below) is used to learn a Bayes Net that then is sampled to generate simulated New Yorkers. Thus the generated New Yorkers are "plausible" in that correlations that exist in the real world are reflected in them.
 
-Each New Yorker is designed as an (expected) utility-maximizing agent. They are configured with some utility functions (determining how much, for example, stress and fatigue bother them, and how happy money makes them), some possible actions (such as working or sleeping), and goals (such as paying the rent). Overtime, they may make new goals as well. Each day they make a plan for that day (for speed, this is a simple hill-climbing search algorithm) and try to their best to accomplish it.
+Each New Yorker is designed as an (expected) utility-maximizing agent. They are configured with some utility functions (determining how much, for example, stress bothers them, and how happy money makes them), some possible actions (such as working or sleeping), and goals (such as paying the rent). Overtime, they may make new goals as well. Each day they make a plan for that day (for speed, this is a simple hill-climbing search algorithm) and try to their best to accomplish it.
 
 Simulated New Yorkers also have their own social networks - based on the model used in [this study](http://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1254&context=sociologyfacpub), two simulated New Yorkers may become friends by some chance, depending on their similarity. This affects things like their ability to find employment.
 

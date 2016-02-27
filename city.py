@@ -18,7 +18,6 @@ class City(Simulation):
         # the world state
         self.date = config.START_DATE
         self.state = {
-            'time': config.START_HOUR,
             'month': self.date.month,
             'year': self.date.year
         }
@@ -37,20 +36,11 @@ class City(Simulation):
                 agent.set_logger(log_dir)
 
     def step(self):
-        """one time step in the model (an hour)"""
+        """one time step in the model (a day)"""
         super().step()
-        self._update_datetime()
-
-    def _update_datetime(self):
-        next = self.date + relativedelta(hours=1)
-        if next.day != self.date.day:
-            print('~~~ NEW DAY ~~~')
-            self.state['time'] = config.START_HOUR
-        else:
-            self.state['time'] += 1
-        self.state['month'] = next.month
-        self.state['year'] = next.year
-        self.date = next
+        self.date += relativedelta(days=1)
+        self.state['month'] = self.date.month
+        self.state['year'] = self.date.year
 
     def history(self):
         """get history of all agents"""

@@ -61,10 +61,7 @@ for year in years.groups:
         except np.linalg.linalg.LinAlgError:
             puma_dists['mortgage2_dist'] = np.mean(mort2_arr)
         except ValueError:
-            if len(mort2_arr) == 0:
-                puma_dists['mortgage2_dist'] = 0
-            else:
-                puma_dists['mortgage2_dist'] = np.mean(mort2_arr)
+            puma_dists['mortgage2_dist'] = 0 if not mort2_arr else np.mean(mort2_arr)
 
         # assume rent is normally distributed
         rent_arr = df_p[df_p['RENT'] != 0]['RENT'].as_matrix()
@@ -84,8 +81,7 @@ def sample_rent(year, puma):
             rent = 0
         elif ownership == 'mortgage1':
             rent = rent_info['mortgage1_dist'].resample(1)[0][0]
-
-        if ownership == 'mortgage2':
+        elif ownership == 'mortgage2':
             try:
                 rent += rent_info['mortgage2_dist'].resample(1)[0][0]
             except AttributeError:
