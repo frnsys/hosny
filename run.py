@@ -31,10 +31,8 @@ def run_simulation(population, days, arbiter):
 
     s = time()
     print('running simulation...')
-    hours = 0
-    while hours <= days * 24:
+    for _ in range(days):
         model.step()
-        hours += 1
     print('elapsed:', str(timedelta(seconds=time() - s)))
 
     print('SALIENT HISTORIES~~~~~')
