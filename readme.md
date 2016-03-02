@@ -17,8 +17,8 @@ You can generate a simulated New Yorker like so:
         'age': 36,
         'education': <Education.grade_12: 6>,
         'employed': <Employed.non_labor: 3>,
-        'income': 3236,
-        'income_bracket': '(1000, 5000]',
+        'wage_income': 3236,
+        'wage_income_bracket': '(1000, 5000]',
         'industry': 'Independent artists, performing arts, spectator sports, and related industrie
         s',
         'industry_code': 8560,
@@ -45,6 +45,8 @@ As days go by, the world environment changes according to real historical data; 
 ## Usage
 
 First setup your virtual environment and install the requirements.
+
+Note that `pandas` 18.0 (not yet released) is required to fix the following bug: <https://github.com/pydata/pandas/issues/11699>.
 
 You can run the simulation on a single machine like so:
 

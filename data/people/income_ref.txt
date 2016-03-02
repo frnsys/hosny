@@ -1,0 +1,14 @@
+For each of these, see <https://usa.ipums.org/usa-action/variables/<VARIABLE>#description_section> for more info.
+
+For all the below, the max value (e.g. 99999) is "N/A"
+
+- INCTOT    Total personal income
+- INCWAGE   Wage and salary income (0-999999)
+- INCBUS00  Business and farm income, 2000 (-9999-999999)
+- INCSS     Social security income (0-99999)
+- INCWELFR  Welfare (public assistance) income (0-99999)
+- INCINVST  Interest, dividend, and rental income (-9999-999999)
+- INCRETIR  Retirement income (0-999999)
+- INCSUPP   Supplementary security income
+- INCOTHER  Other income
+- INCEARN   Total personal earned income

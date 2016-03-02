@@ -58,7 +58,7 @@ class Person(Agent):
                 'stress': 0.5,
                 'cash': 0,
                 'employed': self.employed,
-                'income': self.income,
+                'wage_income': self.wage_income,
                 'rent_fail': 0,
                 'sex': self.sex,
                 'race': self.race,
@@ -68,6 +68,9 @@ class Person(Agent):
             goals=[],
             utility_funcs=config.UTILITY_FUNCS,
             constraints=config.CONSTRAINTS)
+
+        print('--------------')
+        print(self.id, int(self.employed))
 
     def __repr__(self):
         return self.name
@@ -100,9 +103,6 @@ class Person(Agent):
         else:
             self.burn_in -= 1
 
-        # reset diary for new day
-        self.diary = []
-
         # new day, see what happens
         self.daily_effects(world)
 
@@ -132,12 +132,13 @@ class Person(Agent):
         self.diary.append((action.name, self.state.copy(), self.last_utility))
 
     def salient_lifetime_actions(self):
-        utilities = [u for a, u in self.history['salient_actions']]
-        if utilities:
-            mean, std = np.mean(utilities), np.std(utilities)
-            self.history['salient_actions'] = [(a, u) for a, u in self.history['salient_actions'] if self._is_significant(u, mean, std)]
-            return self.history['salient_actions']
-        return []
+        # utilities = [u for a, u in self.history['salient_actions']]
+        # if utilities:
+            # mean, std = np.mean(utilities), np.std(utilities)
+            # self.history['salient_actions'] = [(a, u) for a, u in self.history['salient_actions'] if self._is_significant(u, mean, std)]
+            # return self.history['salient_actions']
+        # return []
+        return self.id, self.name, self.diary
 
     def plan_day(self, world):
         """agents execute only one action per day
@@ -225,8 +226,8 @@ class Person(Agent):
         if self.state['employed'] > 0:
             # wage change
             if random.random() < 1/365: # arbitrary probability, what should this be?
-                change = work.income_change(world['year'], world['year'] + 1, self.sex, self.race, self.income_bracket)
-                self.state['income'] += change # TODO this needs to change their income bracket if appropriate
+                change = work.income_change(world['year'], world['year'] + 1, self.sex, self.race, self.wage_income_bracket)
+                self.state['wage_income'] += change # TODO this needs to change their income bracket if appropriate
             else:
                 employment_dist = emp_dist[world['year']][world['month']][self.race.name][self.sex.name]
                 p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?

@@ -8,9 +8,9 @@
 
 import json
 import random
-import config
 import numpy as np
 import pandas as pd
+from people.generate import bins
 
 # this gives us monthly unemployment percentages for NY
 monthly_df = pd.read_csv('data/world/src/unemployment.csv', index_col='Year')
@@ -22,6 +22,7 @@ years = df.groupby('YEAR')
 # offer probabilities
 p_offer = json.load(open('data/world/gen/job_offer_probs.json', 'r'))
 
+income_brackets = {var.name: val for var, val in bins.items()}
 
 def employment_dist(year, month, sex, race):
     return {'employed': 0.5, 'unemployed': 0.5}
@@ -92,22 +93,22 @@ def _offer_prob(sex, race, referral, emp):
     return prob/(prob + not_prob)
 
 
-def income_change(from_year, to_year, sex, race, income_bracket):
+def income_change(from_year, to_year, sex, race, income_bracket, income_code):
     """samples a wage change between two years, based on the years, sex, and race"""
     lbound, ubound = income_bracket[1:-1].split(',')
     lbound, ubound = int(lbound), int(ubound)
 
     df_y = years.get_group(from_year)
     fr_group = df_y[df_y.EMPSTAT == 1][df_y.SEX == sex][df_y.RACE == race]
-    fr_group = fr_group.groupby(pd.cut(fr_group.INCTOT, config.INCOME_BRACKETS))
+    fr_group = fr_group.groupby(pd.cut(fr_group[income_code], income_brackets[income_code]))
     fr_group = fr_group.get_group(income_bracket)
 
     df_y = years.get_group(to_year)
     to_group = df_y[df_y.EMPSTAT == 1][df_y.SEX == sex][df_y.RACE == race]
-    to_group = to_group.groupby(pd.cut(to_group.INCTOT, config.INCOME_BRACKETS))
+    to_group = to_group.groupby(pd.cut(to_group[income_code], income_brackets[income_code]))
     to_group = to_group.get_group(income_bracket)
 
-    mean_diff = to_group.INCTOT.mean() - fr_group.INCTOT.mean()
+    mean_diff = to_group[income_code].mean() - fr_group[income_code].mean()
 
     # tbh this is a pretty abritrary choice of standard deviation
     # need to revisit this
@@ -124,8 +125,8 @@ def job(year, sex, race, education):
         'employed': 1
     })
     return {
-        'income': p['income'],
-        'income_bracket': p['income_bracket'],
+        'wage_income': p['wage_income'],
+        'wage_income_bracket': p['wage_income_bracket'],
         'occupation_code': p['occupation_code'],
         'occupation': p['occupation'],
         'industry_code': p['industry_code'],

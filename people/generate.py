@@ -6,8 +6,8 @@ based on PUMS data
 
 import json
 import random
+import numpy as np
 import pandas as pd
-import config
 from . import attribs
 from enum import Enum
 from models.bnet import BNet
@@ -32,7 +32,12 @@ class Var(Enum):
     race = 'RACE'
     puma = 'PUMA'
     education = 'EDUC'
-    income = 'INCTOT'
+    wage_income = 'INCWAGE'
+    investment_income = 'INCINVST'
+    welfare_income = 'INCWELFR'
+    retirement_income = 'INCRETIR'
+    business_income = 'INCBUS00'
+    social_security_income = 'INCSS'
     employed = 'EMPSTAT'
     occupation = 'OCC2010'
     industry = 'IND'
@@ -46,15 +51,6 @@ edges = [
 
     (Var.race, Var.puma),
     (Var.age, Var.puma),
-    (Var.income, Var.puma),
-
-    (Var.education, Var.income),
-    (Var.sex, Var.income),
-    (Var.age, Var.income),
-    (Var.race, Var.income),
-    (Var.employed, Var.income),
-    (Var.occupation, Var.income),
-    (Var.industry, Var.income),
 
     (Var.education, Var.employed),
     (Var.sex, Var.employed),
@@ -75,13 +71,47 @@ edges = [
     (Var.race, Var.occupation),
 
     (Var.year, Var.employed),
-    (Var.year, Var.income),
+
+    (Var.wage_income, Var.welfare_income),
+    (Var.business_income, Var.wage_income),
+    (Var.wage_income, Var.retirement_income),
+    (Var.wage_income, Var.social_security_income),
 ]
+
+
+income_vars = [
+    Var.wage_income,
+    Var.investment_income,
+    Var.welfare_income,
+    Var.retirement_income,
+    Var.business_income,
+    Var.social_security_income
+]
+
+for income_var in income_vars:
+    edges += [(var, income_var) for var
+              in [Var.education, Var.sex, Var.age, Var.race,
+                 Var.employed, Var.occupation, Var.industry, Var.year]]
+    edges.append((income_var, Var.puma))
+
+def income_bracket(var):
+    bins = []
+    df_max = df[var.value].max()
+    df_min = df[var.value].min()
+
+    # separate 0, negative, and positive values
+    if df_min < 0:
+        bins += list(np.linspace(df_min, -1, 10))
+    bins += [0]
+
+    # only go up to (max - 1) b/c max corresponds to N/A
+    bins += list(np.linspace(1, df_max - 1, 100))
+    bins += [df_max]
+    return bins
 
 df = pd.read_csv('data/people/gen/pums_nyc.csv')
 bins = {
-    #Var.income: np.linspace(df.INCTOT.min(), df.INCTOT.max(), 10)
-    Var.income: config.INCOME_BRACKETS
+    income_var: income_bracket(income_var) for income_var in income_vars
 }
 pgm = BNet(nodes, edges, df, bins, precompute=True)
 
@@ -94,14 +124,19 @@ def generate(year, given=None):
 
     sample = pgm.sample(sampled=given)
 
-    # 9999999 means N/A
-    # https://usa.ipums.org/usa-action/variables/INCTOT#codes_section
-    income_bracket = sample[Var.income]
-    if income_bracket == '(9999998, 9999999]':
-        sample[Var.income] = 0
-    else:
-        lbound, ubound = income_bracket[1:-1].split(',')
-        sample[Var.income] = random.randint(int(lbound), int(ubound))
+    income_brackets = {}
+    for income_var in income_vars:
+        na_val = '{}]'.format(df[income_var.value].max())
+        income_bracket = sample[income_var]
+        if income_bracket.endswith(na_val)\
+                or income_bracket.endswith('0]')\
+                or income_bracket.beginswith('(0'):
+            sample[income_var] = 0
+        else:
+            lbound, ubound = income_bracket[1:-1].split(',')
+            sample[income_var] = random.randint(int(float(lbound)), int(float(ubound)))
+
+        income_brackets['{}_bracket'.format(income_var.name)] = income_bracket
 
     # convert to enums
     for var, enum in [
@@ -115,7 +150,8 @@ def generate(year, given=None):
     # rename keys
     sample = {k.name: v for k,v in sample.items()}
 
-    sample['income_bracket'] = income_bracket
+    # add in income brackets
+    sample.update(income_brackets)
 
     # grab a neighborhood
     sample['neighborhood'] = random.choice(puma_to_neighborhoods[sample['puma']])

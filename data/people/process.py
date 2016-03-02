@@ -29,10 +29,6 @@ df = df.drop(['BIRTHYR', 'BIRTHQTR', 'RACED', 'VETSTATD', 'FERTYR',
               'UHRSWORK', 'LOOKING', 'AVAILBLE', 'FTOTINC',
               'OCC', 'IND1990', 'PUMARES2MIG', 'POVERTY'], axis=1)
 
-# drop these b/c they may be too detailed for our purposes
-df = df.drop(['INCWAGE', 'INCBUS00', 'INCOTHER', 'INCEARN', 'INCINVST',
-              'INCRETIR', 'INCSUPP', 'INCSS', 'INCWELFR'], axis=1)
-
 # drop these b/c they are object datatype
 df = df.drop(['INDNAICS', 'OCCSOC'], axis=1)
 

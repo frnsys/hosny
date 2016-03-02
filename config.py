@@ -24,9 +24,6 @@ def goals_for_agent(agent):
 
 
 START_DATE = datetime(day=1, month=1, year=2005)
-INCOME_BRACKETS = [-20000, -10000, 0, 1000, 5000, 10000, 20000, 25000, 30000, 35000,
-                   40000, 45000, 50000, 55000, 60000, 65000, 70000, 90000, 110000,
-                   200000, 500000, 9999998, 9999999]
 SICK_PROB = 1/365 # arbitrary, what should this be?
 
 CONSTRAINTS = {
@@ -89,19 +86,18 @@ ACTIONS = [
             'employed': Prereq(operator.eq, 1)
         },
         outcomes=([
-            {'stress': dist('beta', (1,10)), 'cash': lambda s: s['income']/365},
-            {'stress': dist('beta', (1,8)), 'cash': lambda s: s['income']/365}
+            {'stress': dist('beta', (1,10)), 'cash': lambda s: s['wage_income']/365},
+            {'stress': dist('beta', (1,8)), 'cash': lambda s: s['wage_income']/365}
         ], [0.8, 0.2])),
     Action('look for work',
         prereqs={
-            'employed': Prereq(operator.eq, 0)
+            'employed': Prereq(operator.eq, 0) | Prereq(operator.eq, 2)
         },
         outcomes=([
             {'stress': dist('beta', (2,4))},
             {'stress': dist('beta', (2,4)),
-             'employed': lambda s: 1 if s['employed'] == 0 else 0, '~': get_job, 'income': 1000} # for the purposes of planning, put in an exact income. the "~" function will compute the agent's actual income.
+             'employed': lambda s: 1 if s['employed'] == 0 else 0, '~': get_job, 'wage_income': 1000} # for the purposes of planning, put in an exact income. the "~" function will compute the agent's actual income.
         ], hire_dist)),
-
     Action('visit doctor',
            prereqs={
                'cash': Prereq(operator.ge, 100)
@@ -110,11 +106,7 @@ ACTIONS = [
                {'health': 1., 'cash': -100}
            ], [1.])),
 
-    # TODO ideally we have some flexible-time thing happening
-    # we need some action that takes only 1hr to fill in gaps
-    Action('veg out',
-           prereqs={},
-           outcomes=([
-               {'stress': -0.05}
-           ], [1.]))
+    # there are some non-labor force people who have nothing to do
+    Action('chill', prereqs={},
+           outcomes=([{'stress': -0.01}], [1.]))
 ]
