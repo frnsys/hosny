@@ -1,4 +1,7 @@
+import os
+import json
 import click
+import shutil
 import config
 import logging
 from city import City
@@ -35,8 +38,12 @@ def run_simulation(population, days, arbiter):
         model.step()
     print('elapsed:', str(timedelta(seconds=time() - s)))
 
-    print('SALIENT HISTORIES~~~~~')
-    print(model.history())
+    print('SAVING HISTORIES~~~~~')
+    shutil.rmtree('histories')
+    os.makedirs('histories')
+    for id, name, history in model.history():
+        with open('histories/{}_{}.json'.format(name, id), 'w') as f:
+            json.dump(history, f)
 
 
 def generate_population(n):
