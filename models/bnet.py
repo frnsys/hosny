@@ -2,10 +2,12 @@
 for using probabilistic graphical models (bayes' nets in particular).
 """
 
+import logging
 import pandas as pd
 import networkx as nx
 from util import random_choice
 
+logger = logging.getLogger(__name__)
 
 class BNet():
     def __init__(self, nodes, edges, data, bins, precompute=True):
@@ -42,6 +44,7 @@ class BNet():
         if self._cache:
             dist = self._cache[n.name]
             prior_probs = dist['_']
+
             for group, prior_prob in prior_probs.items():
                 likelihood = 1.
                 for key, val in given.items():
@@ -80,8 +83,17 @@ class BNet():
 
         # normalize to a distribution
         total = sum(probs.values())
-        for group in probs.keys():
-            probs[group] /= total
+
+        # we have encoutered a sample not present in the data
+        # fallback to a uniform distribution
+        if total == 0:
+            logger.warn('Not enough data to learn a conditional distribution for {} given {}; falling back to uniform distribution'.format(n, given))
+            n_groups = len(probs.keys())
+            probs = {group: 1./n_groups for group in probs.keys()}
+        else:
+            for group in probs.keys():
+                probs[group] /= total
+
         return probs
 
     def sample_node(self, n, sampled):

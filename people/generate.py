@@ -6,12 +6,12 @@ based on PUMS data
 
 import json
 import random
-import numpy as np
 import pandas as pd
 from . import attribs
 from enum import Enum
 from models.bnet import BNet
 from world import rent
+from world.work import income_brackets
 
 
 with open('data/world/nyc.json', 'r') as f:
@@ -94,25 +94,9 @@ for income_var in income_vars:
                  Var.employed, Var.occupation, Var.industry, Var.year]]
     edges.append((income_var, Var.puma))
 
-def income_bracket(var):
-    bins = []
-    df_max = df[var.value].max()
-    df_min = df[var.value].min()
-
-    # separate 0, negative, and positive values
-    if df_min < 0:
-        bins += list(np.linspace(df_min, -1, 10))
-    bins += [0]
-
-    # only go up to (max - 1) b/c max corresponds to N/A
-    bins += list(np.linspace(1, df_max - 1, 100))
-    bins += [df_max]
-    return bins
 
 df = pd.read_csv('data/people/gen/pums_nyc.csv')
-bins = {
-    income_var: income_bracket(income_var) for income_var in income_vars
-}
+bins = {income_var: income_brackets[income_var.value] for income_var in income_vars}
 pgm = BNet(nodes, edges, df, bins, precompute=True)
 
 
@@ -130,7 +114,7 @@ def generate(year, given=None):
         income_bracket = sample[income_var]
         if income_bracket.endswith(na_val)\
                 or income_bracket.endswith('0]')\
-                or income_bracket.beginswith('(0'):
+                or income_bracket.startswith('(0'):
             sample[income_var] = 0
         else:
             lbound, ubound = income_bracket[1:-1].split(',')

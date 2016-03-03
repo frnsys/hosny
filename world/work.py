@@ -10,7 +10,6 @@ import json
 import random
 import numpy as np
 import pandas as pd
-from people.generate import bins
 
 # this gives us monthly unemployment percentages for NY
 monthly_df = pd.read_csv('data/world/src/unemployment.csv', index_col='Year')
@@ -22,7 +21,26 @@ years = df.groupby('YEAR')
 # offer probabilities
 p_offer = json.load(open('data/world/gen/job_offer_probs.json', 'r'))
 
-income_brackets = {var.name: val for var, val in bins.items()}
+def income_bracket(code):
+    """create income brackets for an income code"""
+    bins = []
+    df_max = df[code].max()
+    df_min = df[code].min()
+
+    # separate 0, negative, and positive values
+    if df_min < 0:
+        bins += list(np.arange(df_min, -1, 5000))
+    bins += [0]
+
+    # only go up to (max - 1) b/c max corresponds to N/A
+    bins += list(np.arange(1, df_max - 1, 5000))
+    bins += [df_max]
+    return bins
+
+
+income_codes = ['INCWAGE', 'INCINVST', 'INCWELFR', 'INCRETIR', 'INCBUS00', 'INCSS']
+income_brackets = {code: income_bracket(code) for code in income_codes}
+
 
 def employment_dist(year, month, sex, race):
     return {'employed': 0.5, 'unemployed': 0.5}

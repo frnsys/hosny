@@ -226,8 +226,9 @@ class Person(Agent):
         if self.state['employed'] > 0:
             # wage change
             if random.random() < 1/365: # arbitrary probability, what should this be?
-                change = work.income_change(world['year'], world['year'] + 1, self.sex, self.race, self.wage_income_bracket)
-                self.state['wage_income'] += change # TODO this needs to change their income bracket if appropriate
+                # change = work.income_change(world['year'], world['year'] + 1, self.sex, self.race, self.wage_income_bracket, 'INCWAGE')
+                # self.state['wage_income'] += change # TODO this needs to change their income bracket if appropriate
+                pass
             else:
                 employment_dist = emp_dist[world['year']][world['month']][self.race.name][self.sex.name]
                 p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
