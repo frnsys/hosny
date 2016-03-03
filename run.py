@@ -30,9 +30,9 @@ def run_simulation(population, days, arbiter):
     model = City(pop, arbiter=arbiter)
 
     s = time()
-    print('running simulation...')
-    for _ in range(days):
-        model.step()
+    with click.progressbar(range(days), label='simulating...') as days:
+        for day in days:
+            model.step()
     print('elapsed:', str(timedelta(seconds=time() - s)))
 
     print('SALIENT HISTORIES~~~~~')
