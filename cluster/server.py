@@ -56,7 +56,7 @@ class Server():
     def start(self, host, port):
         """start the server"""
         logger.info('started at {}:{}'.format(host, port))
-        self.server = yield from streams.start_server(self._accept_client, host, port)
+        self.server = yield from streams.start_server(self._accept_client, host, port, reuse_address=True)
 
     @coroutine
     def stop(self):
