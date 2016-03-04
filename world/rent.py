@@ -9,7 +9,7 @@ was surprisingly hard to find
 import random
 import numpy as np
 import pandas as pd
-from util import random_choice
+from cess.util import random_choice
 from scipy.stats import gaussian_kde
 
 # prep the rent data

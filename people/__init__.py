@@ -6,7 +6,7 @@ import asyncio
 import numpy as np
 from util import ewms
 from scipy import stats
-from agent import Agent, Goal
+from cess import Agent, Goal
 from world import work
 from .names import generate_name
 from .generate import generate
@@ -14,6 +14,12 @@ from .generate import generate
 
 # precompute and cache to save a lot of time
 emp_dist = work.precompute_employment_dist()
+
+
+# assuming 1 adult. ofc these expenses will vary a lot depending on other
+# factors like neighborhood, but we could not find data that granular
+import json
+annual_expenses = sum(json.load(open('data/world/annual_expenses.json', 'r'))['1 adult'].values())
 
 
 class Person(Agent):
@@ -52,25 +58,33 @@ class Person(Agent):
             'accomplished_goals': []
         }
 
+        # values estimated from
+        # Temporal Discounting in Choice Between Delayed Rewards: The Role of Age and Income
+        # Leonard Green, Joel Myerson, David Lichtman, Suzanne Rosen, Astrid Fry
+        # <http://psych.wustl.edu/lengreen/publications/Temporal%20discounting%20in%20choice%20between%20delayed%20rewards%20(1996).pdf>
+        self.discounting_rate = 0.01 if self.wage_income > 50000 else 0.046
+
         super().__init__(
             state={
                 'health': 1.,
                 'stress': 0.5,
-                'cash': 0,
+                'cash': 1000,
                 'employed': self.employed,
                 'wage_income': self.wage_income,
+                'business_income': self.business_income,
+                'investment_income': self.investment_income,
+                'retirement_income': self.retirement_income,
+                'welfare_income': self.welfare_income,
                 'rent_fail': 0,
                 'sex': self.sex,
                 'race': self.race,
+                'age': int(self.age),
                 'education': self.education
             },
             actions=config.ACTIONS,
             goals=[],
             utility_funcs=config.UTILITY_FUNCS,
             constraints=config.CONSTRAINTS)
-
-        print('--------------')
-        print(self.id, int(self.employed))
 
     def __repr__(self):
         return self.name
@@ -103,6 +117,13 @@ class Person(Agent):
         else:
             self.burn_in -= 1
 
+        # make money off non-wage income
+        for income_attr in ['business_income', 'investment_income', 'retirement_income', 'welfare_income']:
+            self.state['cash'] += self.state[income_attr]/365
+
+        # pay (very roughly estimated) expenses
+        self.state['cash'] -= annual_expenses/365 * (0.5 + stats.beta.rvs(2,2))
+
         # new day, see what happens
         self.daily_effects(world)
 
@@ -121,8 +142,10 @@ class Person(Agent):
 
         # make a plan for day
         action = self.plan_day(world)
+
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+        print('TAKING ACTION', action.name)
         self.take_action(action, world)
-        self.logger.info('{} did {}'.format(self.name, action))
 
         if isinstance(action, Goal):
             self.history['accomplished_goals'].append(action)
@@ -130,6 +153,7 @@ class Person(Agent):
         # record (action, resulting state, utility)
         self.last_utility = self.utility(self.state)
         self.diary.append((action.name, self.state.copy(), self.last_utility))
+        print('GOALS', self.goals)
 
     def salient_lifetime_actions(self):
         # utilities = [u for a, u in self.history['salient_actions']]
@@ -138,7 +162,7 @@ class Person(Agent):
             # self.history['salient_actions'] = [(a, u) for a, u in self.history['salient_actions'] if self._is_significant(u, mean, std)]
             # return self.history['salient_actions']
         # return []
-        return self.id, self.name, self.diary
+        return self.id, self.name, self.diary, self.goals
 
     def plan_day(self, world):
         """agents execute only one action per day
@@ -161,7 +185,17 @@ class Person(Agent):
     def take_action(self, action, world):
         """execute an action, applying its effects"""
         state = self._joint_state(self.state, world)
+
+        for g in self.goals:
+            if g.name == action.name:
+                self.goals.remove(g)
+
+        print('BEFORE STATE ------------------')
+        print(self.state)
         self.state = action(state)
+        print('AFTER STATE ------------------')
+        print(self.state)
+        print('------------------------------')
         self.state, new_world = self._disjoint_state(state)
 
     def _joint_state(self, state, world):
@@ -223,14 +257,14 @@ class Person(Agent):
         if random.random() < config.SICK_PROB:
             self.state['health'] -= stats.beta.rvs(2, 10)
 
-        if self.state['employed'] > 0:
+        if self.state['employed'] == 1:
             # wage change
             if random.random() < 1/365: # arbitrary probability, what should this be?
                 # change = work.income_change(world['year'], world['year'] + 1, self.sex, self.race, self.wage_income_bracket, 'INCWAGE')
                 # self.state['wage_income'] += change # TODO this needs to change their income bracket if appropriate
                 pass
             else:
-                employment_dist = emp_dist[world['year']][world['month']][self.race.name][self.sex.name]
+                employment_dist = emp_dist[world['year']][world['month'] - 1][self.race.name][self.sex.name]
                 p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
                 # fired
                 if random.random() < p_unemployed:
@@ -249,6 +283,9 @@ class Person(Agent):
                 goal.tick()
                 if goal.time <= 0:
                     self.state = goal.fail(self.state)
+                    if goal.repeats:
+                        goal.reset()
+                        remaining_goals.add(goal)
                 else:
                     remaining_goals.add(goal)
             else:

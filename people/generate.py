@@ -37,7 +37,6 @@ class Var(Enum):
     welfare_income = 'INCWELFR'
     retirement_income = 'INCRETIR'
     business_income = 'INCBUS00'
-    social_security_income = 'INCSS'
     employed = 'EMPSTAT'
     occupation = 'OCC2010'
     industry = 'IND'
@@ -75,7 +74,9 @@ edges = [
     (Var.wage_income, Var.welfare_income),
     (Var.business_income, Var.wage_income),
     (Var.wage_income, Var.retirement_income),
-    (Var.wage_income, Var.social_security_income),
+
+    (Var.occupation, Var.wage_income),
+    (Var.industry, Var.wage_income),
 ]
 
 
@@ -85,13 +86,11 @@ income_vars = [
     Var.welfare_income,
     Var.retirement_income,
     Var.business_income,
-    Var.social_security_income
 ]
 
 for income_var in income_vars:
     edges += [(var, income_var) for var
-              in [Var.education, Var.sex, Var.age, Var.race,
-                 Var.employed, Var.occupation, Var.industry, Var.year]]
+              in [Var.education, Var.sex, Var.age, Var.race, Var.employed, Var.year]]
     edges.append((income_var, Var.puma))
 
 

@@ -1,7 +1,8 @@
 import os
 import json
 import config
-from sim import Simulation
+from itertools import chain
+from cess import Simulation
 from world.space import Space
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
@@ -45,6 +46,6 @@ class City(Simulation):
     def history(self):
         """get history of all agents"""
         if self.cluster:
-            return self.cluster.submit('call_agents', func='salient_lifetime_actions')
+            return list(chain.from_iterable([r['results'] for r in self.cluster.submit('call_agents', func='salient_lifetime_actions')]))
         else:
             return [agent.salient_lifetime_actions() for agent in self.agents]

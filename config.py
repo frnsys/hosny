@@ -2,7 +2,7 @@ import math
 import random
 import operator
 import scipy.stats as st
-from agent import Action, Prereq, Goal
+from cess import Action, Prereq, Goal
 from datetime import datetime
 from world.work import offer_prob, job
 
@@ -19,7 +19,7 @@ def goals_for_agent(agent):
             [{'stress': 1, 'rent_fail': 1}],
             [1.]
         ),
-        time=2
+        time=30, repeats=True
     )]
 
 
@@ -72,15 +72,14 @@ def dyndist(dist_name, param_func, factor=1):
 
 
 ACTIONS = [
-    Action('relax',
+    Action('go out',
         prereqs={
-            'cash': Prereq(operator.ge, 100)
+            'cash': Prereq(operator.ge, 20)
         },
         outcomes=([
-            {'stress': dist('beta', (2,10), -1), 'cash': dist('beta', (2,10), -100)},
-            {'stress': dist('beta', (2,6), -1)},
+            {'stress': dist('beta', (2,14), -1), 'cash': dist('beta', (2,10), -100)},
             {'stress': dist('beta', (1,10))},
-        ], [0.8, 0.1, 0.1])),
+        ], [0.85, 0.15])),
     Action('work',
         prereqs={
             'employed': Prereq(operator.eq, 1)
@@ -103,10 +102,25 @@ ACTIONS = [
                'cash': Prereq(operator.ge, 100)
            },
            outcomes=([
-               {'health': 1., 'cash': -100}
+               {'health': 1., 'cash': dist('poisson', (2,), -100)}
            ], [1.])),
+    Action('shopping',
+        prereqs={
+            'cash': Prereq(operator.ge, 100)
+        },
+        outcomes=([
+            {'stress': dist('beta', (2,10), -1), 'cash': -100},
+        ], [1.0])),
+    Action('go on vacation',
+        prereqs={
+            'cash': Prereq(operator.ge, 1000)
+        },
+        outcomes=([
+            {'stress': dist('beta', (2,10), -1)},
+            {'stress': dist('beta', (2,8), -1)}
+        ], [0.8, 0.2])),
 
     # there are some non-labor force people who have nothing to do
-    Action('chill', prereqs={},
+    Action('relax', prereqs={},
            outcomes=([{'stress': -0.01}], [1.]))
 ]
