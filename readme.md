@@ -56,11 +56,11 @@ Running a simulation with a lot of agents is _slow_, so this simulator supports 
 
 Start up the arbiter node (the node that manages workers) like so:
 
-    python clus.py arbiter <host:port>
+    cess arbiter <host:port>
 
 Then on each worker machine, start workers like so:
 
-    python clus.py node <arbiter host:port>
+    cess node <arbiter host:port>
 
 This creates a worker process for each core on the machine.
 
@@ -77,3 +77,4 @@ Then, run the simulation across the cluster:
 - NYC unemployment data was retrieved from [New York State Department of Labor](https://labor.ny.gov/stats/laus.asp)
 - S&P500 data was retrieved from Open Knowledge's [Standard and Poor's (S&P) 500 Index Data including Dividend, Earnings and P/E Ratio](http://data.okfn.org/data/core/s-and-p-500)
 - Friendship model parameters were taken from [Social Distance in the United States: Sex, Race, Religion, Age, and Education Homophily among Confidants, 1985 to 2004. Jeffrey A. Smith, Miller McPherson, Lynn Smith-Lovin. University of Nebraska - Lincoln. 2014.](http://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1254&context=sociologyfacpub)
+- `annual_expenses.json` were taken from [Living Wage Calculator](http://livingwage.mit.medu/counties/36061) (Amy K. Glasmeier, Carey Anne Nadeau, Eric Schultheis, 2014)
