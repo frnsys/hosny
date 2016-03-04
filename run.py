@@ -1,7 +1,4 @@
-import os
-import json
 import click
-import shutil
 import config
 import logging
 from city import City
@@ -36,21 +33,17 @@ def run_simulation(population, days, arbiter):
     with click.progressbar(range(days), label='simulating...') as days:
         for day in days:
             model.step()
+
+    with open('histories.txt', 'a') as f:
+        for name, state, history in model.history():
+            f.write(str(history) + '\n')
+            # print('---------------')
+            # print(name)
+            # print(state)
+            # print(history)
+            # print('---------------')
+
     print('elapsed:', str(timedelta(seconds=time() - s)))
-
-    print('gathering histories...')
-    shutil.rmtree('histories')
-    os.makedirs('histories')
-    histories = model.history()
-    for id, name, history, goals in histories:
-        with open('histories/{}_{}.json'.format(name, id), 'w') as f:
-            json.dump({
-                'id': id,
-                'name': name,
-                'history': history,
-                'goals': [goal.name for goal in goals]
-            }, f)
-
 
 def generate_population(n):
     population = []
@@ -65,6 +58,7 @@ def generate_population(n):
     social_network = social.social_network(population, base_prob=0.4)
     for i, person in enumerate(population):
         person.friends = [population[j] for _, j in social_network.edges(i)]
+    print('avg n of friends', sum(len(p.friends) for p in population)/len(population))
     return population
 
 
