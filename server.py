@@ -1,11 +1,9 @@
 import logging
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit
-from run import generate_population
+from celery import Celery
 from city import City
-from threading import Thread
-
-thread = None
+from run import generate_population
 
 class SocketsHandler(logging.Handler):
     def emit(self, record):
@@ -17,13 +15,32 @@ class SocketsHandler(logging.Handler):
         except:
             self.handleError(record)
 
+
+def make_celery(app):
+    celery = Celery(app.import_name, broker=app.config['CELERY_BROKER_URL'])
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    class ContextTask(TaskBase):
+        abstract = True
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask
+    return celery
+
 app = Flask(__name__,
             static_url_path='/static',
             static_folder='static',
             template_folder='templates')
 socketio = SocketIO(app)
 
+app.config.update(
+    CELERY_BROKER_URL='redis://localhost:6379',
+    CELERY_RESULT_BACKEND='redis://localhost:6379'
+)
+celery = make_celery(app)
 
+@celery.task
 def run_simulation():
     logger = logging.getLogger('people')
     logger.setLevel(logging.INFO)
@@ -37,12 +54,9 @@ def run_simulation():
 
 @app.route('/simulate', methods=['POST'])
 def simulate():
-    global thread
     data = request.get_json()
     print(data)
-    if thread is None:
-        thread = Thread(target=run_simulation)
-        thread.start()
+    run_simulation.delay()
     return jsonify(success=True)
 
 
