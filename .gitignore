@@ -2,3 +2,4 @@
 *.swp
 src
 logs
+env
