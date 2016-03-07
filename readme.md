@@ -68,6 +68,19 @@ Then, run the simulation across the cluster:
 
     python run.py <population size> <number of days> <arbiter host:port>
 
+## Running the frontend
+
+    # run the server
+    python app
+
+    # run redis
+    redis-server
+
+    # run the celery worker
+    celery -A app.tasks.celery worker
+
+Then visit `http://localhost:5000`
+
 ## Sources
 
 - [Frequently Occurring Surnames from the Census 2000](http://www.census.gov/topics/population/genealogy/data/2000_surnames.html). Surnames occurring >= 100 more times in the 2000 census. Details here: <http://www2.census.gov/topics/genealogy/2000surnames/surnames.pdf>
