@@ -1,3 +1,4 @@
+import json
 import click
 import config
 import logging
@@ -26,7 +27,10 @@ def run_simulation(population, days, arbiter):
     else:
         arbiter = None
 
-    pop = generate_population(population)
+    if isinstance(population, str):
+        pop = load_population(population)
+    else:
+        pop = generate_population(population)
     model = City(pop, arbiter=arbiter)
 
     s = time()
@@ -44,6 +48,33 @@ def run_simulation(population, days, arbiter):
             # print('---------------')
 
     print('elapsed:', str(timedelta(seconds=time() - s)))
+
+
+
+def load_population(path):
+    raw = json.load(open(path, 'r'))
+    pop = [Person(**p) for p in raw]
+
+    # update ids
+    for p, p_raw in zip(pop, raw):
+        p.id = p_raw['id']
+        p.friends = p_raw['friends']
+
+    # setup friends
+    for p in pop:
+        friends = []
+        for f in p.friends:
+            friend = next(p_ for p_ in pop if p_.id == f)
+            friends.append(friend)
+        p.friends = friends
+    return pop
+
+
+def save_population(pop, path):
+    json_pop = [p.as_json() for p in pop]
+    with open(path, 'w') as f:
+        json.dump(json_pop, f)
+
 
 def generate_population(n):
     population = []

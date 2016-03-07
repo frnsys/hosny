@@ -6,7 +6,7 @@ from cess import Agent
 from world import work
 from .names import generate_name
 from .generate import generate
-from .attribs import Employed
+from .attribs import Employed, Sex, Race, Education
 from world.work import offer_prob
 
 logger = logging.getLogger('people')
@@ -36,7 +36,8 @@ class Person(Agent):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        self.name = generate_name(self.sex, self.race)
+        if 'name' not in kwargs:
+            self.name = generate_name(self.sex, self.race)
 
         self.diary = {
             'days_unemployed': 0,
@@ -45,6 +46,10 @@ class Person(Agent):
 
         # the world initializes this
         self.friends = []
+
+        self.sex = Sex(self.sex)
+        self.race = Race(self.race)
+        self.education = Education(self.education)
 
         super().__init__(
             state={
@@ -68,6 +73,20 @@ class Person(Agent):
             utility_funcs=config.UTILITY_FUNCS,
             constraints=config.CONSTRAINTS)
 
+
+    def as_json(self):
+        obj = self.state.copy()
+        obj['friends'] = [friend.id for friend in self.friends]
+
+        attrs = ['id', 'name',
+                 'puma', 'industry',
+                 'occupation', 'industry_code',
+                 'occupation_code', 'neighborhood',
+                 'rent']
+        for attr in attrs:
+            obj[attr] = getattr(self, attr)
+        return obj
+
     def __repr__(self):
         return self.name
 
@@ -81,7 +100,7 @@ class Person(Agent):
             f = self.fire_prob(world)
             if random.random() < f:
                 self._state['employed'] = Employed.unemployed
-                logger.info(self.name, 'got fired!')
+                logger.info('{} got fired!'.format(self.name))
         else:
             self.diary['days_unemployed'] += 1
 
@@ -91,7 +110,7 @@ class Person(Agent):
                 if employed == Employed.employed and random.random() <= c:
                     p = self.hire_prob(world, 'friend')
                     if random.random() <= p:
-                        logger.info(self.name, 'got a job via a friend!')
+                        logger.info('{} got a job via a friend!'.format(self.name))
                         self._state['employed'] == Employed.employed
                         break
 
@@ -99,7 +118,7 @@ class Person(Agent):
             if self.state['employed'] != Employed.employed:
                 p = self.hire_prob(world, 'ad_or_cold_call')
                 if random.random() <= p:
-                    logger.info(self.name, 'got a job via a cold call!')
+                    logger.info('{} got a job via a cold call!'.format(self.name))
                     self._state['employed'] == Employed.employed
 
     def history(self):

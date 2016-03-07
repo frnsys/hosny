@@ -575,3 +575,11 @@ table th {
     word-wrap: none;
     line-height: 1
 }
+
+.messages {
+    height: 20em;
+    overflow-y: scroll;
+}
+.messages li {
+    margin: 0;
+}
