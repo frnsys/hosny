@@ -1,10 +1,9 @@
-import os
 import json
 import config
-from sim import Simulation
+from itertools import chain
+from cess import Simulation
 from world.space import Space
 from dateutil.relativedelta import relativedelta
-from datetime import datetime
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
 
@@ -19,21 +18,13 @@ class City(Simulation):
         self.date = config.START_DATE
         self.state = {
             'month': self.date.month,
-            'year': self.date.year
+            'year': self.date.year,
+            'contact_rate': 0.4
         }
 
         for agent in population:
             self.geography.place_agent(agent, agent.puma)
             agent.goals = set(config.goals_for_agent(agent))
-
-        session_id = datetime.now().isoformat()
-        log_dir = 'logs/{}'.format(session_id)
-        os.makedirs(log_dir)
-        if self.cluster:
-            self.cluster.submit('call_agents', func='set_logger', args=(log_dir,))
-        else:
-            for agent in self.agents:
-                agent.set_logger(log_dir)
 
     def step(self):
         """one time step in the model (a day)"""
@@ -45,6 +36,6 @@ class City(Simulation):
     def history(self):
         """get history of all agents"""
         if self.cluster:
-            return self.cluster.submit('call_agents', func='salient_lifetime_actions')
+            return list(chain.from_iterable([r['results'] for r in self.cluster.submit('call_agents', func='history')]))
         else:
-            return [agent.salient_lifetime_actions() for agent in self.agents]
+            return [agent.history() for agent in self.agents]

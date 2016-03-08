@@ -1,6 +1,6 @@
 import json
 import random
-from util import random_choice
+from cess.util import random_choice
 
 surname_given_race = json.load(open('data/names/gen/surname_given_race.json', 'r'))
 name_given_sex = json.load(open('data/names/gen/name_given_sex.json', 'r'))

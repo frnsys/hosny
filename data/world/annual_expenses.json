@@ -1,0 +1,110 @@
+{
+  "1 adult": {
+    "food": 3509,
+    "childcare": 0,
+    "medical": 2304,
+    "housing": 13956,
+    "transportation": 3764,
+    "other": 2096,
+    "taxes": 4106
+  },
+  "1 adult, 1 child": {
+    "food": 5176,
+    "childcare": 10176,
+    "medical": 6070,
+    "housing": 17280,
+    "transportation": 6855,
+    "other": 3644,
+    "taxes": 7882
+  },
+  "1 adult, 2 children": {
+    "food": 7786,
+    "childcare": 20250,
+    "medical": 5859,
+    "housing": 17280,
+    "transportation": 7901,
+    "other": 3987,
+    "taxes": 10103
+  },
+  "1 adult, 3 children": {
+    "food": 10321,
+    "childcare": 30324,
+    "medical": 5922,
+    "housing": 22224,
+    "transportation": 9258,
+    "other": 4819,
+    "taxes": 13275
+  },
+  "2 adults (one working)": {
+    "food": 6434,
+    "childcare": 0,
+    "medical": 4654,
+    "housing": 14580,
+    "transportation": 6855,
+    "other": 3644,
+    "taxes": 5794
+  },
+  "2 adults (one working), 1 child": {
+    "food": 8011,
+    "childcare": 0,
+    "medical": 5859,
+    "housing": 17280,
+    "transportation": 7901,
+    "other": 3987,
+    "taxes": 6895
+  },
+  "2 adults (one working), 2 children": {
+    "food": 10339,
+    "childcare": 0,
+    "medical": 5922,
+    "housing": 17280,
+    "transportation": 9258,
+    "other": 4819,
+    "taxes": 7629
+  },
+  "2 adults (one working), 3 children": {
+    "food": 12583,
+    "childcare": 0,
+    "medical": 5889,
+    "housing": 22224,
+    "transportation": 8845,
+    "other": 4502,
+    "taxes": 8658
+  },
+  "2 adults": {
+    "food": 8011,
+    "childcare": 10176,
+    "medical": 5859,
+    "housing": 17280,
+    "transportation": 7901,
+    "other": 3987,
+    "taxes": 8525
+  },
+  "2 adults, 1 child": {
+    "food": 8011,
+    "childcare": 10176,
+    "medical": 5859,
+    "housing": 17280,
+    "transportation": 7901,
+    "other": 3987,
+    "taxes": 8525
+  },
+  "2 adults, 2 children": {
+    "food": 10339,
+    "childcare": 20250,
+    "medical": 5922,
+    "housing": 17280,
+    "transportation": 9258,
+    "other": 4819,
+    "taxes": 10873
+  },
+  "2 adults, 3 children": {
+    "food": 12583,
+    "childcare": 30324,
+    "medical": 5889,
+    "housing": 22224,
+    "transportation": 8845,
+    "other": 4502,
+    "taxes": 13516
+  }
+}

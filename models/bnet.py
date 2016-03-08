@@ -5,7 +5,7 @@ for using probabilistic graphical models (bayes' nets in particular).
 import logging
 import pandas as pd
 import networkx as nx
-from util import random_choice
+from cess.util import random_choice
 
 logger = logging.getLogger(__name__)
 
@@ -87,12 +87,12 @@ class BNet():
         # we have encoutered a sample not present in the data
         # fallback to a uniform distribution
         if total == 0:
-            logger.warn('Not enough data to learn a conditional distribution for {} given {}; falling back to uniform distribution'.format(n, given))
-            n_groups = len(probs.keys())
-            probs = {group: 1./n_groups for group in probs.keys()}
-        else:
-            for group in probs.keys():
-                probs[group] /= total
+            logger.warn('Not enough data to learn a conditional distribution for {} given {}; falling back to unconditional distribution'.format(n, given))
+            total = sum(prior_probs.values())
+            probs = prior_probs
+
+        for group in probs.keys():
+            probs[group] /= total
 
         return probs
 
