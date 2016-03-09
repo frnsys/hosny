@@ -39,6 +39,7 @@ def run_simulation(given):
     # pop = generate_population(100)
     person = Person.generate(2005, given=given)
     print('YOU ARE', person)
+    print('YOUR JOB IS', person.occupation)
     pop = load_population('data/population.json')
     pop.append(person) # TODO build out your social network
     model = City(pop)

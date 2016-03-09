@@ -71,10 +71,7 @@ edges = [
 
     (Var.year, Var.employed),
 
-    (Var.wage_income, Var.welfare_income),
     (Var.business_income, Var.wage_income),
-    (Var.wage_income, Var.retirement_income),
-
     (Var.occupation, Var.wage_income),
     (Var.industry, Var.wage_income),
 ]
@@ -83,8 +80,6 @@ edges = [
 income_vars = [
     Var.wage_income,
     Var.investment_income,
-    Var.welfare_income,
-    Var.retirement_income,
     Var.business_income,
 ]
 

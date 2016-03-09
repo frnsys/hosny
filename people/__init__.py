@@ -22,6 +22,8 @@ import json
 annual_expenses = sum(json.load(open('data/world/annual_expenses.json', 'r'))['1 adult'].values())
 
 
+
+
 class Person(Agent):
     @classmethod
     def generate(cls, year, given=None, **kwargs):
@@ -100,7 +102,7 @@ class Person(Agent):
             f = self.fire_prob(world)
             if random.random() < f:
                 self._state['employed'] = Employed.unemployed
-                logger.info('{} got fired!'.format(self.name))
+                self.twoot('ah shit I got fired!')
         else:
             self.diary['days_unemployed'] += 1
 
@@ -110,7 +112,7 @@ class Person(Agent):
                 if employed == Employed.employed and random.random() <= c:
                     p = self.hire_prob(world, 'friend')
                     if random.random() <= p:
-                        logger.info('{} got a job via a friend!'.format(self.name))
+                        self.twoot('got a job from my friend :)')
                         self._state['employed'] == Employed.employed
                         break
 
@@ -118,7 +120,7 @@ class Person(Agent):
             if self.state['employed'] != Employed.employed:
                 p = self.hire_prob(world, 'ad_or_cold_call')
                 if random.random() <= p:
-                    logger.info('{} got a job via a cold call!'.format(self.name))
+                    self.twoot('got a job from a cold call!')
                     self._state['employed'] == Employed.employed
 
     def history(self):
@@ -133,3 +135,6 @@ class Person(Agent):
         employment_dist = emp_dist[world['year']][world['month'] - 1][self.race.name][self.sex.name]
         p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
         return p_unemployed
+
+    def twoot(self, message):
+        logger.info('twooter:{}:{}:{}'.format(self.id, self.name, message))
