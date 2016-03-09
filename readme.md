@@ -70,11 +70,13 @@ Then, run the simulation across the cluster:
 
 ## Running the frontend
 
-    # run the server
-    python app
+(run each of the following in separate tabs)
 
     # run redis
     redis-server
+
+    # run the server
+    python app
 
     # run the celery worker
     celery -A app.tasks.celery worker
