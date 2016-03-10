@@ -89,6 +89,7 @@ require([
 
       socket.on("twooter", function(data){
         data.username = slugify(data.name);
+        console.log(data);
         $(".twooter-feed").prepend(renderTemplate('twoot', data));
       });
 
