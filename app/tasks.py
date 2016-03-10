@@ -28,10 +28,14 @@ app.config.update(
 celery = make_celery(app)
 
 
+# ehhh hacky
+model = None
+logger = logging.getLogger('people')
+
+
 @celery.task
-def run_simulation(given):
-    print('SIMULATION RUNNING')
-    logger = logging.getLogger('people')
+def setup_simulation(given):
+    global model
     logger.setLevel(logging.INFO)
     sockets_handler = SocketsHandler()
     logger.addHandler(sockets_handler)
@@ -43,5 +47,9 @@ def run_simulation(given):
     pop = load_population('data/population.json')
     pop.append(person) # TODO build out your social network
     model = City(pop)
-    for _ in range(100):
-        model.step()
+
+
+@celery.task
+def step_simulation():
+    print('STEPPING SIMULATION')
+    model.step()

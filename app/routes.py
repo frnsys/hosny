@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, render_template, request, abort
-from .tasks import run_simulation
+from .tasks import step_simulation, setup_simulation
 from run import load_population
 
 routes = Blueprint('routes', __name__)
@@ -20,14 +20,21 @@ def city():
     return render_template('city.html')
 
 
-@routes.route('/simulate', methods=['POST'])
-def simulate():
+@routes.route('/step', methods=['POST'])
+def step():
+    print('STEP REQUEST RECEIVED')
+    step_simulation.delay()
+    return jsonify(success=True)
+
+
+@routes.route('/setup', methods=['POST'])
+def setup():
     print('SIMULATION REQUEST RECEIVED')
     data = request.get_json()
     race = int(data['race'])
     education = int(data['education'])
     employment = int(data['employment'])
-    run_simulation.delay({'race': race, 'education': education, 'employed': employment})
+    setup_simulation.delay({'race': race, 'education': education, 'employed': employment})
     return jsonify(success=True)
 
 

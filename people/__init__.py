@@ -68,33 +68,30 @@ class Person(Agent):
                 'sex': self.sex,
                 'race': self.race,
                 'age': int(self.age),
-                'education': self.education
+                'education': self.education,
+
+                # attribs
+                'altruism': 0,      # negative: greedy
+                'frugality': 0,     # negative: decadent/wasteful
+                'myopism': 0,       # negative: better at long-term thinking
+                'sociability': 0    # negative: introverted
             },
             actions=config.ACTIONS,
             goals=[],
             utility_funcs=config.UTILITY_FUNCS,
             constraints=config.CONSTRAINTS)
 
-
-    def as_json(self):
-        obj = self.state.copy()
-        obj['friends'] = [friend.id for friend in self.friends]
-
-        attrs = ['id', 'name',
-                 'puma', 'industry',
-                 'occupation', 'industry_code',
-                 'occupation_code', 'neighborhood',
-                 'rent']
-        for attr in attrs:
-            obj[attr] = getattr(self, attr)
-        return obj
-
-    def __repr__(self):
-        return self.name
-
     @asyncio.coroutine
     def step(self, world):
         """one time-step"""
+
+        tax_rate = 0.3
+        if self.altruism < 0:
+            tax_rate + self.altruism
+
+        taxes = self.income * tax_rate
+        world.government_funds += taxes
+        self.cash -= taxes
 
         if self.state['employed'] == Employed.employed:
             self.diary['days_employed'] += 1
@@ -122,6 +119,22 @@ class Person(Agent):
                 if random.random() <= p:
                     self.twoot('got a job from a cold call!')
                     self._state['employed'] == Employed.employed
+
+    def as_json(self):
+        obj = self.state.copy()
+        obj['friends'] = [friend.id for friend in self.friends]
+
+        attrs = ['id', 'name',
+                 'puma', 'industry',
+                 'occupation', 'industry_code',
+                 'occupation_code', 'neighborhood',
+                 'rent']
+        for attr in attrs:
+            obj[attr] = getattr(self, attr)
+        return obj
+
+    def __repr__(self):
+        return self.name
 
     def history(self):
         self.state['n_friends'] = len(self.friends)
