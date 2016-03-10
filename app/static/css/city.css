@@ -53,10 +53,13 @@ canvas {
     margin: 0;
 }
 
-.start-simulation {
+button {
     background: #fff;
     margin: 0 auto 2em auto;
     display: block;
+}
+.step-simulation {
+    display: none;
 }
 
 .overlay {

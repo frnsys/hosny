@@ -61,45 +61,52 @@ require([
 
   var socket = io();
   $(function() {
-      $('.start-simulation').on('click', function() {
-          $.ajax({
-              type: "POST",
-              url: "/simulate",
-              data: JSON.stringify({
-                  //race: $('[name=race]').val(),
-                  //education: $('[name=education]').val(),
-                  //employment: $('[name=employment]').val()
-                  race: 1,
-                  education: 1,
-                  employment: 1
-              }),
-              contentType: "application/json",
-              success: function(data, textStatus, jqXHR) {
-                  // console.log("success");
-              }
-          });
+      $('.setup-simulation').on('click', function() {
+        $.ajax({
+          type: "POST",
+          url: "/setup",
+          data: JSON.stringify({
+            //race: $('[name=race]').val(),
+            //education: $('[name=education]').val(),
+            //employment: $('[name=employment]').val()
+            race: 1,
+            education: 1,
+            employment: 1
+          }),
+          contentType: "application/json",
+          success: function(data, textStatus, jqXHR) {
+            $('.step-simulation').show();
+            $('.setup-simulation').hide();
+          }
+        });
+      });
+      $('.step-simulation').on('click', function() {
+        $.ajax({
+          type: "POST",
+          url: "/step"
+        })
       });
 
       socket.on("twooter", function(data){
-          data.username = slugify(data.name);
-          $(".twooter-feed").prepend(renderTemplate('twoot', data));
+        data.username = slugify(data.name);
+        $(".twooter-feed").prepend(renderTemplate('twoot', data));
       });
 
       $(".twooter-feed").on('click', '.twoot-author', function() {
-          var id = $(this).data('id');
-          if (!id) { return; }
-          $.ajax({
-              type: "GET",
-              url: "/person/" + id,
-              success: function(data) {
-                  $('.overlay').fadeIn();
-                  $('.overlay-content').text(JSON.stringify(data));
-              }
-          });
+        var id = $(this).data('id');
+        if (!id) { return; }
+        $.ajax({
+          type: "GET",
+          url: "/person/" + id,
+          success: function(data) {
+            $('.overlay').fadeIn();
+            $('.overlay-content').text(JSON.stringify(data));
+          }
+        });
       });
 
       $('.overlay').on('click', function(ev) {
-          $('.overlay').fadeOut();
+        $('.overlay').fadeOut();
       });
   });
 });

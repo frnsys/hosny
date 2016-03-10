@@ -79,7 +79,9 @@ Then, run the simulation across the cluster:
     python app
 
     # run the celery worker
-    celery -A app.tasks.celery worker
+    # only run one celery process; this is a bit of a hack to ensure that
+    # only one City model is created and we step only that model
+    celery -A app.tasks.celery worker --concurrency=1
 
 Then visit `http://localhost:5000`
 
