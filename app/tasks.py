@@ -30,7 +30,7 @@ celery = make_celery(app)
 
 # ehhh hacky
 model = None
-logger = logging.getLogger('people')
+logger = logging.getLogger('simulation')
 
 
 @celery.task

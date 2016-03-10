@@ -1,3 +1,4 @@
+import json
 import logging
 from flask_socketio import SocketIO
 
@@ -7,9 +8,9 @@ class SocketsHandler(logging.Handler):
         if not hasattr(self, 'socketio'):
             self.socketio = SocketIO(message_queue='redis://localhost:6379')
         try:
-            # format: 'CHAN:ID:NAME:MSG'
-            chan, id, name, msg = record.getMessage().split(':', 3)
-            self.socketio.emit(chan, {'msg': msg, 'name': name, 'id': id})
+            # format: 'CHAN:DATA'
+            chan, datastr = record.getMessage().split(':', 1)
+            self.socketio.emit(chan, json.loads(datastr))
         except (KeyboardInterrupt, SystemExit):
             raise
         except:

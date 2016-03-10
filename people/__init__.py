@@ -1,3 +1,4 @@
+import json
 import config
 import random
 import logging
@@ -9,7 +10,7 @@ from .generate import generate
 from .attribs import Employed, Sex, Race, Education
 from world.work import offer_prob
 
-logger = logging.getLogger('people')
+logger = logging.getLogger('simulation.people')
 
 
 # precompute and cache to save a lot of time
@@ -18,7 +19,6 @@ emp_dist = work.precompute_employment_dist()
 
 # assuming 1 adult. ofc these expenses will vary a lot depending on other
 # factors like neighborhood, but we could not find data that granular
-import json
 annual_expenses = sum(json.load(open('data/world/annual_expenses.json', 'r'))['1 adult'].values())
 
 
@@ -84,15 +84,6 @@ class Person(Agent):
     @asyncio.coroutine
     def step(self, world):
         """one time-step"""
-
-        tax_rate = 0.3
-        if self.altruism < 0:
-            tax_rate + self.altruism
-
-        taxes = self.income * tax_rate
-        world.government_funds += taxes
-        self.cash -= taxes
-
         if self.state['employed'] == Employed.employed:
             self.diary['days_employed'] += 1
 
@@ -150,4 +141,9 @@ class Person(Agent):
         return p_unemployed
 
     def twoot(self, message):
-        logger.info('twooter:{}:{}:{}'.format(self.id, self.name, message))
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'msg': message
+        }
+        logger.info('twooter:{}'.format(json.dumps(data)))

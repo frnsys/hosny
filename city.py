@@ -1,11 +1,14 @@
 import json
 import config
+import logging
 from itertools import chain
 from cess import Simulation
 from world.space import Space
 from dateutil.relativedelta import relativedelta
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
+
+logger = logging.getLogger('simulation.city')
 
 
 class City(Simulation):
@@ -39,3 +42,10 @@ class City(Simulation):
             return list(chain.from_iterable([r['results'] for r in self.cluster.submit('call_agents', func='history')]))
         else:
             return [agent.history() for agent in self.agents]
+
+    def _log(self, chan, data):
+        """format a message for the logger"""
+        logger.info('{}:{}'.format(chan, json.dumps(data)))
+
+    def building_bought(self, type, row, col):
+        self._log('building_bought', {'type': type, 'row': row, 'col': col})
