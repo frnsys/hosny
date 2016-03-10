@@ -39,3 +39,6 @@ class City(Simulation):
             return list(chain.from_iterable([r['results'] for r in self.cluster.submit('call_agents', func='history')]))
         else:
             return [agent.history() for agent in self.agents]
+
+    # def buildingType(self, message):
+        # logger.info('buildingType: Type, Location, Age

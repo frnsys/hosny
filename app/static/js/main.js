@@ -85,6 +85,12 @@ require([
           $(".twooter-feed").prepend(renderTemplate('twoot', data));
       });
 
+      //socket.on("building", function(data) {
+        // data.type = 
+        // data.age = 
+        // data.location = 
+      // });
+
       $(".twooter-feed").on('click', '.twoot-author', function() {
           var id = $(this).data('id');
           if (!id) { return; }
