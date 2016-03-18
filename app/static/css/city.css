@@ -77,3 +77,7 @@ button {
     padding: 2em;
     width: 48em;
 }
+
+.actions {
+    clear: both;
+}

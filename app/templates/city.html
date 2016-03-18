@@ -2,35 +2,40 @@
 {% block styles %}
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/city.css">
+    <link rel="stylesheet" href="/static/css/graph.css">
 {% endblock %}
 
 {% block content %}
 
 <canvas id="stage"></canvas>
 
-<div class="twooter">
-    <header class="twooter-header">
-        <img src="/static/img/twooter.svg" class="twooter-brand">
-    </header>
-    <ul class="twooter-feed">
-        <li class="twoot">
-            <div class="twoot-by"><span class="twoot-author">jack</span> <span class="twoot-meta">@jack <span class="twoot-time"> 45m</span></span></div>
-            <p class="twoot-content">just setting up my twooter</p>
-        </li>
-    </ul>
+<div class="dashboard">
+    <div class="graphs"></div>
+    <div class="twooter">
+        <header class="twooter-header">
+            <img src="/static/img/twooter.svg" class="twooter-brand">
+        </header>
+        <ul class="twooter-feed">
+            <li class="twoot">
+                <div class="twoot-by"><span class="twoot-author">jack</span> <span class="twoot-meta">@jack <span class="twoot-time"> 45m</span></span></div>
+                <p class="twoot-content">just setting up my twooter</p>
+            </li>
+        </ul>
+    </div>
 </div>
 
-<!-- <button class="setup-simulation">setup</button>
-<button class="step-simulation">end day</button> -->
+<div class="actions">
+    <button class="step-simulation">end day</button>
+</div>
 
 <div class="overlay">
     <div class="overlay-content">
-        
+
         <!-- Different goals? -->
         <div class="row">
-            <form action="">
+            <form action="" class="setup-simulation">
             <fieldset class="column1 show">
-                
+
                 <h2>You're re-building New York after a zombie attack. You can choose everything you want for this city. How would you like to do it?</h2>
                 <!-- Minimum wage -->
                 <label for="minWageVals">In your world, what is the minimum wage?</label>
@@ -88,7 +93,7 @@
                         <input type="radio" name="desiredWage" value="2"> $25<br>
                         <input type="radio" name="desiredWage" value="3"> $50
                     <input type="submit" class="submit" value="Submit">
-                  
+
             </fieldset>
             </form>
     </div>
@@ -100,6 +105,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
 <script src="/static/js/templates.js"></script>
 <script src="/static/js/util.js"></script>
 <script data-main="/static/js/main" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.min.js"></script>

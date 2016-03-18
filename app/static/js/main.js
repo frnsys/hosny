@@ -1,6 +1,7 @@
 require([
-  'city'
-], function(City) {
+  'city',
+  'graph'
+], function(City, Graph) {
   var fps = 30;
   var game = {
     // setup the scene
@@ -61,31 +62,35 @@ require([
 
   var socket = io();
   $(function() {
-      // $('.setup-simulation').on('click', function() {
-      //   $.ajax({
-      //     type: "POST",
-      //     url: "/setup",
-      //     data: JSON.stringify({
-      //       //race: $('[name=race]').val(),
-      //       //education: $('[name=education]').val(),
-      //       //employment: $('[name=employment]').val()
-      //       race: 1,
-      //       education: 1,
-      //       employment: 1
-      //     }),
-      //     contentType: "application/json",
-      //     success: function(data, textStatus, jqXHR) {
-      //       $('.step-simulation').show();
-      //       $('.setup-simulation').hide();
-      //     }
-      //   });
-      // });
-      // $('.step-simulation').on('click', function() {
-      //   $.ajax({
-      //     type: "POST",
-      //     url: "/step"
-      //   })
-      // });
+      $(".setup-simulation").on("submit", function(ev) {
+        ev.preventDefault();
+        $('.overlay').fadeOut();
+
+        $.ajax({
+          type: "POST",
+          url: "/setup",
+          data: JSON.stringify({
+            race: $('[name=race]').val(),
+            education: $('[name=education]').val(),
+            employment: $('[name=employment]').val(),
+            minWage: $('[name=minWage]').val(),
+            desiredWage: $('[name=desiredWage]').val()
+          }),
+          contentType: "application/json",
+          success: function(data, textStatus, jqXHR) {
+            $('.step-simulation').show();
+          }
+        });
+
+        return false;
+      });
+
+      $('.step-simulation').on('click', function() {
+        $.ajax({
+          type: "POST",
+          url: "/step"
+        })
+      });
 
       socket.on("twooter", function(data){
         data.username = slugify(data.name);
@@ -93,10 +98,23 @@ require([
         $(".twooter-feed").prepend(renderTemplate('twoot', data));
       });
 
+      var graphs = {
+        mean_wage: new Graph(".graphs", "mean_wage", 650, 200, "mean wage"),
+        mean_equip_price: new Graph(".graphs", "mean_equip_price", 650, 200, "mean equip price"),
+        mean_consumer_good_price: new Graph(".graphs", "mean_consumer_good_price", 650, 200, "mean consumer good price")
+      };
+
+      socket.on("graph", function(data){
+        var graph = graphs[data.graph];
+        console.log(data);
+        graph.update(data.data);
+      });
+
       // Advancing from setup screen 1 to screen 2
       var i = 0;      
       $(".next").on("click", function() {
-        console.log(i);
+
+
         $("fieldset").eq(i).removeClass("show").addClass("hide");
         $("fieldset").eq(i+1).removeClass("hide").addClass("show");
         i++;
@@ -150,7 +168,6 @@ require([
           }
         });
       });
-
-      
   });
+
 });
