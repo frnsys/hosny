@@ -1,6 +1,7 @@
 require([
-  'city'
-], function(City) {
+  'city',
+  'graph'
+], function(City, Graph) {
   var fps = 30;
   var game = {
     // setup the scene
@@ -93,6 +94,17 @@ require([
         $(".twooter-feed").prepend(renderTemplate('twoot', data));
       });
 
+      var graphs = {
+        mean_wage: new Graph(".graphs", "mean_wage", 650, 200, "mean wage"),
+        mean_equip_price: new Graph(".graphs", "mean_equip_price", 650, 200, "mean equip price"),
+        mean_consumer_good_price: new Graph(".graphs", "mean_consumer_good_price", 650, 200, "mean consumer good price")
+      };
+
+      socket.on("graph", function(data){
+        var graph = graphs[data.graph];
+        graph.update(data.data);
+      });
+
       $(".twooter-feed").on('click', '.twoot-author', function() {
         var id = $(this).data('id');
         if (!id) { return; }
@@ -110,4 +122,5 @@ require([
         $('.overlay').fadeOut();
       });
   });
+
 });

@@ -10,6 +10,10 @@ from .generate import generate
 from .attribs import Employed, Sex, Race, Education
 from world.work import offer_prob
 
+
+MIN_CONSUMPTION = 1
+WAGE_UNDER_MARKET_MULTIPLIER = 2
+
 logger = logging.getLogger('simulation.people')
 
 
@@ -52,6 +56,14 @@ class Person(Agent):
         self.sex = Sex(self.sex)
         self.race = Race(self.race)
         self.education = Education(self.education)
+
+        # TODO these are being set manually
+        self.altruism = 0
+        self.frugality = 0
+        self.wage = 0
+        self.wage_minimum = 0
+        self.employer = None
+        self.min_consumption = MIN_CONSUMPTION * (2 - self.frugality)
 
         super().__init__(
             state={
@@ -147,3 +159,12 @@ class Person(Agent):
             'msg': message
         }
         logger.info('twooter:{}'.format(json.dumps(data)))
+
+    def seeking_job(self, world):
+        if world['mean_consumer_good_price'] * self.min_consumption > self.wage:
+            self.wage_minimum = world['mean_consumer_good_price'] * self.min_consumption
+            return True
+        elif world['mean_wage'] > self.wage * WAGE_UNDER_MARKET_MULTIPLIER:
+            self.wage_minimum = self.wage * WAGE_UNDER_MARKET_MULTIPLIER
+            return True
+        return False
