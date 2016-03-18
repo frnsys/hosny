@@ -74,14 +74,14 @@ class Firm(Agent):
             # TODO choose based on employment prob
             worker = random.choice(applicants)
             if worker.employer is not None:
-                logger.info('{} is leaving their old job at {}'.format(worker, worker.employer))
+                # logger.info('{} is leaving their old job at {}'.format(worker, worker.employer))
                 worker.employer.fire(worker)
             worker.wage = wage
             worker.employer = self
             applicants.remove(worker)
             self.workers.append(worker)
             hired.append(worker)
-            logger.info('{} hired {} at wage {}'.format(self, worker, wage))
+            # logger.info('{} hired {} at wage {}'.format(self, worker, wage))
             self.worker_change -= 1
 
         # increase wage to attract more employees
@@ -103,11 +103,11 @@ class Firm(Agent):
         cost_per_unit = self.costs/self.supply
         self.price = max(0, cost_per_unit + self.profit_margin)
 
-        logger.info('{} produced {} at {}'.format(self, self.supply, self.price))
+        # logger.info('{} produced {} at {}'.format(self, self.supply, self.price))
         return self.supply, self.price
 
     def sell(self, quantity):
-        logger.info('{} sold {} for {}'.format(self, quantity, self.price))
+        # logger.info('{} sold {} for {}'.format(self, quantity, self.price))
         n_sold = min(self.supply, quantity)
         self.supply -= n_sold
         self.n_sold += n_sold
@@ -191,7 +191,7 @@ class Firm(Agent):
         self.profit = self.revenue - self.costs
         self.leftover = self.supply
 
-        logger.info('{}: {} profit, {} revenue, {} costs, {} cash'.format(self, self.profit, self.revenue, self.costs, self.cash))
+        # logger.info('{}: {} profit, {} revenue, {} costs, {} cash'.format(self, self.profit, self.revenue, self.costs, self.cash))
 
         # adjust production
         action = self.learner.choose_action(self.current_state)
@@ -199,7 +199,7 @@ class Firm(Agent):
         self.desired_supply = max(1, self.desired_supply + action.get('supply', 0))
         self.profit_margin += action.get('profit_margin', 0)
 
-        logger.info('{} desired supply {}'.format(self, self.desired_supply))
+        # logger.info('{} desired supply {}'.format(self, self.desired_supply))
 
         # supply expires every day
         self.supply = 0
@@ -218,7 +218,7 @@ class Firm(Agent):
         # fire workers that are being paid too much
         for worker in self.workers:
             if worker.wage >= world['mean_wage'] + (EXTRAVAGANT_WAGE_RANGE * (1.1+self.owner.altruism)):
-                logger.info('{} fired for being paid too much'.format(worker.id))
+                # logger.info('{} fired for being paid too much'.format(worker.id))
                 self.fire(worker)
 
         self.worker_change = n_workers - len(self.workers)
@@ -228,7 +228,7 @@ class Firm(Agent):
         while self.worker_change < 0:
             # TODO do weighted random choice by unemployment prob
             worker = random.choice(self.workers)
-            logger.info('{} fired because too many workers'.format(worker.id))
+            # logger.info('{} fired because too many workers'.format(worker.id))
             self.fire(worker)
             self.worker_change += 1
 

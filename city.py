@@ -88,7 +88,7 @@ class City(Simulation):
 
         labor_force = [p for p in self.people if p.wage != 0]
         self.state['mean_wage'] = ewma(self.state['mean_wage'], sum(p.wage for p in labor_force)/len(labor_force))
-        data = json.dumps({'graph':'mean_wage','data':{'time':self.date.timestamp(),'value': self.state['mean_wage']}})
+        data = json.dumps({'graph':'mean_wage','data':{'time':self.date.isoformat(),'value': self.state['mean_wage']}})
         logger.info('graph:{}'.format(data))
 
         for firm in self.raw_material_firms:
@@ -106,7 +106,7 @@ class City(Simulation):
             sell_prices += [price for _ in range(amt)]
         mean = sum(sell_prices)/len(sell_prices) if sell_prices else 0
         self.state['mean_equip_price'] = ewma(self.state['mean_equip_price'], mean)
-        data = json.dumps({'graph':'mean_equip_price','data':{'time':self.date.timestamp(),'value': self.state['mean_equip_price']}})
+        data = json.dumps({'graph':'mean_equip_price','data':{'time':self.date.isoformat(),'value': self.state['mean_equip_price']}})
         logger.info('graph:{}'.format(data))
 
         for firm in self.consumer_good_firms:
@@ -119,13 +119,13 @@ class City(Simulation):
             sell_prices += [price for _ in range(amt)]
         mean = sum(sell_prices)/len(sell_prices) if sell_prices else 0
         self.state['mean_consumer_good_price'] = ewma(self.state['mean_consumer_good_price'], mean)
-        data = json.dumps({'graph':'mean_consumer_good_price','data':{'time':self.date.timestamp(),'value': self.state['mean_consumer_good_price']}})
+        data = json.dumps({'graph':'mean_consumer_good_price','data':{'time':self.date.isoformat(),'value': self.state['mean_consumer_good_price']}})
         logger.info('graph:{}'.format(data))
 
         # TODO payment
         # TODO taxes
-        for person in self.people:
-            person['cash'] += person.wage
+        # for person in self.people:
+            # person['cash'] = (yield from person['cash']) + person.wage
 
         # TODO decide on hospitals
 

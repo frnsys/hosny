@@ -15,7 +15,7 @@ class Household():
         return sum(p.min_consumption for p in self.people)
 
     def purchase_goods(self, supplier):
-        cash = sum(p.cash for p in self.people)
+        cash = sum(p.state['cash'] for p in self.people)
         desired_goods = self.min_consumption - self.goods
 
         can_afford = math.floor(cash/supplier.price)
@@ -28,7 +28,7 @@ class Household():
 
         # subtract cash from members
         for p in self.people:
-            spent = min(cost, p.cash)
+            spent = min(cost, p.state['cash'])
             p.cash -= spent
             cost -= spent
 

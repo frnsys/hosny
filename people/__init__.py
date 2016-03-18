@@ -88,9 +88,6 @@ class Person(Agent):
                 'myopism': 0,       # negative: better at long-term thinking
                 'sociability': 0    # negative: introverted
             },
-            actions=config.ACTIONS,
-            goals=[],
-            utility_funcs=config.UTILITY_FUNCS,
             constraints=config.CONSTRAINTS)
 
     @asyncio.coroutine
