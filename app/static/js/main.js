@@ -62,32 +62,6 @@ require([
 
   var socket = io();
   $(function() {
-      $('.setup-simulation').on('click', function() {
-        $.ajax({
-          type: "POST",
-          url: "/setup",
-          data: JSON.stringify({
-            //race: $('[name=race]').val(),
-            //education: $('[name=education]').val(),
-            //employment: $('[name=employment]').val()
-            race: 1,
-            education: 1,
-            employment: 1
-          }),
-          contentType: "application/json",
-          success: function(data, textStatus, jqXHR) {
-            $('.step-simulation').show();
-            $('.setup-simulation').hide();
-          }
-        });
-      });
-      $('.step-simulation').on('click', function() {
-        $.ajax({
-          type: "POST",
-          url: "/step"
-        })
-      });
-
       socket.on("twooter", function(data){
         data.username = slugify(data.name);
         console.log(data);
@@ -105,6 +79,37 @@ require([
         graph.update(data.data);
       });
 
+      // Advancing from setup screen 1 to screen 2
+      $(".next").on("click", function() {
+        $('.column1').removeClass("show").addClass("hide");
+        $('.column2').removeClass("hide").addClass("show");
+      });
+
+
+      // Send
+      $("form").on("submit", function(ev) {
+        ev.preventDefault();
+        $('.overlay').fadeOut();
+
+        $.ajax({
+          type: "POST",
+          url: "/simulate",
+          data: JSON.stringify({
+            race: $('[name=race]').val(),
+            education: $('[name=education]').val(),
+            employment: $('[name=employment]').val(),
+            minWage: $('[name=minWage]').val(),
+            desiredWage: $('[name=desiredWage]').val()
+          }),
+          contentType: "application/json",
+          success: function(data, textStatus, jqXHR) {
+            // console.log("success");
+          }
+        });
+
+        return false;
+        });
+
       $(".twooter-feed").on('click', '.twoot-author', function() {
         var id = $(this).data('id');
         if (!id) { return; }
@@ -116,10 +121,6 @@ require([
             $('.overlay-content').text(JSON.stringify(data));
           }
         });
-      });
-
-      $('.overlay').on('click', function(ev) {
-        $('.overlay').fadeOut();
       });
   });
 

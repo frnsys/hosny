@@ -47,6 +47,17 @@ th {
     padding: 0
 }
 
+
+.show {
+    opacity: 100;
+    display: block;
+}
+
+.hide {
+    opacity: 0;
+    display: none;
+}
+
 .grd {
     padding-left: 1rem;
     padding-right: 1rem
@@ -537,7 +548,7 @@ textarea {
     padding: .5rem;
     margin-bottom: .5rem;
     display: block;
-    width: 100%;
+    /*width: 100%;*/
     box-shadow: none;
     border: thin solid rgba(216, 216, 216, .99)
 }

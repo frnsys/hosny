@@ -69,7 +69,7 @@ button {
     bottom: 0;
     left: 0;
     background: rgba(0,0,0,0.8);
-    display: none;
+   // display: none;
 }
 .overlay-content {
     margin: 2em auto;
