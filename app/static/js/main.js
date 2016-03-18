@@ -94,10 +94,13 @@ require([
       });
 
       // Advancing from setup screen 1 to screen 2
+      var i = 0;      
       $(".next").on("click", function() {
-        $('.column1').removeClass("show").addClass("hide");
-        $('.column2').removeClass("hide").addClass("show");
-        });
+        console.log(i);
+        $("fieldset").eq(i).removeClass("show").addClass("hide");
+        $("fieldset").eq(i+1).removeClass("hide").addClass("show");
+        i++;
+      });
       
       
       // Send 
@@ -116,7 +119,8 @@ require([
                     education: $('[name=education]').val(),
                     employment: $('[name=employment]').val(),
                     minWage: $('[name=minWage]').val(),
-                    desiredWage: $('[name=desiredWage]').val()
+                    desiredWage: $('[name=desiredWage]').val(),
+                    character: $('[name=character]').val()
                 }),
                 
                 contentType: "application/json",

@@ -20,8 +20,8 @@
     </ul>
 </div>
 
-<button class="setup-simulation">setup</button>
-<button class="step-simulation">end day</button>
+<!-- <button class="setup-simulation">setup</button>
+<button class="step-simulation">end day</button> -->
 
 <div class="overlay">
     <div class="overlay-content">
@@ -37,9 +37,16 @@
                     <input type="radio" name="minWage" value="1" checked>$7.75<br>
                     <input type="radio" name="minWage" value="2">$25<br>
                     <input type="radio" name="minWage" value="3">$50
-                <a class="next">Next screen</a>
+                <a class="next">More customization</a>
             </fieldset>
             <fieldset class="column2 hide">
+                <label for="characterVals">Choose what sort of people you'd like your city to be populated with.</label>
+                    <input type="radio" name="character" value="1" checked>Random<br>
+                    <input type="radio" name="character" value="2">Past players<br>
+                    <input type="radio" name="character" value="3">Custom
+                <a class="next">Save city parameters</a>
+            </fieldset>
+            <fieldset class="column3 hide">
                     <h2>Choose what sort of people you'd like your city to be populated with.</h2>
                     <label>Race</label>
                         <select name="race">

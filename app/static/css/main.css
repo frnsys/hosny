@@ -155,6 +155,10 @@ a:hover {
     color: #217dbb
 }
 
+a.next {
+    display: block;
+}
+
 .bg--red {
     background-color: #e74c3c
 }
