@@ -10,19 +10,19 @@ canvas {
 .twooter {
     margin: 2em;
     padding: 1em;
-    background: #f0f0f0;
-    overflow-y: scroll;
+    /*background: #f0f0f0;*/
+    overflow-x: scroll;
     height: 18em;
 }
 .twoot {
-    background: #fff;
+    /*background: #fff;*/
     padding: 1em;
     margin: 0;
-    border: 1px solid #ddd;
-    border-bottom: none;
+    /*border: 1px solid #ddd;*/
+    /*border-bottom: none;*/
 }
 .twoot:last-child {
-    border-bottom: 1px solid #ddd;
+    /*border-bottom: 1px solid #ddd;*/
 }
 .twooter-header {
     text-align: center;
@@ -69,7 +69,7 @@ button {
     bottom: 0;
     left: 0;
     background: rgba(0,0,0,0.8);
-   // display: none;
+    //display: none;
 }
 .overlay-content {
     margin: 2em auto;

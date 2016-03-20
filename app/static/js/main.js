@@ -115,10 +115,50 @@ require([
       });
 
       // Advancing from setup screen 1 to screen 2
+      var i = 0;      
       $(".next").on("click", function() {
-        $('.column1').removeClass("show").addClass("hide");
-        $('.column2').removeClass("hide").addClass("show");
+
+
+        $("fieldset").eq(i).removeClass("show").addClass("hide");
+        $("fieldset").eq(i+1).removeClass("hide").addClass("show");
+        i++;
       });
+      
+      
+      // Send 
+      $("form").on("submit", function(ev) {
+            ev.preventDefault();
+            
+            $('.overlay').fadeOut();
+            $('.messages').empty();
+            
+
+            $.ajax({
+                type: "POST",
+                url: "/simulate",
+                data: JSON.stringify({
+                    race: $('[name=race]').val(),
+                    education: $('[name=education]').val(),
+                    employment: $('[name=employment]').val(),
+                    minWage: $('[name=minWage]').val(),
+                    desiredWage: $('[name=desiredWage]').val(),
+                    character: $('[name=character]').val()
+                }),
+                
+                contentType: "application/json",
+
+                success: function(data, textStatus, jqXHR) {
+                    // console.log("success");
+                }
+            });
+
+            return false;
+        });
+
+      socket.on("log", function(data){
+            $(".messages").append("<li>"+data.msg+"</li>");
+            console.log("sending log");
+        });
 
       $(".twooter-feed").on('click', '.twoot-author', function() {
         var id = $(this).data('id');
