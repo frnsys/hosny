@@ -2,7 +2,7 @@ define([
   'person',
   'building'
 ], function(Person, Building) {
-  var City = function(rows, cols, margin, scene) {
+  var City = function(rows, cols, margin, population, scene) {
     this.rows = rows;
     this.cols = cols;
     this.side = 1;
@@ -35,7 +35,7 @@ define([
     }
 
     this.population = [];
-    this.spawn();
+    this.spawn(population);
   };
 
   City.prototype = {
@@ -45,44 +45,55 @@ define([
       this.scene.add(obj);
     },
 
+    remove: function(obj) {
+      this.scene.remove(obj);
+    },
+
     update: function() {
       var self = this;
       _.each(this.population, function(p) {
-        var radius = p.mesh.geometry.parameters.radius;
+        var radius = p.radius;
         p.update();
 
         // destroy when out of the city
         if (p.distanceTraveled.x > self.gridWidth + 2*radius || p.distanceTraveled.z > self.gridDepth + 2*radius) {
           self.scene.remove(p.mesh);
-          self.population = _.without(self.population, p);
-          setTimeout(function() {
-            self.spawnPerson();
-          }, Math.random() * 5000);
+          self.placePersonDelayed(p);
         }
       });
     },
 
     // spawn the city
-    spawn: function() {
+    spawn: function(population) {
       this.spawnBuildings();
       this.spawnRoads();
 
       var self = this;
-      for (var i=0; i < 100; i++) {
+      for (var i=0; i < population.length; i++) {
         // stagger
-        setTimeout(function() {
-          self.spawnPerson();
-        }, Math.random() * 5000);
+        var person = new Person(population[i]);
+        this.population.push(person);
+        this.placePersonDelayed(person);
       }
 
       //this.origin();
     },
 
     spawnBuilding: function(row, col) {
-      var building = new Building(Building.type.Office, this.side),
-          x = row * this.fullSide,
-          z = col * this.fullSide;
-      this.place(building.mesh, x, building.mesh.geometry.parameters.height/2, z);
+      var x = row * this.fullSide,
+          z = col * this.fullSide,
+          building = new Building.Building(x, z, this),
+          tenant = new Building.Tenant('Business');
+      building.add(tenant);
+      building.add(new Building.Tenant('Residential'));
+      building.add(new Building.Tenant('Hospital'));
+      building.add(new Building.Tenant('Business'));
+      building.add(new Building.Tenant('Hospital'));
+      building.add(new Building.Tenant('Residential'));
+      building.add(new Building.Tenant('Hospital'));
+      building.add(new Building.Tenant('Business'));
+      building.add(new Building.Tenant('Hospital'));
+      building.add(new Building.Tenant('Residential'));
     },
 
     spawnBuildings: function() {
@@ -94,8 +105,8 @@ define([
       }
     },
 
-    spawnPerson: function() {
-      var radius = 0.2,
+    placePerson: function(person) {
+      var radius = person.radius,
           x = 0,
           z = 0,
           velocity = {x:0, z:0};
@@ -104,16 +115,35 @@ define([
         var col = _.random(0, this.cols);
         x = (col-1) * this.fullSide + (this.side/2 + this.margin);
         velocity.z = z < 0 ? 0.1 : -0.1;
+
+        // "lanes", people keep to the right
+        if (z == -radius) {
+          x -= radius;
+        } else {
+          x += radius;
+        }
       } else {
         x = _.sample([-radius, this.gridWidth + radius]);
         var row = _.random(0, this.rows);
         z = (row-1) * this.fullSide + (this.side/2 + this.margin);
         velocity.x = x < 0 ? 0.1 : -0.1;
-      }
 
-      var person = new Person(radius, velocity);
+        // "lanes", people keep to the right
+        if (x == -radius) {
+          z -= radius;
+        } else {
+          z += radius;
+        }
+      }
       this.place(person.mesh, x - radius, radius, z - radius);
-      this.population.push(person);
+      person.wander(velocity);
+    },
+
+    placePersonDelayed: function(person) {
+      var self = this;
+      setTimeout(function() {
+        self.placePerson(person);
+      }, Math.random() * 5000);
     },
 
     spawnRoads: function() {

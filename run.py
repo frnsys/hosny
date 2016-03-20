@@ -38,15 +38,6 @@ def run_simulation(population, days, arbiter):
         for day in days:
             model.step()
 
-    with open('histories.txt', 'a') as f:
-        for name, state, history in model.history():
-            f.write(str(history) + '\n')
-            # print('---------------')
-            # print(name)
-            # print(state)
-            # print(history)
-            # print('---------------')
-
     print('elapsed:', str(timedelta(seconds=time() - s)))
 
 

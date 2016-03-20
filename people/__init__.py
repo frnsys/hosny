@@ -3,6 +3,8 @@ import config
 import random
 import logging
 import asyncio
+import numpy as np
+from datetime import datetime
 from cess import Agent
 from world import work
 from .names import generate_name
@@ -13,19 +15,12 @@ from world.work import offer_prob
 
 MIN_CONSUMPTION = 1
 WAGE_UNDER_MARKET_MULTIPLIER = 2
+MIN_BUSINESS_CAPITAL = 50000 # initial required capital, plus whatever rent and an employee costs
 
 logger = logging.getLogger('simulation.people')
 
-
 # precompute and cache to save a lot of time
 emp_dist = work.precompute_employment_dist()
-
-
-# assuming 1 adult. ofc these expenses will vary a lot depending on other
-# factors like neighborhood, but we could not find data that granular
-annual_expenses = sum(json.load(open('data/world/annual_expenses.json', 'r'))['1 adult'].values())
-
-
 
 
 class Person(Agent):
@@ -81,6 +76,7 @@ class Person(Agent):
                 'race': self.race,
                 'age': int(self.age),
                 'education': self.education,
+                'firm_owner': self.business_income > 0,
 
                 # attribs
                 'altruism': 0,      # negative: greedy
@@ -99,7 +95,7 @@ class Person(Agent):
             f = self.fire_prob(world)
             if random.random() < f:
                 self._state['employed'] = Employed.unemployed
-                self.twoot('ah shit I got fired!')
+                self.twoot('ah shit I got fired!', world)
         else:
             self.diary['days_unemployed'] += 1
 
@@ -109,7 +105,7 @@ class Person(Agent):
                 if employed == Employed.employed and random.random() <= c:
                     p = self.hire_prob(world, 'friend')
                     if random.random() <= p:
-                        self.twoot('got a job from my friend :)')
+                        self.twoot('got a job from my friend :)', world)
                         self._state['employed'] == Employed.employed
                         break
 
@@ -117,7 +113,7 @@ class Person(Agent):
             if self.state['employed'] != Employed.employed:
                 p = self.hire_prob(world, 'ad_or_cold_call')
                 if random.random() <= p:
-                    self.twoot('got a job from a cold call!')
+                    self.twoot('got a job from a cold call!', world)
                     self._state['employed'] == Employed.employed
 
     def as_json(self):
@@ -131,14 +127,15 @@ class Person(Agent):
                  'rent']
         for attr in attrs:
             obj[attr] = getattr(self, attr)
+
+        # coerce numpy datatypes
+        for k, v in obj.items():
+            if isinstance(v, np.integer):
+                obj[k] = int(v)
         return obj
 
     def __repr__(self):
         return self.name
-
-    def history(self):
-        self.state['n_friends'] = len(self.friends)
-        return self.name, self.state, self.diary
 
     def hire_prob(self, world, referral):
         """referral can either be 'friend' or 'ad_or_cold_call'"""
@@ -149,11 +146,16 @@ class Person(Agent):
         p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
         return p_unemployed
 
-    def twoot(self, message):
+    def twoot(self, message, world):
         data = {
             'id': self.id,
             'name': self.name,
-            'msg': message
+            'msg': message,
+            'date': datetime.strptime(
+                '{}/{}'.format(
+                    world['month'],
+                    world['year']),
+                '%m/%Y').isoformat()
         }
         logger.info('twooter:{}'.format(json.dumps(data)))
 
@@ -165,3 +167,11 @@ class Person(Agent):
             self.wage_minimum = self.wage * WAGE_UNDER_MARKET_MULTIPLIER
             return True
         return False
+
+    def start_business(self, world):
+        # TODO
+        # must have at least min capital
+        # must be able to find a place with affordable rent
+        # must be able to hire at least one employee
+        # if true to all, choose an industry (based on highest EWMA profit)
+        pass

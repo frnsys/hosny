@@ -3,7 +3,6 @@ import json
 import random
 import config
 import logging
-from itertools import chain
 from cess import Simulation
 from cess.util import random_choice
 from economy import Household, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm
@@ -79,6 +78,10 @@ class City(Simulation):
 
         # self.real_estate_market()
 
+        # see if anyone want to start a business
+        for person in self.people:
+            pass
+
         jobs = []
         for firm in shuffle(self.firms):
             n_vacancies, wage = firm.set_production_target(self.state)
@@ -87,40 +90,40 @@ class City(Simulation):
         self.labor_market(jobs)
 
         labor_force = [p for p in self.people if p.wage != 0]
-        self.state['mean_wage'] = ewma(self.state['mean_wage'], sum(p.wage for p in labor_force)/len(labor_force))
-        data = json.dumps({'graph':'mean_wage','data':{'time':self.date.isoformat(),'value': self.state['mean_wage']}})
-        logger.info('graph:{}'.format(data))
+        self.ewma_stat('mean_wage', sum(p.wage for p in labor_force)/len(labor_force), graph=True)
 
         for firm in self.raw_material_firms:
             firm.produce(self.state)
 
-        sold = self.raw_material_market()
+        sold, profits = self.raw_material_market()
+        mean = sum(profits)/len(profits) if profits else 0
+        self.ewma_stat('mean_material_profit', mean, graph=True)
 
         for firm in self.capital_equipment_firms:
             firm.produce(self.state)
 
-        sold = self.capital_equipment_market()
+        sold, profits = self.capital_equipment_market()
+        mean = sum(profits)/len(profits) if profits else 0
+        self.ewma_stat('mean_equip_profit', mean, graph=True)
 
         sell_prices = []
         for amt, price in sold:
             sell_prices += [price for _ in range(amt)]
         mean = sum(sell_prices)/len(sell_prices) if sell_prices else 0
-        self.state['mean_equip_price'] = ewma(self.state['mean_equip_price'], mean)
-        data = json.dumps({'graph':'mean_equip_price','data':{'time':self.date.isoformat(),'value': self.state['mean_equip_price']}})
-        logger.info('graph:{}'.format(data))
+        self.ewma_stat('mean_equip_price', mean, graph=True)
 
         for firm in self.consumer_good_firms:
             firm.produce(self.state)
 
-        sold = self.consumer_good_market()
+        sold, profits = self.consumer_good_market()
+        mean = sum(profits)/len(profits) if profits else 0
+        self.ewma_stat('mean_consumer_good_profit', mean, graph=True)
 
         sell_prices = []
         for amt, price in sold:
             sell_prices += [price for _ in range(amt)]
         mean = sum(sell_prices)/len(sell_prices) if sell_prices else 0
-        self.state['mean_consumer_good_price'] = ewma(self.state['mean_consumer_good_price'], mean)
-        data = json.dumps({'graph':'mean_consumer_good_price','data':{'time':self.date.isoformat(),'value': self.state['mean_consumer_good_price']}})
-        logger.info('graph:{}'.format(data))
+        self.ewma_stat('mean_consumer_good_price', mean, graph=True)
 
         # TODO payment
         # TODO taxes
@@ -128,6 +131,8 @@ class City(Simulation):
             # person['cash'] = (yield from person['cash']) + person.wage
 
         # TODO decide on hospitals
+        # TODO healthcare profits
+        # self.ewma_stat('mean_consumer_good_profit', sum(profits)/len(profits), graph=True)
 
         for firm in self.firms:
             # bankrupt
@@ -138,13 +143,6 @@ class City(Simulation):
                     if firm in firm_group:
                         firm_group.remove(firm)
                 self.people.append(firm.owner)
-
-    def history(self):
-        """get history of all agents"""
-        if self.cluster:
-            return list(chain.from_iterable([r['results'] for r in self.cluster.submit('call_agents', func='history')]))
-        else:
-            return [agent.history() for agent in self.agents]
 
     def _log(self, chan, data):
         """format a message for the logger"""
@@ -206,7 +204,8 @@ class City(Simulation):
                 if not firm_dist:
                     break
             rounds += 1
-        return sold
+        profits = [f.revenue - f.costs for f in self.raw_material_firms]
+        return sold, profits
 
     def firm_distribution(self, firms):
         """computes a probability distribution over firms based on their prices.
@@ -237,7 +236,8 @@ class City(Simulation):
                 if not firm_dist:
                     break
             rounds += 1
-        return sold
+        profits = [f.revenue - f.costs for f in self.capital_equipment_firms]
+        return sold, profits
 
     def consumer_good_market(self):
         firm_dist = self.firm_distribution(self.consumer_good_firms)
@@ -261,4 +261,14 @@ class City(Simulation):
                 if not firm_dist:
                     break
             rounds += 1
-        return sold
+
+        profits = [f.revenue - f.costs for f in self.consumer_good_firms]
+        return sold, profits
+
+    def ewma_stat(self, name, update, graph=False, start_value=0):
+        """updates an EWMA for a state, optionally send a socket message
+        to graph the result"""
+        self.state[name] = ewma(self.state.get(name, start_value), update)
+        if graph:
+            data = json.dumps({'graph':name,'data':{'time':self.date.isoformat(),'value': self.state[name]}})
+            logger.info('graph:{}'.format(data))

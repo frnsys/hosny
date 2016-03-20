@@ -5,7 +5,7 @@ require([
   var fps = 30;
   var game = {
     // setup the scene
-    setup: function() {
+    setup: function(rows, cols, margin, population) {
         var width = 960,
             height = 500,
             aspect = width/height,
@@ -30,6 +30,8 @@ require([
         this.camera.position.set(20, 20, 20);
         this.camera.lookAt(this.scene.position);
         this.camera.updateProjectionMatrix();
+
+        this.city = new City(rows, cols, margin, population, this.scene);
     },
 
     render: function() {
@@ -49,16 +51,10 @@ require([
     },
 
     update: function() {
-      city.update();
+      this.city.update();
       this.render();
     }
   };
-
-  game.setup();
-
-  var city = new City(6, 6, 0.5, game.scene);
-
-  game.start();
 
   var socket = io();
   $(function() {
@@ -92,6 +88,13 @@ require([
         })
       });
 
+      socket.on("population", function(data){
+        console.log("loaded population");
+        console.log(data.population);
+        game.setup(6, 6, 0.5, data.population);
+        game.start();
+      });
+
       socket.on("twooter", function(data){
         data.username = slugify(data.name);
         console.log(data);
@@ -105,9 +108,10 @@ require([
       };
 
       socket.on("graph", function(data){
-        var graph = graphs[data.graph];
-        console.log(data);
-        graph.update(data.data);
+        if (data.graph in graphs) {
+          var graph = graphs[data.graph];
+          graph.update(data.data);
+        }
       });
 
       // Advancing from setup screen 1 to screen 2

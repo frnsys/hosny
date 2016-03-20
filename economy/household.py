@@ -29,7 +29,7 @@ class Household():
         # subtract cash from members
         for p in self.people:
             spent = min(cost, p.state['cash'])
-            p.cash -= spent
+            p._state['cash'] -= spent
             cost -= spent
 
         return desired_goods - to_purchase, to_purchase
