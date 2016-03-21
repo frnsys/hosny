@@ -45,7 +45,7 @@ class Person(Agent):
         return self.health_utility(self._state['health'] + change) - self.health_utility(self._state['health'])
 
     def cash_utility(self, cash):
-        u = -1*(cash+1) if cash <= 0 else 400/(1 + math.exp(-cash/20000)) - (400/2), # sigmoid for cash > 0, linear otherwise
+        u = cash-1 if cash <= 0 else 400/(1 + math.exp(-cash/20000)) - (400/2) # sigmoid for cash > 0, linear otherwise
         return u * math.sqrt(1.1 + self.frugality)
 
     def cash_change_utility(self, change):

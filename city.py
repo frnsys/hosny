@@ -104,6 +104,9 @@ class City(Simulation):
                     self.firms.append(firm)
             self.initialized = True
 
+        for household in self.households:
+            household.step()
+
         # if anyone is sick
         if any(p._state['sick'] for p in self.people):
             # run contagion/sickness model
@@ -201,8 +204,6 @@ class City(Simulation):
 
         # taxes and wages
         for person in self.people:
-            print(person._state['firm_owner'])
-            print(person.firm)
             if person._state['firm_owner']:
                 profit = max(person.firm.profit, 0)
                 taxes = profit * self.state['tax_rate']
