@@ -1,6 +1,4 @@
 define([], function() {
-  var MAXTENANTS = 10;
-
   var colors = {
     // TODO diff colors for public vs private
     'Hospital': 0xff2222,
@@ -9,18 +7,21 @@ define([], function() {
     'Residential': 0xffff44,
   };
 
-  var Building = function(x, z, city) {
+  var Building = function(x, z, maxTenants, city) {
     this.x = x;
     this.z = z;
     this.tenants = [];
+    this.maxTenants = maxTenants;
     this.city = city;
   };
 
   Building.prototype = {
     add: function(tenant) {
-      if (this.tenants.length >= MAXTENANTS) {
+      if (this.tenants.length >= this.maxTenants) {
         return false;
       }
+      tenant = new Tenant(tenant.id, tenant.type);
+
       this.city.place(
         tenant.mesh,
         this.x,
@@ -44,6 +45,15 @@ define([], function() {
       });
     },
 
+    removeById: function(id) {
+      var tenant = _.find(this.tenants, function(t) {
+        return t.id === id;
+      });
+      if (tenant) {
+        this.remove(tenant);
+      }
+    },
+
     // total height of the building
     get height() {
       return _.reduce(this.tenants, function(mem, t) {
@@ -56,7 +66,14 @@ define([], function() {
     }
   }
 
-  var Tenant = function(type) {
+  var Tenant = function(id, type) {
+    if (type === 'CapitalEquipmentFirm') {
+      type = 'Business';
+    } else if (type === 'RawMaterialFirm') {
+      type = 'Business';
+    } else if (type === 'ConsumerGoodFirm') {
+      type = 'Business';
+    }
     var side = 1,
         height = 0.5,
         color = colors[type],
@@ -65,10 +82,8 @@ define([], function() {
           color: color
         });
     this.mesh = new THREE.Mesh(geometry, material);
+    this.id = id;
   }
 
-  return {
-    Building: Building,
-    Tenant: Tenant
-  };
+  return Building;
 });

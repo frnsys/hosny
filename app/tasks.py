@@ -36,7 +36,7 @@ logger = logging.getLogger('simulation')
 
 
 @celery.task
-def setup_simulation(given):
+def setup_simulation(given, config):
     """prepare the simulation"""
     global model
     logger.setLevel(logging.INFO)
@@ -50,11 +50,14 @@ def setup_simulation(given):
     pop = load_population('data/population.json')
     pop = pop[:200] # limit to 200 for now
     pop.append(person) # TODO build out your social network
-    model = City(pop)
+    model = City(pop, config)
 
     # send population to the frontend
     socketio = SocketIO(message_queue='redis://localhost:6379')
-    socketio.emit('population', {'population': [p.as_json() for p in pop]})
+    socketio.emit('setup', {
+        'population': [p.as_json() for p in pop],
+        'buildings': [{'id': b.id} for b in model.buildings]
+    })
 
 
 @celery.task

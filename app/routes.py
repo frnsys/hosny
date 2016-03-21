@@ -31,10 +31,14 @@ def step():
 def setup():
     print('SIMULATION REQUEST RECEIVED')
     data = request.get_json()
-    race = int(data['race'])
-    education = int(data['education'])
-    employment = int(data['employment'])
-    setup_simulation.delay({'race': race, 'education': education, 'employed': employment})
+    person = data['person']
+    race = int(person['race'])
+    education = int(person['education'])
+    employment = int(person['employment'])
+    setup_simulation.delay(
+        {'race': race, 'education': education, 'employed': employment},
+        data['world']
+    )
     return jsonify(success=True)
 
 

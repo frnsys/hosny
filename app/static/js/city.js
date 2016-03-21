@@ -2,12 +2,13 @@ define([
   'person',
   'building'
 ], function(Person, Building) {
-  var City = function(rows, cols, margin, population, scene) {
+  var City = function(rows, cols, margin, population, buildings, config, scene) {
     this.rows = rows;
     this.cols = cols;
     this.side = 1;
     this.margin = margin;
     this.scene = scene;
+    this.config = config;
 
     this.fullSide = this.side + 2*this.margin;
 
@@ -34,8 +35,9 @@ define([
       this.grid.push(row);
     }
 
+    this.buildings = []
     this.population = [];
-    this.spawn(population);
+    this.spawn(population, buildings);
   };
 
   City.prototype = {
@@ -57,6 +59,7 @@ define([
 
         // destroy when out of the city
         if (p.distanceTraveled.x > self.gridWidth + 2*radius || p.distanceTraveled.z > self.gridDepth + 2*radius) {
+          p.stop();
           self.scene.remove(p.mesh);
           self.placePersonDelayed(p);
         }
@@ -64,8 +67,8 @@ define([
     },
 
     // spawn the city
-    spawn: function(population) {
-      this.spawnBuildings();
+    spawn: function(population, buildings) {
+      this.spawnBuildings(buildings);
       this.spawnRoads();
 
       var self = this;
@@ -82,25 +85,16 @@ define([
     spawnBuilding: function(row, col) {
       var x = row * this.fullSide,
           z = col * this.fullSide,
-          building = new Building.Building(x, z, this),
-          tenant = new Building.Tenant('Business');
-      building.add(tenant);
-      building.add(new Building.Tenant('Residential'));
-      building.add(new Building.Tenant('Hospital'));
-      building.add(new Building.Tenant('Business'));
-      building.add(new Building.Tenant('Hospital'));
-      building.add(new Building.Tenant('Residential'));
-      building.add(new Building.Tenant('Hospital'));
-      building.add(new Building.Tenant('Business'));
-      building.add(new Building.Tenant('Hospital'));
-      building.add(new Building.Tenant('Residential'));
+          building = new Building(x, z, this.config.maxTenants, this);
+      return building
     },
 
-    spawnBuildings: function() {
+    spawnBuildings: function(buildings) {
       for (var i=0; i < this.rows; i++) {
         var row = [];
         for (var j=0; j < this.cols; j++) {
-          this.spawnBuilding(i, j);
+          var id = buildings.shift().id;
+          this.buildings[id] = this.spawnBuilding(i, j);
         }
       }
     },

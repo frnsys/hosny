@@ -5,7 +5,7 @@ require([
   var fps = 30;
   var game = {
     // setup the scene
-    setup: function(rows, cols, margin, population) {
+    setup: function(rows, cols, margin, population, buildings, config) {
         var width = 960,
             height = 500,
             aspect = width/height,
@@ -31,7 +31,7 @@ require([
         this.camera.lookAt(this.scene.position);
         this.camera.updateProjectionMatrix();
 
-        this.city = new City(rows, cols, margin, population, this.scene);
+        this.city = new City(rows, cols, margin, population, buildings, config, this.scene);
     },
 
     render: function() {
@@ -57,6 +57,11 @@ require([
   };
 
   var socket = io();
+
+  var rows = 6,
+      cols = 6,
+      max_tenants = 10;
+
   $(function() {
       $(".setup-simulation").on("submit", function(ev) {
         ev.preventDefault();
@@ -66,11 +71,17 @@ require([
           type: "POST",
           url: "/setup",
           data: JSON.stringify({
-            race: $('[name=race]').val(),
-            education: $('[name=education]').val(),
-            employment: $('[name=employment]').val(),
-            minWage: $('[name=minWage]').val(),
-            desiredWage: $('[name=desiredWage]').val()
+            person: {
+              race: $('[name=race]').val(),
+              education: $('[name=education]').val(),
+              employment: $('[name=employment]').val(),
+            },
+            world: {
+              minWage: $('[name=minWage]').val(),
+              desiredWage: $('[name=desiredWage]').val(),
+              n_buildings: rows * cols,
+              max_tenants: max_tenants
+            }
           }),
           contentType: "application/json",
           success: function(data, textStatus, jqXHR) {
@@ -88,17 +99,27 @@ require([
         })
       });
 
-      socket.on("population", function(data){
-        console.log("loaded population");
-        console.log(data.population);
-        game.setup(6, 6, 0.5, data.population);
+      socket.on("setup", function(data){
+        var config = {
+          maxTenants: max_tenants
+        }
+        game.setup(rows, cols, 0.5, data.population, data.buildings, config);
         game.start();
       });
 
       socket.on("twooter", function(data){
         data.username = slugify(data.name);
-        console.log(data);
+        //console.log(data);
         $(".twooter-feed").prepend(renderTemplate('twoot', data));
+      });
+
+      socket.on("buildings", function(data){
+        var id = data.id;
+        if (data.event === 'added_tenant') {
+          game.city.buildings[id].add(data.tenant);
+        } else if (data.event === 'removed_tenant') {
+          game.city.buildings[id].removeById(data.tenant.id);
+        }
       });
 
       var graphs = {
@@ -115,50 +136,12 @@ require([
       });
 
       // Advancing from setup screen 1 to screen 2
-      var i = 0;      
+      var i = 0;
       $(".next").on("click", function() {
-
-
         $("fieldset").eq(i).removeClass("show").addClass("hide");
         $("fieldset").eq(i+1).removeClass("hide").addClass("show");
         i++;
       });
-      
-      
-      // Send 
-      $("form").on("submit", function(ev) {
-            ev.preventDefault();
-            
-            $('.overlay').fadeOut();
-            $('.messages').empty();
-            
-
-            $.ajax({
-                type: "POST",
-                url: "/simulate",
-                data: JSON.stringify({
-                    race: $('[name=race]').val(),
-                    education: $('[name=education]').val(),
-                    employment: $('[name=employment]').val(),
-                    minWage: $('[name=minWage]').val(),
-                    desiredWage: $('[name=desiredWage]').val(),
-                    character: $('[name=character]').val()
-                }),
-                
-                contentType: "application/json",
-
-                success: function(data, textStatus, jqXHR) {
-                    // console.log("success");
-                }
-            });
-
-            return false;
-        });
-
-      socket.on("log", function(data){
-            $(".messages").append("<li>"+data.msg+"</li>");
-            console.log("sending log");
-        });
 
       $(".twooter-feed").on('click', '.twoot-author', function() {
         var id = $(this).data('id');
