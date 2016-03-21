@@ -1,3 +1,4 @@
+import math
 import json
 import config
 import random
@@ -33,6 +34,23 @@ class Person(Agent):
         attribs.update(kwargs)
         return cls(**attribs)
 
+    def purchasing_utility(self, utility, price):
+        """`utility` is abstract; it can be "quality" for instance"""
+        return (utility**2)/(price * math.sqrt(1.1 + self.frugality))
+
+    def health_utility(self, health):
+        return -10000 if health <= 0 else math.sqrt(health) * 100
+
+    def health_change_utility(self, change):
+        return self.health_utility(self._state['health'] + change) - self.health_utility(self._state['health'])
+
+    def cash_utility(self, cash):
+        u = -1*(cash+1) if cash <= 0 else 400/(1 + math.exp(-cash/20000)) - (400/2), # sigmoid for cash > 0, linear otherwise
+        return u * math.sqrt(1.1 + self.frugality)
+
+    def cash_change_utility(self, change):
+        return self.cash_utility(self._state['cash'] + change) - self.cash_utility(self._state['cash'])
+
     """an individual in the city"""
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -59,12 +77,14 @@ class Person(Agent):
         self.wage = 0
         self.wage_minimum = 0
         self.employer = None
+        self.firm = None
         self.min_consumption = MIN_CONSUMPTION * (2 - self.frugality)
 
         super().__init__(
             state={
                 'health': 1.,
                 'stress': 0.5,
+                'sick': False,
 
                 # starting wealth
                 'cash': 2*(self.wage_income + self.business_income + self.investment_income),
@@ -195,7 +215,7 @@ class Person(Agent):
         if self._state['cash'] < min_cost:
             return False, None, None
 
-        industries = ['equip', 'material', 'consumer_good']
+        industries = ['equip', 'material', 'consumer_good', 'healthcare']
         total_mean_profit = sum(world['mean_{}_profit'.format(name)] for name in industries)
         industry_dist = [(name, world['mean_{}_profit'.format(name)]/total_mean_profit) for name in industries]
         industry = random_choice(industry_dist)

@@ -18,10 +18,13 @@ class Household():
         cash = sum(p.state['cash'] for p in self.people)
         desired_goods = self.min_consumption - self.goods
 
-        can_afford = math.floor(cash/supplier.price)
-        desired_goods = min(can_afford, desired_goods)
-        to_purchase = min(desired_goods, supplier.supply)
-        cost = to_purchase * supplier.price
+        if not supplier.price:
+            to_purchase = desired_goods
+        else:
+            can_afford = math.floor(cash/supplier.price)
+            desired_goods = min(can_afford, desired_goods)
+            to_purchase = min(desired_goods, supplier.supply)
+            cost = to_purchase * supplier.price
 
         supplier.sell(to_purchase)
         self.goods += to_purchase

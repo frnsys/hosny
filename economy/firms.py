@@ -17,19 +17,20 @@ PROFIT_INCREMENT = 1
 WAGE_INCREMENT = 1
 EXTRAVAGANT_WAGE_RANGE = 10
 START_PROFIT_MARGIN = 1
+RESIDENCE_SIZE_LIMIT = 100
 
 
 class Firm(Agent):
     def __init__(self, owner):
         self.owner = owner
         self.owner._state['firm_owner'] = True
+        self.owner.firm = self
         self.desired_supply = 1
 
         # initialize
         self.workers = []
         self.revenue = 0
         self.costs = 0
-        self.profit = 0
         self.supply = 0
         self.n_sold = 0
         self.profit_margin = START_PROFIT_MARGIN
@@ -52,6 +53,10 @@ class Firm(Agent):
     @cash.setter
     def cash(self, value):
         self.owner._state['cash'] = value
+
+    @property
+    def profit(self):
+        return self.revenue - self.costs
 
     def __repr__(self):
         return '{}\'s {}'.format(self.owner.name, type(self).__name__)
@@ -100,6 +105,12 @@ class Firm(Agent):
         if self.worker_change > 0:
             wage += WAGE_INCREMENT * (1.1+self.owner.altruism)
         return hired, self.worker_change, wage
+
+    def close(self):
+        self.owner._state['firm_owner'] = False
+        self.owner.firm = None
+        for worker in self.workers:
+            self.fire(worker)
 
     def produce(self, world):
         """produce the firm's product. the firm will produce the desired supply if possible,
@@ -181,10 +192,14 @@ class Firm(Agent):
 
     def purchase_equipment(self, supplier):
         total_equipment_cost = (self.desired_equipment - self.equipment) * supplier.price
-        equipment_budget = max(0, min(self.cash, total_equipment_cost))
 
-        # how much equipment can be purchased
-        n_equipment = math.floor(equipment_budget/supplier.price)
+        if not total_equipment_cost:
+            n_equipment = self.desired_equipment - self.equipment
+        else:
+            equipment_budget = max(0, min(self.cash, total_equipment_cost))
+
+            # how much equipment can be purchased
+            n_equipment = math.floor(equipment_budget/supplier.price)
 
         to_purchase = min(supplier.supply, n_equipment)
         supplier.sell(to_purchase)
@@ -200,7 +215,6 @@ class Firm(Agent):
 
         # assess previous day's results
         self.prev_profit = self.profit
-        self.profit = self.revenue - self.costs
         self.leftover = self.supply
 
         # logger.info('{}: {} profit, {} revenue, {} costs, {} cash'.format(self, self.profit, self.revenue, self.costs, self.cash))
@@ -222,6 +236,7 @@ class Firm(Agent):
         # resets every day
         self.n_sold = 0
         self.revenue = 0
+        self.costs = 0
 
         # figure out labor goal
         required_labor = self.desired_supply * LABOR_COST_PER_GOOD
@@ -264,10 +279,14 @@ class ConsumerGoodFirm(Firm):
         # estimate material costs
         required_materials = MATERIAL_COST_PER_GOOD * self.desired_supply
         total_material_cost = (required_materials - self.materials) * supplier.price
-        material_budget = max(0, min(self.cash, total_material_cost))
 
-        # how many materials can be purchased
-        n_materials = math.floor(material_budget/supplier.price)
+        if not total_material_cost:
+            n_materials = required_materials - self.materials
+        else:
+            material_budget = max(0, min(self.cash, total_material_cost))
+
+            # how many materials can be purchased
+            n_materials = math.floor(material_budget/supplier.price)
 
         to_purchase = min(supplier.supply, n_materials)
         supplier.sell(to_purchase)
@@ -290,4 +309,9 @@ class Hospital(Firm):
 
 
 class RawMaterialFirm(Firm):
+    pass
+
+
+class Residence(Firm):
+    """similar to a regular firm, but has a supply fixed upon creation"""
     pass
