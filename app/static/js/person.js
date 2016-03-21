@@ -46,6 +46,10 @@ define([], function() {
     wander: function(velocity) {
       this.distanceTraveled = {x:0, z:0};
       this.velocity = velocity;
+    },
+
+    stop: function() {
+      this.velocity = 0;
     }
   };
 

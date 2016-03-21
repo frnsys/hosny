@@ -74,8 +74,6 @@ def generate_population(n):
         for i in n:
             agent = Person.generate(config.START_DATE.year)
             population.append(agent)
-            # print(agent, 'is moving into', agent.neighborhood)
-            # print('  ', ','.join([agent.occupation, str(agent.sex), str(agent.race), agent.neighborhood, str(agent.education), str(agent.rent)]))
 
     social_network = social.social_network(population, base_prob=0.4)
     for i, person in enumerate(population):

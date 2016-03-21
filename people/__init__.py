@@ -11,6 +11,7 @@ from .names import generate_name
 from .generate import generate
 from .attribs import Employed, Sex, Race, Education
 from world.work import offer_prob
+from cess.util import random_choice
 
 
 MIN_CONSUMPTION = 1
@@ -64,13 +65,18 @@ class Person(Agent):
             state={
                 'health': 1.,
                 'stress': 0.5,
-                'cash': 1000,
+
+                # starting wealth
+                'cash': 2*(self.wage_income + self.business_income + self.investment_income),
+
                 'employed': self.employed,
                 'wage_income': self.wage_income,
                 'business_income': self.business_income,
                 'investment_income': self.investment_income,
-                'retirement_income': self.retirement_income,
+
+                # this will eventually be set by the dynamics of the world
                 'welfare_income': self.welfare_income,
+
                 'rent_fail': 0,
                 'sex': self.sex,
                 'race': self.race,
@@ -160,6 +166,8 @@ class Person(Agent):
         logger.info('twooter:{}'.format(json.dumps(data)))
 
     def seeking_job(self, world):
+        if self._state['firm_owner']:
+            return False
         if world['mean_consumer_good_price'] * self.min_consumption > self.wage:
             self.wage_minimum = world['mean_consumer_good_price'] * self.min_consumption
             return True
@@ -168,10 +176,30 @@ class Person(Agent):
             return True
         return False
 
-    def start_business(self, world):
-        # TODO
-        # must have at least min capital
+    def start_business(self, world, buildings):
+        # can only have one business
+        if self._state['firm_owner']:
+            return False, None, None
+
         # must be able to find a place with affordable rent
+        buildings = [b for b in buildings if b.available_space]
+        if not buildings:
+            return False, None, None
+
+        denom = sum(1/b.rent for b in buildings)
+        building = random_choice([(b, 1/(b.rent*denom)) for b in buildings])
+
         # must be able to hire at least one employee
-        # if true to all, choose an industry (based on highest EWMA profit)
-        pass
+        min_cost = MIN_BUSINESS_CAPITAL + building.rent + world['mean_wage']
+
+        if self._state['cash'] < min_cost:
+            return False, None, None
+
+        industries = ['equip', 'material', 'consumer_good']
+        total_mean_profit = sum(world['mean_{}_profit'.format(name)] for name in industries)
+        industry_dist = [(name, world['mean_{}_profit'.format(name)]/total_mean_profit) for name in industries]
+        industry = random_choice(industry_dist)
+
+        # choose an industry (based on highest EWMA profit)
+        self.twoot('i\'m starting a BUSINESS in {}!'.format(industry), world)
+        return True, industry, building

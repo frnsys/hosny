@@ -20,10 +20,10 @@ START_PROFIT_MARGIN = 1
 
 
 class Firm(Agent):
-    def __init__(self, owner, investment):
+    def __init__(self, owner):
         self.owner = owner
+        self.owner._state['firm_owner'] = True
         self.desired_supply = 1
-        self.cash = investment
 
         # initialize
         self.workers = []
@@ -40,6 +40,18 @@ class Firm(Agent):
         action_ids = [i for i in range(len(self.actions))]
         states_actions = {s: action_ids for s in range(5)}
         self.learner = QLearner(states_actions, self.reward, discount=0.5, explore=0.01, learning_rate=0.5)
+
+    @property
+    def id(self):
+        return self.owner.id
+
+    @property
+    def cash(self):
+        return self.owner._state['cash']
+
+    @cash.setter
+    def cash(self, value):
+        self.owner._state['cash'] = value
 
     def __repr__(self):
         return '{}\'s {}'.format(self.owner.name, type(self).__name__)

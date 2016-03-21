@@ -5,7 +5,7 @@ import config
 import logging
 from cess import Simulation
 from cess.util import random_choice
-from economy import Household, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm
+from economy import Household, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Building
 from dateutil.relativedelta import relativedelta
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
@@ -27,21 +27,12 @@ def ewma(p_mean, val, alpha=0.8):
 
 
 class City(Simulation):
-    def __init__(self, people):
+    def __init__(self, people, conf):
         super().__init__(people)
 
-        # TODO/temp create some firms
-        self.firms = []
-        owners = random.sample(people, 15)
-        for _ in range(5):
-            owner = owners.pop()
-            self.firms.append(ConsumerGoodFirm(owner, 10000))
-        for _ in range(5):
-            owner = owners.pop()
-            self.firms.append(CapitalEquipmentFirm(owner, 10000))
-        for _ in range(5):
-            owner = owners.pop()
-            self.firms.append(RawMaterialFirm(owner, 10000))
+        self.buildings = [
+            Building(conf['max_tenants'])
+                     for _ in range(conf['n_buildings'])]
 
         # the world state
         self.date = config.START_DATE
@@ -50,24 +41,25 @@ class City(Simulation):
             'year': self.date.year,
             'contact_rate': 0.4,
             'mean_wage': STARTING_WAGE,
+            'available_space': len(self.buildings) * conf['max_tenants'],
             'mean_equip_price': 5, #TODO what should this be?
-            'mean_consumer_good_price': 5 #TODO what should this be?
+            'mean_consumer_good_price': 5, #TODO what should this be?
+
+            # just initialize to some values
+            'mean_equip_profit': 1,
+            'mean_material_profit': 1,
+            'mean_consumer_good_profit': 1,
         }
 
         self.people = people
+
+        # TODO create "real" households
         self.households = [Household([p]) for p in people]
 
+        self.firms = []
         self.consumer_good_firms = []
         self.raw_material_firms = []
         self.capital_equipment_firms = []
-
-        for firm in self.firms:
-            if type(firm) == ConsumerGoodFirm:
-                self.consumer_good_firms.append(firm)
-            elif type(firm) == CapitalEquipmentFirm:
-                self.capital_equipment_firms.append(firm)
-            elif type(firm) == RawMaterialFirm:
-                self.raw_material_firms.append(firm)
 
     def step(self):
         """one time step in the model (a day)"""
@@ -79,8 +71,26 @@ class City(Simulation):
         # self.real_estate_market()
 
         # see if anyone want to start a business
-        for person in self.people:
-            pass
+        # only possible if there is space available to rent
+        self.state['available_space'] = sum(b.available_space for b in self.buildings)
+        n_tenants = sum(len(b.tenants) for b in self.buildings)
+        mean_rent = sum(b.rent * len(b.tenants) for b in self.buildings)/n_tenants if n_tenants else 0
+        self.ewma_stat('mean_rent', mean_rent, graph=True)
+        if self.state['available_space']:
+            for person in shuffle(self.people):
+                yes, industry, building = person.start_business(self.state, self.buildings)
+                if yes:
+                    if industry == 'equip':
+                        firm = CapitalEquipmentFirm(person)
+                        self.capital_equipment_firms.append(firm)
+                    elif industry == 'material':
+                        firm = RawMaterialFirm(person)
+                        self.raw_material_firms.append(firm)
+                    elif industry == 'consumer_good':
+                        firm = ConsumerGoodFirm(person)
+                        self.consumer_good_firms.append(firm)
+                    building.add_tenant(firm)
+                    self.firms.append(firm)
 
         jobs = []
         for firm in shuffle(self.firms):
@@ -139,10 +149,17 @@ class City(Simulation):
             if firm.cash < 0:
                 # logger.info('{} is going bankrupt!'.format(firm))
                 self.firms.remove(firm)
+                # messy
                 for firm_group in [self.consumer_good_firms, self.capital_equipment_firms, self.raw_material_firms]:
                     if firm in firm_group:
                         firm_group.remove(firm)
-                self.people.append(firm.owner)
+                for building in self.buildings:
+                    if firm in building.tenants:
+                        building.remove_tenant(firm)
+                        break
+                firm.owner._state['firm_owner'] = False
+
+        # TODO government decisions
 
     def _log(self, chan, data):
         """format a message for the logger"""
