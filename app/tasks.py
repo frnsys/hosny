@@ -39,9 +39,12 @@ logger = logging.getLogger('simulation')
 def setup_simulation(given, config):
     """prepare the simulation"""
     global model
-    logger.setLevel(logging.INFO)
-    sockets_handler = SocketsHandler()
-    logger.addHandler(sockets_handler)
+
+    # don't redundantly add the handler
+    if model is None:
+        logger.setLevel(logging.INFO)
+        sockets_handler = SocketsHandler()
+        logger.addHandler(sockets_handler)
 
     # pop = generate_population(100)
     person = Person.generate(2005, given=given)

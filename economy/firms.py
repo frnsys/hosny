@@ -46,6 +46,10 @@ class Firm(Agent):
     def id(self):
         return self.owner.id
 
+    def pay(self, cost):
+        self.cash -= cost
+        self.costs += cost
+
     @property
     def cash(self):
         return self.owner._state['cash']
@@ -122,6 +126,7 @@ class Firm(Agent):
         # set desired price
         wages = sum(w.wage for w in self.workers)
         self.costs += wages
+        self.costs += self.building.rent/30 # approximately spread out rent cost
         self.cash -= wages
         cost_per_unit = self.costs/self.supply
         self.price = max(0, cost_per_unit + self.profit_margin)
@@ -238,15 +243,15 @@ class Firm(Agent):
         self.revenue = 0
         self.costs = 0
 
-        # figure out labor goal
-        required_labor = self.desired_supply * LABOR_COST_PER_GOOD
-        n_workers, wage, n_equip = self.assess_assets(required_labor, world['mean_wage'], world['mean_equip_price'])
-
         # fire workers that are being paid too much
         for worker in self.workers:
             if worker.wage >= world['mean_wage'] + (EXTRAVAGANT_WAGE_RANGE * (1.1+self.owner.altruism)):
                 # logger.info('{} fired for being paid too much'.format(worker.id))
                 self.fire(worker)
+
+        # figure out labor goal
+        required_labor = self.desired_supply * LABOR_COST_PER_GOOD
+        n_workers, wage, n_equip = self.assess_assets(required_labor, world['mean_wage'], world['mean_equip_price'])
 
         self.worker_change = n_workers - len(self.workers)
         self.desired_equipment = self.equipment + max(0, n_equip - self.equipment)
@@ -309,9 +314,4 @@ class Hospital(Firm):
 
 
 class RawMaterialFirm(Firm):
-    pass
-
-
-class Residence(Firm):
-    """similar to a regular firm, but has a supply fixed upon creation"""
     pass

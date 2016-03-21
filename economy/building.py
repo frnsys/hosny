@@ -17,6 +17,7 @@ class Building():
         if len(self.tenants) >= self.max_tenants:
             return False
         self.tenants.append(tenant)
+        tenant.building = self
         self.log({'event': 'added_tenant',
                   'tenant': {
                       'type': type(tenant).__name__,

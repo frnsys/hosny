@@ -48,8 +48,6 @@ class City(Simulation):
             'transmission_rate': 0.1,
             'sickness_severity': 0.01,
 
-            'tax_rate': 0.3,
-
             'mean_wage': STARTING_WAGE,
             'available_space': len(self.buildings) * conf['max_tenants'],
             'mean_equip_price': 5, #TODO what should this be?
@@ -78,6 +76,9 @@ class City(Simulation):
     def step(self):
         """one time step in the model (a day)"""
         super().step()
+
+        prev_month = self.date.month
+
         self.date += relativedelta(days=1)
         self.state['month'] = self.date.month
         self.state['year'] = self.date.year
@@ -103,6 +104,13 @@ class City(Simulation):
                     building.add_tenant(firm)
                     self.firms.append(firm)
             self.initialized = True
+
+        # month change
+        if prev_month != self.date.month:
+            # pay rent
+            for building in self.buildings:
+                for tenant in building.tenants:
+                    tenant.pay(building.rent)
 
         for household in self.households:
             household.step()
@@ -131,6 +139,8 @@ class City(Simulation):
             patient_zero = random.choice(self.people)
             patient_zero._state['sick'] = True
             patient_zero.twoot('feeling sick...', self)
+
+        self.stat('n_sick', len([p for p in self.people if p._state['sick']]))
 
         # self.real_estate_market()
 
@@ -176,6 +186,12 @@ class City(Simulation):
         mean = sum(profits)/len(profits) if profits else 0
         self.ewma_stat('mean_material_profit', mean, graph=True)
 
+        sell_prices = []
+        for amt, price in sold:
+            sell_prices += [price for _ in range(amt)]
+        mean = sum(sell_prices)/len(sell_prices) if sell_prices else 0
+        self.ewma_stat('mean_material_price', mean, graph=True)
+
         for firm in self.capital_equipment_firms:
             firm.produce(self.state)
 
@@ -206,10 +222,10 @@ class City(Simulation):
         for person in self.people:
             if person._state['firm_owner']:
                 profit = max(person.firm.profit, 0)
-                taxes = profit * self.state['tax_rate']
+                taxes = profit * self.government.tax_rate
                 person.firm.cash -= taxes
             else:
-                taxes = person.wage * self.state['tax_rate']
+                taxes = person.wage * self.government.tax_rate
                 person._state['cash'] += (person.wage - taxes)
             self.government.cash += taxes
 
@@ -224,7 +240,21 @@ class City(Simulation):
             if firm.cash < 0:
                 self.close_firm(firm)
 
-        # TODO government decisions
+        self.stat('n_firms', len(self.firms))
+
+        mean_quality_of_life = sum(h.quality_of_life for h in self.households)/len(self.households)
+        self.ewma_stat('mean_quality_of_life', mean_quality_of_life, graph=True)
+
+        mean_cash = sum(h.cash for h in self.households)/len(self.households)
+        self.ewma_stat('mean_cash', mean_cash, graph=True)
+
+        self.government.make_decisions(self.households)
+        self.stat('welfare', self.government.welfare)
+        self.stat('tax_rate', self.government.tax_rate)
+
+        for person in self.people:
+            person._state['cash'] += self.government.welfare
+            self.government.cash -= self.government.welfare
 
     def close_firm(self, firm):
         # logger.info('{} is going bankrupt!'.format(firm))
@@ -392,3 +422,9 @@ class City(Simulation):
         if graph:
             data = json.dumps({'graph':name,'data':{'time':self.date.isoformat(),'value': self.state[name]}})
             logger.info('graph:{}'.format(data))
+
+    def stat(self, name, value):
+        """updates an EWMA for a state, optionally send a socket message
+        to graph the result"""
+        data = json.dumps({'graph':name,'data':{'time':self.date.isoformat(),'value': value}})
+        logger.info('graph:{}'.format(data))

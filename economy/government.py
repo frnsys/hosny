@@ -1,33 +1,54 @@
 from cess.util import random_choice
-from .firms import ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm
-from people import MIN_BUSINESS_CAPITAL
+from cess.agent.learn import QLearner
+
+TAX_RATE = 0.3
+TAX_RATE_INCREMENT = 0.01
+WELFARE_INCREMENT = 10
 
 
 class Government():
     def __init__(self):
         self.cash = 0
+        self.tax_rate = TAX_RATE
+        self.welfare = 0
 
-    def start_business(self, world, buildings):
-        # can only have one of each business
-        # must be able to find a place with affordable rent
-        buildings = [b for b in buildings if b.available_space]
-        if not buildings:
-            return False, None, None
+        # all states map to the same actions
+        action_ids = [i for i in range(len(self.actions))]
+        states_actions = {s: action_ids for s in range(3)}
+        self.learner = QLearner(states_actions, self.reward, discount=0.5, explore=0.01, learning_rate=0.5)
 
-        denom = sum(1/b.rent for b in buildings)
-        building = random_choice([(b, 1/(b.rent*denom)) for b in buildings])
+        self.prev_qol = 0
 
-        # must be able to hire at least one employee
-        min_cost = MIN_BUSINESS_CAPITAL + building.rent + world['mean_wage']
+    @property
+    def actions(self):
+        """these actions are possible from any state"""
+        return [
+            {'tax_rate': TAX_RATE_INCREMENT},
+            {'tax_rate': -TAX_RATE_INCREMENT},
+            {'tax_rate': TAX_RATE_INCREMENT, 'welfare': WELFARE_INCREMENT},
+            {'tax_rate': TAX_RATE_INCREMENT, 'welfare': -WELFARE_INCREMENT},
+            {'tax_rate': -TAX_RATE_INCREMENT, 'welfare': WELFARE_INCREMENT},
+            {'tax_rate': -TAX_RATE_INCREMENT, 'welfare': -WELFARE_INCREMENT}
+        ]
 
-        if self._state['cash'] < min_cost:
-            return False, None, None
+    def current_state(self, households):
+        """represent as a discrete state"""
+        qol = sum(h.quality_of_life for h in households)/len(households)
 
-        industries = ['equip', 'material', 'consumer_good']
-        total_mean_profit = sum(world['mean_{}_profit'.format(name)] for name in industries)
-        industry_dist = [(name, world['mean_{}_profit'.format(name)]/total_mean_profit) for name in industries]
-        industry = random_choice(industry_dist)
+        if qol <= 0:
+            return 0
+        elif qol > 0 and qol - self.prev_qol <= 0:
+            return 1
+        elif qol > 0 and qol - self.prev_qol > 0:
+            return 2
 
-        # choose an industry (based on highest EWMA profit)
-        self.twoot('i\'m starting a BUSINESS in {}!'.format(industry), world)
-        return True, industry, building
+    def reward(self, state):
+        """the discrete states we map to are the reward values, so just return that"""
+        return state
+
+    def make_decisions(self, households):
+        # adjust production
+        action = self.learner.choose_action(self.current_state(households))
+        action = self.actions[action]
+        self.tax_rate = min(1, max(0, self.tax_rate + action.get('tax_rate', 0)))
+        self.welfare = max(0, self.welfare + action.get('welfare', 0))

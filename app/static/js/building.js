@@ -35,7 +35,7 @@ define([], function() {
       // basically just rebuild the building without the removed tenant
       var self = this;
       _.each(this.tenants, function(t) {
-          this.city.remove(t.mesh);
+          self.city.remove(t.mesh);
       });
 
       var tenants = _.without(this.tenants, tenant);

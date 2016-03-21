@@ -12,6 +12,11 @@ class Household():
         self.goods = 0
 
     @property
+    def quality_of_life(self):
+        """pretty simple - how to incorporate leisure time??"""
+        return (self.goods * CONSUMER_GOOD_UTILITY) + sum(p.health_utility(p._state['health']) for p in self.people)/len(self.people)
+
+    @property
     def min_consumption(self):
         return sum(p.min_consumption for p in self.people)
 
@@ -37,14 +42,17 @@ class Household():
         # sigmoid
         return 1/(1 + math.exp(-n_goods)) - 0.5
 
+    @property
+    def cash(self):
+        return sum(p._state['cash'] for p in self.people)
+
     def purchase_goods(self, supplier):
-        cash = sum(p._state['cash'] for p in self.people)
         desired_goods = (self.min_consumption + self.excess_consumption(supplier.price)) - self.goods
 
         if not supplier.price:
             to_purchase = desired_goods
         else:
-            can_afford = math.floor(cash/supplier.price)
+            can_afford = math.floor(self.cash/supplier.price)
             desired_goods = min(can_afford, desired_goods)
             to_purchase = min(desired_goods, supplier.supply)
         cost = to_purchase * supplier.price
