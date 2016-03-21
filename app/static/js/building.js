@@ -2,8 +2,9 @@ define([], function() {
   var colors = {
     // TODO diff colors for public vs private
     'Hospital': 0xff2222,
-    //'Hospital': 0x44ffff,
-    'Business': 0x555555,
+    'CapitalEquipmentFirm': 0x44ffff,
+    'ConsumerGoodFirm': 0x44ff44,
+    'RawMaterialFirm': 0x555555,
     'Residential': 0xffff44,
   };
 
@@ -67,13 +68,6 @@ define([], function() {
   }
 
   var Tenant = function(id, type) {
-    if (type === 'CapitalEquipmentFirm') {
-      type = 'Business';
-    } else if (type === 'RawMaterialFirm') {
-      type = 'Business';
-    } else if (type === 'ConsumerGoodFirm') {
-      type = 'Business';
-    }
     var side = 1,
         height = 0.5,
         color = colors[type],

@@ -5,7 +5,7 @@ import config
 import logging
 from cess import Simulation
 from cess.util import random_choice
-from economy import Household, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Building
+from economy import Household, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Hospital, Building, Government
 from dateutil.relativedelta import relativedelta
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
@@ -30,6 +30,8 @@ class City(Simulation):
     def __init__(self, people, conf):
         super().__init__(people)
 
+        self.government = Government()
+
         self.buildings = [
             Building(conf['max_tenants'])
                      for _ in range(conf['n_buildings'])]
@@ -39,7 +41,15 @@ class City(Simulation):
         self.state = {
             'month': self.date.month,
             'year': self.date.year,
-            'contact_rate': 0.4,
+
+            # contagion model
+            'patient_zero_prob': 0.001,
+            'contact_rate': 0.1,
+            'transmission_rate': 0.1,
+            'sickness_severity': 0.01,
+
+            'tax_rate': 0.3,
+
             'mean_wage': STARTING_WAGE,
             'available_space': len(self.buildings) * conf['max_tenants'],
             'mean_equip_price': 5, #TODO what should this be?
@@ -49,6 +59,7 @@ class City(Simulation):
             'mean_equip_profit': 1,
             'mean_material_profit': 1,
             'mean_consumer_good_profit': 1,
+            'mean_healthcare_profit': 1,
         }
 
         self.people = people
@@ -60,6 +71,9 @@ class City(Simulation):
         self.consumer_good_firms = []
         self.raw_material_firms = []
         self.capital_equipment_firms = []
+        self.hospitals = []
+
+        self.initialized = False
 
     def step(self):
         """one time step in the model (a day)"""
@@ -67,6 +81,56 @@ class City(Simulation):
         self.date += relativedelta(days=1)
         self.state['month'] = self.date.month
         self.state['year'] = self.date.year
+
+        if not self.initialized:
+            # create initial firms
+            for person in self.people:
+                if person._state['firm_owner']:
+                    industry = random.choice(['equip', 'material', 'consumer_good', 'healthcare'])
+                    building = random.choice(self.buildings)
+                    if industry == 'equip':
+                        firm = CapitalEquipmentFirm(person)
+                        self.capital_equipment_firms.append(firm)
+                    elif industry == 'material':
+                        firm = RawMaterialFirm(person)
+                        self.raw_material_firms.append(firm)
+                    elif industry == 'consumer_good':
+                        firm = ConsumerGoodFirm(person)
+                        self.consumer_good_firms.append(firm)
+                    elif industry == 'healthcare':
+                        firm = Hospital(person)
+                        self.hospitals.append(firm)
+                    building.add_tenant(firm)
+                    self.firms.append(firm)
+            self.initialized = True
+
+        for household in self.households:
+            household.step()
+
+        # if anyone is sick
+        if any(p._state['sick'] for p in self.people):
+            # run contagion/sickness model
+            c = self.state['contact_rate']
+            for person in self.people:
+                if person._state['sick']:
+                    # each sick person loses a little health
+                    person._state['health'] -= self.state['sickness_severity']
+                    if person._state['health'] <= 0:
+                        # person dies
+                        if person._state['firm_owner']:
+                            self.close_firm(person.firm)
+                        self.people.remove(person)
+                        # TODO remove from their household
+                    continue
+                for friend in person.friends:
+                    if random.random() <= c and random.random() <= self.state['transmission_rate']:
+                        person.twoot('feeling sick...', self)
+                        break
+        # otherwise, see if a new sickness starts
+        elif random.random() < self.state['patient_zero_prob']:
+            patient_zero = random.choice(self.people)
+            patient_zero._state['sick'] = True
+            patient_zero.twoot('feeling sick...', self)
 
         # self.real_estate_market()
 
@@ -89,6 +153,9 @@ class City(Simulation):
                     elif industry == 'consumer_good':
                         firm = ConsumerGoodFirm(person)
                         self.consumer_good_firms.append(firm)
+                    elif industry == 'healthcare':
+                        firm = Hospital(person)
+                        self.hospitals.append(firm)
                     building.add_tenant(firm)
                     self.firms.append(firm)
 
@@ -135,31 +202,42 @@ class City(Simulation):
         mean = sum(sell_prices)/len(sell_prices) if sell_prices else 0
         self.ewma_stat('mean_consumer_good_price', mean, graph=True)
 
-        # TODO payment
-        # TODO taxes
-        # for person in self.people:
-            # person['cash'] = (yield from person['cash']) + person.wage
+        # taxes and wages
+        for person in self.people:
+            if person._state['firm_owner']:
+                profit = max(person.firm.profit, 0)
+                taxes = profit * self.state['tax_rate']
+                person.firm.cash -= taxes
+            else:
+                taxes = person.wage * self.state['tax_rate']
+                person._state['cash'] += (person.wage - taxes)
+            self.government.cash += taxes
 
-        # TODO decide on hospitals
-        # TODO healthcare profits
-        # self.ewma_stat('mean_consumer_good_profit', sum(profits)/len(profits), graph=True)
+        sold, profits = self.healthcare_market()
+        mean = sum(profits)/len(profits) if profits else 0
+        self.ewma_stat('mean_healthcare_profit', mean, graph=True)
+        mean = sum(sold)/len(sold) if sold else 0
+        self.ewma_stat('mean_healthcare_price', mean, graph=True)
 
         for firm in self.firms:
             # bankrupt
             if firm.cash < 0:
-                # logger.info('{} is going bankrupt!'.format(firm))
-                self.firms.remove(firm)
-                # messy
-                for firm_group in [self.consumer_good_firms, self.capital_equipment_firms, self.raw_material_firms]:
-                    if firm in firm_group:
-                        firm_group.remove(firm)
-                for building in self.buildings:
-                    if firm in building.tenants:
-                        building.remove_tenant(firm)
-                        break
-                firm.owner._state['firm_owner'] = False
+                self.close_firm(firm)
 
         # TODO government decisions
+
+    def close_firm(self, firm):
+        # logger.info('{} is going bankrupt!'.format(firm))
+        self.firms.remove(firm)
+        # messy
+        for firm_group in [self.consumer_good_firms, self.capital_equipment_firms, self.raw_material_firms]:
+            if firm in firm_group:
+                firm_group.remove(firm)
+        for building in self.buildings:
+            if firm in building.tenants:
+                building.remove_tenant(firm)
+                break
+        firm.close()
 
     def _log(self, chan, data):
         """format a message for the logger"""
@@ -228,7 +306,7 @@ class City(Simulation):
         """computes a probability distribution over firms based on their prices.
         the lower the price, the more likely they are to be chosen"""
         firms = [f for f in firms if f.supply > 0]
-        probs = [math.exp(-math.log(f.price)) for f in firms]
+        probs = [math.exp(-math.log(f.price)) if f.price > 0 else 1. for f in firms]
         mass = sum(probs)
         return [(f, p/mass) for f, p in zip(firms, probs)]
 
@@ -280,6 +358,31 @@ class City(Simulation):
             rounds += 1
 
         profits = [f.revenue - f.costs for f in self.consumer_good_firms]
+        return sold, profits
+
+    def healthcare_market(self):
+        sold = []
+        hospitals = [h for h in self.hospitals]
+        for person in shuffle(self.people):
+            if person._state['health'] < 1.:
+                affordable = [h for h in hospitals if h.price <= person._state['cash']]
+                if not affordable:
+                    continue
+                utilities = [person.health_change_utility(1 - person._state['health']) + person.cash_change_utility(-h.price) for h in affordable]
+                u_t = sum(utilities)
+                choices = [(h, u/u_t) for h, u in zip(hospitals, utilities)]
+                hospital = random_choice(choices)
+                hospital.sell(1)
+                person._state['cash'] -= hospital.price
+                person._state['health'] = 1
+                person._state['sick'] = False
+                sold.append(hospital.price)
+                if hospital.supply == 0:
+                    hospitals.remove(hospital)
+                if not hospitals:
+                    break
+
+        profits = [f.revenue - f.costs for f in self.hospitals]
         return sold, profits
 
     def ewma_stat(self, name, update, graph=False, start_value=0):
