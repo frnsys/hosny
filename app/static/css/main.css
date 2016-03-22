@@ -1,4 +1,14 @@
-body {
+.show {
+    opacity: 100;
+    display: block;
+}
+
+.hide {
+    opacity: 0;
+    display: none;
+}
+
+/*body {
     margin: 0
 }
 
@@ -48,15 +58,7 @@ th {
 }
 
 
-.show {
-    opacity: 100;
-    display: block;
-}
 
-.hide {
-    opacity: 0;
-    display: none;
-}
 
 .grd {
     padding-left: 1rem;
@@ -647,4 +649,4 @@ table th {
     list-style-type: none;
     cursor: pointer;
     width: 10em;
-}
+}*/

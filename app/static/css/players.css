@@ -1,0 +1,13 @@
+.players {
+    position: absolute;
+    width: 100%;
+    bottom: 10%;
+    color: #fff;
+}
+
+
+.players ul li {
+    float: left;
+    list-style-type: none;
+    width: 33%;
+}

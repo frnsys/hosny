@@ -3,15 +3,48 @@
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/city.css">
     <link rel="stylesheet" href="/static/css/graph.css">
+    <link rel="stylesheet" href="/static/css/players.css">
 {% endblock %}
 
 {% block content %}
 
 <canvas id="stage"></canvas>
 
+<div class="voting-bill"><h1>This quarter's very pressing issue</h1></div>
+
+<div class="players">
+    <ul>
+        <li>
+            <p class="player-vote">Player Vote</p>
+            <img src="" class="pic"/>
+            <h1>Name</h1>
+            <p>Race: </p>
+            <p>Education: </p>
+        </li>
+        <li>
+            <p class="player-vote">Player Vote</p>
+            <img src="" class="pic"/>
+            <h1>Name</h1>
+            <p>Race: </p>
+            <p>Education: </p>
+        </li>
+        <li>
+            <p class="player-vote">Player Vote</p>
+            <img src="" class="pic"/>
+            <h1>Name</h1>
+            <p>Race: </p>
+            <p>Education: </p>
+        </li>
+    </ul>
+</div>
+
 <div class="dashboard">
     <div class="graphs"></div>
     <div class="twooter">
+        <div class="twooter-breaking">
+            <h2>BREAKING NEWS</h2>
+        </div>
+
         <header class="twooter-header">
             <img src="/static/img/twooter.svg" class="twooter-brand">
         </header>
@@ -30,14 +63,21 @@
 
 <div class="overlay">
     <div class="overlay-content">
+        <!-- <div class="row">
+            <form action="" class="setup-simulation">
+                <h2>We have all the necessary things to make a city, except its decision-makers.</h2>
+                <p>Think you have what it takes to make good ideas?</p>
 
-        <!-- Different goals? -->
+                <input type="submit" class="submit" value="Submit">
+            </form>
+        </div> -->
+        
         <div class="row">
             <form action="" class="setup-simulation">
             <fieldset class="column1 show">
 
-                <h2>You can choose everything you want for this city. How would you like to do it?</h2>
-                <!-- Minimum wage -->
+                <h2>We've got buildings and people. We just need the policy makers to govern them. Will you help VapeCity be the best city in this magnificent country?</h2>
+                
                 <label for="minWageVals">In your world, what is the minimum wage?</label>
                     <input type="radio" name="minWage" value="1" checked>$7.75<br>
                     <input type="radio" name="minWage" value="2">$25<br>
@@ -87,7 +127,6 @@
                             <option value="2" >Unemployed</option>
                             <option value="3" >Non labor</option>
                         </select>
-                        <!-- Desired Wage -->
                         <label for="desiredWageVals">Wage Desired per Hour</label>
                         <input type="radio" name="desiredWage" value="1" checked> $7.75<br>
                         <input type="radio" name="desiredWage" value="2"> $25<br>
@@ -96,8 +135,8 @@
 
             </fieldset>
             </form>
+        </div>
     </div>
-</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>

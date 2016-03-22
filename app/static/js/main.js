@@ -159,7 +159,7 @@ require([
         }
       });
 
-      // Advancing from setup screen 1 to screen 2
+      //Advancing from setup screen 1 to screen 2
       var i = 0;
       $(".next").on("click", function() {
         $("fieldset").eq(i).removeClass("show").addClass("hide");

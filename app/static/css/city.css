@@ -1,5 +1,11 @@
 html, body {
-    background: rgb(0, 84, 255);
+    background: rgba(163,230,255,1);
+    background: -moz-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(163,230,255,1)), color-stop(100%, rgba(255,222,219,1)));
+    background: -webkit-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -o-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -ms-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: linear-gradient(to bottom, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
 }
 
 canvas {
@@ -8,12 +14,27 @@ canvas {
 }
 
 .twooter {
-    margin: 2em;
-    padding: 1em;
-    /*background: #f0f0f0;*/
+    background: #2b00f7;
+    color: #fff;
+    width: 100%;
     overflow-x: scroll;
-    height: 18em;
+    overflow-y: scroll;
+    height: 5em;
+    position: absolute;
+    bottom: 0;
+    left: 0;
 }
+
+.twooter-breaking {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.twotter-header {
+    margin-left: 5em;
+}
+
 .twoot {
     /*background: #fff;*/
     padding: 1em;
@@ -25,7 +46,6 @@ canvas {
     /*border-bottom: 1px solid #ddd;*/
 }
 .twooter-header {
-    text-align: center;
 }
 .twooter-brand {
     width: 3em;
@@ -33,7 +53,6 @@ canvas {
 .twooter-feed {
     list-style-type: none;
     margin: 0em auto 1em;
-    max-width: 28em;
 }
 .twoot-by {
     font-size: 0.8em;
@@ -60,6 +79,15 @@ button {
 }
 .step-simulation {
     display: none;
+}
+
+.voting-bill {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    color: #fff;
+    width: 100%;
+    text-align: center;
 }
 
 .overlay {
