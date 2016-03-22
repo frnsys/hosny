@@ -1,3 +1,4 @@
+import json
 import math
 import random
 import logging
@@ -79,6 +80,10 @@ class Firm(Agent):
         worker.employer = None
         worker.wage = 0
         self.workers.remove(worker)
+        logger.info('person:{}'.format(json.dumps({
+            'event': 'fired',
+            'id': worker.id
+        })))
 
     def hire(self, applicants, wage):
         hired = []
@@ -92,6 +97,10 @@ class Firm(Agent):
             applicants.remove(worker)
             self.workers.append(worker)
             hired.append(worker)
+            logger.info('person:{}'.format(json.dumps({
+                'event': 'hired',
+                'id': worker.id
+            })))
             self.worker_change -= 1
 
         # increase wage to attract more employees

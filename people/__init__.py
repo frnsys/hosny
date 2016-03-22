@@ -222,4 +222,9 @@ class Person(Agent):
 
         # choose an industry (based on highest EWMA profit)
         self.twoot('i\'m starting a BUSINESS in {}!'.format(industry), world)
+
+        logger.info('person:{}'.format(json.dumps({
+            'event': 'started_firm',
+            'id': self.id
+        })))
         return True, industry, building

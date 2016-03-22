@@ -50,6 +50,11 @@ define([
       this.scene.remove(obj);
     },
 
+    blink: function(obj) {
+      this.remove(obj);
+      this.scene.add(obj);
+    },
+
     update: function() {
       var self = this;
       _.each(this.population, function(p) {
@@ -128,6 +133,12 @@ define([
       setTimeout(function() {
         self.placePerson(person);
       }, Math.random() * 5000);
+    },
+
+    getPerson: function(id) {
+      return _.find(this.population, function(p) {
+        return p.id === id;
+      });
     },
 
     spawnGround: function() {

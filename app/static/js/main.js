@@ -1,0 +1,154 @@
+require([
+  'simulation',
+  'graph'
+], function(Simulation, Graph) {
+  var sim = new Simulation(),
+      rows = 6,
+      cols = 6,
+      max_tenants = 10,
+      socket = io();
+
+  $(function() {
+      $(".setup-simulation").on("submit", function(ev) {
+        ev.preventDefault();
+        $('.overlay').fadeOut();
+
+        $.ajax({
+          type: "POST",
+          url: "/setup",
+          data: JSON.stringify({
+            person: {
+              race: $('[name=race]').val(),
+              education: $('[name=education]').val(),
+              employment: $('[name=employment]').val(),
+            },
+
+            // user config for the world
+            world: {
+              starting_wage: parseFloat($('[name=minWage]').val()),
+              desiredWage: $('[name=desiredWage]').val(), // TODO where does this fit in?
+              n_buildings: rows * cols,
+              max_tenants: max_tenants
+            }
+          }),
+          contentType: "application/json",
+          success: function(data, textStatus, jqXHR) {
+            $('.step-simulation').show();
+          }
+        });
+
+        return false;
+      });
+
+      $('.step-simulation').on('click', function() {
+        $.ajax({
+          type: "POST",
+          url: "/step",
+          success: function() {
+            $('.step-simulation').hide();
+          }
+        })
+      });
+
+      socket.on("setup", function(data){
+        var config = {
+          maxTenants: max_tenants
+        }
+        sim.setup(rows, cols, 0.5, data.population, data.buildings, config);
+        sim.start();
+      });
+
+      socket.on("simulation", function(data){
+        // simulation step finished
+        if (data.success) {
+          $('.step-simulation').show();
+        }
+      });
+
+      socket.on("twooter", function(data){
+        // don't twoot everything, it's too much
+        if (Math.random() < 0.2) {
+          data.username = slugify(data.name);
+          $(".twooter-feed").prepend(renderTemplate('twoot', data));
+        }
+      });
+
+      socket.on("person", function(data){
+        var person = sim.city.getPerson(data.id);
+        if (!person) {
+          return;
+        }
+        if (data.event === 'fired') {
+          person.status('unemployed');
+          sim.city.blink(person);
+        } else if (data.event === 'hired') {
+          person.status('employed');
+          sim.city.blink(person);
+        } else if (data.event === 'started_firm') {
+          person.status('owner');
+          sim.city.blink(person);
+        }
+      });
+
+      socket.on("buildings", function(data){
+        var id = data.id,
+            building = sim.city.buildings[id];
+        if (data.event === 'added_tenant') {
+          building.add(data.tenant);
+        } else if (data.event === 'removed_tenant') {
+          var tenant = building.getTenant(data.tenant.id);
+          if (tenant) {
+            building.remove(tenant);
+          }
+        }
+      });
+
+      var graphs = {
+        mean_wage: new Graph(".graphs", "mean_wage", 650, 200, "mean wage"),
+        mean_equip_price: new Graph(".graphs", "mean_equip_price", 650, 200, "mean equip price"),
+        mean_material_price: new Graph(".graphs", "mean_material_price", 650, 200, "mean material price"),
+        mean_consumer_good_price: new Graph(".graphs", "mean_consumer_good_price", 650, 200, "mean consumer good price"),
+        mean_healthcare_price: new Graph(".graphs", "mean_healthcare_price", 650, 200, "mean healthcare price"),
+        mean_equip_profit: new Graph(".graphs", "mean_equip_profit", 650, 200, "mean equip profit"),
+        mean_material_profit: new Graph(".graphs", "mean_material_profit", 650, 200, "mean material profit"),
+        mean_consumer_good_profit: new Graph(".graphs", "mean_consumer_good_profit", 650, 200, "mean consumer good profit"),
+        mean_healthcare_profit: new Graph(".graphs", "mean_healthcare_profit", 650, 200, "mean healthcare profit"),
+        mean_quality_of_life: new Graph(".graphs", "mean_quality_of_life", 650, 200, "mean quality of life"),
+        mean_cash: new Graph(".graphs", "mean_cash", 650, 200, "mean cash"),
+        n_sick: new Graph(".graphs", "n_sick", 650, 200, "n sick"),
+        n_deaths: new Graph(".graphs", "n_deaths", 650, 200, "n deaths"),
+        n_firms: new Graph(".graphs", "n_firms", 650, 200, "n firms"),
+        n_bankruptcies: new Graph(".graphs", "n_bankruptcies", 650, 200, "n bankruptcies"),
+        welfare: new Graph(".graphs", "welfare", 650, 200, "welfare"),
+        tax_rate: new Graph(".graphs", "tax_rate", 650, 200, "tax rate")
+      };
+
+      socket.on("graph", function(data){
+        if (data.graph in graphs) {
+          var graph = graphs[data.graph];
+          graph.update(data.data);
+        }
+      });
+
+      // Advancing from setup screen 1 to screen 2
+      var i = 0;
+      $(".next").on("click", function() {
+        $("fieldset").eq(i).removeClass("show").addClass("hide");
+        $("fieldset").eq(i+1).removeClass("hide").addClass("show");
+        i++;
+      });
+
+      $(".twooter-feed").on('click', '.twoot-author', function() {
+        var id = $(this).data('id');
+        if (!id) { return; }
+        $.ajax({
+          type: "GET",
+          url: "/person/" + id,
+          success: function(data) {
+            $('.overlay').fadeIn();
+            $('.overlay-content').text(JSON.stringify(data));
+          }
+        });
+      });
+  });
+});
