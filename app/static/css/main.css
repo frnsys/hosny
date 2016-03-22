@@ -613,32 +613,6 @@ table th {
 #time .bar-inner {
     background: blue;
 }
-#energy .bar-inner {
-    background: green;
-}
-#health .bar-inner {
-    background: red;
-}
-
-.workspace {
-    padding: 4em;
-    background: #fafafa;
-    width: 14em;
-    margin: 0 auto;
-    border: 1px solid #aaa;
-    cursor: pointer;
-    text-align: center;
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none;   /* Chrome/Safari/Opera */
-    -khtml-user-select: none;    /* Konqueror */
-    -moz-user-select: none;      /* Firefox */
-    -ms-user-select: none;       /* IE/Edge */
-    user-select: none;
-}
-
-.work, .home {
-    display: none;
-}
 
 .actions li {
     padding: 0.5em 1em;

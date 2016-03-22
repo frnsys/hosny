@@ -77,6 +77,7 @@ require([
       });
 
       socket.on("setup", function(data){
+        console.log("SETUP!!!!");
         var config = {
           maxTenants: max_tenants
         }

@@ -32,7 +32,10 @@ celery = make_celery(app)
 
 # ehhh hacky
 model = None
+votes = []
+players = []
 logger = logging.getLogger('simulation')
+socketio = SocketIO(message_queue='redis://localhost:6379')
 
 
 @celery.task
@@ -56,7 +59,6 @@ def setup_simulation(given, config):
     model = City(pop, config)
 
     # send population to the frontend
-    socketio = SocketIO(message_queue='redis://localhost:6379')
     socketio.emit('setup', {
         'population': [p.as_json() for p in pop],
         'buildings': [{'id': b.id} for b in model.buildings]
@@ -71,5 +73,32 @@ def step_simulation():
         model.step()
 
     # send population to the frontend
-    socketio = SocketIO(message_queue='redis://localhost:6379')
     socketio.emit('simulation', {'success': True})
+
+
+@celery.task
+def record_vote(vote):
+    global votes
+    print('received vote', vote)
+    votes.append(vote)
+
+    print('n_votes', len(votes))
+    print('n_players', len(players))
+    if len(votes) >= len(players):
+        # vote has concluded
+        print('vote done!')
+        votes = []
+
+
+@celery.task
+def add_player(id):
+    global players
+    players.append(id)
+    print('registered', id)
+
+
+@celery.task
+def remove_player(id):
+    global players
+    players.remove(id)
+    print('DEregistered', id)
