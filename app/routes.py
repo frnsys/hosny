@@ -1,8 +1,30 @@
 from flask import Blueprint, jsonify, render_template, request, abort
-from .tasks import step_simulation, setup_simulation
+from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player
 from run import load_population
 
 routes = Blueprint('routes', __name__)
+
+
+
+def register_player():
+    add_player.delay(request.sid)
+
+def unregister_player():
+    remove_player.delay(request.sid)
+
+
+# hacky, but doesn't seem to work any other way
+handlers = {
+    'connect': {
+        'func': register_player,
+        'namespace': '/player'
+    },
+    'disconnect': {
+        'func': unregister_player,
+        'namespace': '/player'
+    }
+}
+
 
 
 @routes.route('/')
@@ -27,6 +49,19 @@ def setup():
         {'race': race, 'education': education, 'employed': employment},
         data['world']
     )
+    return jsonify(success=True)
+
+
+@routes.route('/player')
+def player():
+    return render_template('player.html')
+
+
+@routes.route('/vote', methods=['POST'])
+def vote():
+    data = request.get_json()
+    vote = data.get('vote', None)
+    record_vote.delay(vote)
     return jsonify(success=True)
 
 

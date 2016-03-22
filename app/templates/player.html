@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+{% block styles %}
+    <link rel="stylesheet" href="/static/css/main.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="bar-outer" id="time">
+    <div class="bar-inner"></div>
+</div>
+
+<div class="cast-vote">
+    <button value='true'>YES</button>
+    <button value='false'>NO</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+<script>
+  function renderBar(p, id) {
+    var bar = $('#'+id),
+        width = bar.width();
+    bar.find('.bar-inner').width(p * width);
+  }
+
+  function castVote(vote) {
+    $.ajax({
+      type: "POST",
+      url: "/vote",
+      data: JSON.stringify({
+        vote: vote
+      }),
+      contentType: "application/json",
+      success: function(data, textStatus, jqXHR) {
+        console.log("vote successfully cast");
+      }
+    });
+  }
+
+  $(function() {
+    var socket = io('/player');
+    var fps = 30,
+        timeout = 10,
+        totalTime = timeout * fps;
+        time = totalTime;
+        updateInterval = setInterval(function() {
+            time--;
+            renderBar(time/totalTime, 'time');
+            if (time <= 0) {
+                castVote(null);
+                clearInterval(updateInterval);
+            }
+        }, 1/fps * 1000);
+
+    $('button').on('click', function() {
+        var val = $(this).val();
+        castVote(val);
+        clearInterval(updateInterval);
+    });
+  });
+</script>
+
+{% endblock %}

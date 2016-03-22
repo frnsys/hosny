@@ -73,3 +73,35 @@ def step_simulation():
     # send population to the frontend
     socketio = SocketIO(message_queue='redis://localhost:6379')
     socketio.emit('simulation', {'success': True}, namespace='/simulation')
+
+
+votes = []
+players = []
+
+@celery.task
+def record_vote(vote):
+    global votes
+    print('received vote', vote)
+    votes.append(vote)
+
+    print('n_votes', len(votes))
+    print('n_players', len(players))
+    if len(votes) >= len(players):
+        # vote has concluded
+        print('vote done!')
+        votes = []
+
+
+@celery.task
+def add_player(id):
+    global players
+    players.append(id)
+    print('registered', id)
+
+
+@celery.task
+def remove_player(id):
+    global players
+    if id in players:
+        players.remove(id)
+        print('DEregistered', id)
