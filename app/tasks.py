@@ -66,7 +66,6 @@ def setup_simulation(given, config):
 @celery.task
 def step_simulation():
     """steps through one month of the simulation"""
-    print('STEPPING SIMULATION')
     _, n_days = monthrange(model.state['year'], model.state['month'])
     for _ in range(n_days):
         model.step()

@@ -74,6 +74,6 @@ class Household():
         if self.goods < self.min_consumption:
             self.health -= ((self.min_consumption - self.goods)/self.min_consumption) * 0.1
         else:
-            self.health += (self.goods - self.min_consumption) * 0.1
+            self.health += (self.goods - self.min_consumption) * 0.2
             self.health = min(1, self.health)
         return self.health > 0

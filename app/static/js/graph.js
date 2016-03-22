@@ -5,6 +5,20 @@ define([], function() {
     return new Date(d);
   }
 
+  function humanFormat(v) {
+    var _v = Math.abs(v);
+    if (_v >= .9995e9) {
+      return (v/1e9).toFixed(1) + "B";
+    } else if (_v >= .9995e6) {
+      return (v/1e6).toFixed(1) + "M";
+    } else if (_v >= .9995e3) {
+      return (v/1e3).toFixed(1) + "k";
+    } else if (_v < .9995e-2) {
+      return d3.format('.1e')(v);
+    }
+    return v.toFixed(1);
+  }
+
   var Graph = function(container, className, width, height, yLabel) {
     this.data = [];
     this.name = className;
@@ -27,12 +41,14 @@ define([], function() {
 
     this.xAxis = d3.svg.axis()
           .scale(this.x)
-          .ticks(d3.time.days, 1)
+          .ticks(5)
           .tickFormat(d3.time.format('%a %d'))
           .orient("bottom");
 
     this.yAxis = d3.svg.axis()
           .scale(this.y)
+          .ticks(10)
+          .tickFormat(humanFormat)
           .orient("left");
 
     svg.append("g")
@@ -46,7 +62,7 @@ define([], function() {
       .append("text")
         .attr("transform", "rotate(-90)")
         .attr("y", 6)
-        .attr("dy", ".71em")
+        .attr("dy", ".5em")
         .style("text-anchor", "end")
         .text(yLabel);
 
@@ -67,7 +83,8 @@ define([], function() {
 
       // scale data range
       this.x.domain([getDate(this.data[0].time), getDate(this.data[this.data.length-1].time)]);
-      this.y.domain([0, d3.max(this.data, function(d) { return d.value; })]);
+      this.y.domain([d3.min(this.data, function(d) { return d.value; }),
+                     d3.max(this.data, function(d) { return d.value; })]);
 
       var svg = d3.select("."+this.name).transition();
       svg.select(".line")   // change the line

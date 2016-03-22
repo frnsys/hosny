@@ -69,6 +69,11 @@ define([
       });
     },
 
+    die: function(person) {
+      this.remove(person.mesh);
+      this.population = _.without(this.population, person);
+    },
+
     // spawn the city
     spawn: function(population, buildings) {
       this.spawnBuildings(buildings);
@@ -131,7 +136,10 @@ define([
     placePersonDelayed: function(person) {
       var self = this;
       setTimeout(function() {
-        self.placePerson(person);
+        // check that this person is still alive
+        if (_.contains(self.population, person)) {
+          self.placePerson(person);
+        }
       }, Math.random() * 5000);
     },
 

@@ -15,6 +15,9 @@
     padding: 1em;
     float: left;
     width: 50%;
+
+    height: 26em;
+    overflow-y: scroll;
 }
 
 .graph-shell {

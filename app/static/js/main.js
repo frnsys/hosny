@@ -6,7 +6,33 @@ require([
       rows = 6,
       cols = 6,
       max_tenants = 10,
-      socket = io();
+      socket = io(),
+      config = {
+        patient_zero_prob: 0.01,
+        contact_rate: 0.1,
+        transmission_rate: 0.1,
+        sickness_severity: 0.01,
+        tax_rate: 0.3,
+        tax_rate_increment: 0,
+        welfare_increment: 0,
+        welfare: 10,
+        consumer_good_utility: 1,
+        rent: 1000,
+        labor_cost_per_good: 2,
+        material_cost_per_good: 2,
+        labor_per_worker: 50,
+        labor_per_equipment: 50,
+        supply_increment: 10,
+        profit_increment: 10,
+        wage_increment: 1,
+        extravagant_wage_range: 100,
+        residence_size_limit: 100,
+        base_min_consumption: 0,
+        wage_under_market_multiplier: 1,
+        min_business_capital: 50000
+      };
+
+  console.log(config);
 
   $(function() {
       $(".setup-simulation").on("submit", function(ev) {
@@ -24,12 +50,12 @@ require([
             },
 
             // user config for the world
-            world: {
+            world: _.extend({
               starting_wage: parseFloat($('[name=minWage]').val()),
               desiredWage: $('[name=desiredWage]').val(), // TODO where does this fit in?
               n_buildings: rows * cols,
-              max_tenants: max_tenants
-            }
+              max_tenants: max_tenants,
+            }, config)
           }),
           contentType: "application/json",
           success: function(data, textStatus, jqXHR) {
@@ -80,13 +106,15 @@ require([
         }
         if (data.event === 'fired') {
           person.status('unemployed');
-          sim.city.blink(person);
+          sim.city.blink(person.mesh);
         } else if (data.event === 'hired') {
           person.status('employed');
-          sim.city.blink(person);
+          sim.city.blink(person.mesh);
         } else if (data.event === 'started_firm') {
           person.status('owner');
-          sim.city.blink(person);
+          sim.city.blink(person.mesh);
+        } else if (data.event === 'died') {
+          sim.city.die(person);
         }
       });
 
@@ -117,6 +145,7 @@ require([
         mean_cash: new Graph(".graphs", "mean_cash", 650, 200, "mean cash"),
         n_sick: new Graph(".graphs", "n_sick", 650, 200, "n sick"),
         n_deaths: new Graph(".graphs", "n_deaths", 650, 200, "n deaths"),
+        n_population: new Graph(".graphs", "n_population", 650, 200, "n population"),
         n_firms: new Graph(".graphs", "n_firms", 650, 200, "n firms"),
         n_bankruptcies: new Graph(".graphs", "n_bankruptcies", 650, 200, "n bankruptcies"),
         welfare: new Graph(".graphs", "welfare", 650, 200, "welfare"),

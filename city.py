@@ -5,6 +5,7 @@ import logging
 from datetime import datetime
 from cess import Simulation
 from cess.util import random_choice
+from people import Person
 from economy import Household, Firm, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Hospital, Building, Government
 from dateutil.relativedelta import relativedelta
 
@@ -32,7 +33,10 @@ default_conf = {
     'profit_increment': 1,
     'wage_increment': 1,
     'extravagant_wage_range': 10,
-    'residence_size_limit': 100
+    'residence_size_limit': 100,
+    'base_min_consumption': 1,
+    'wage_under_market_multiplier': 1,
+    'min_business_capital': 50000
 }
 
 START_DATE = datetime(day=1, month=1, year=2005)
@@ -59,6 +63,9 @@ class City(Simulation):
         config.update(conf)
 
         Firm.config = config
+        Person.base_min_consumption = config['base_min_consumption']
+        Person.wage_under_market_multiplier = config['wage_under_market_multiplier']
+        Person.min_business_capital = config['min_business_capital']
 
         self.government = Government(config['tax_rate'], config['welfare'], config['tax_rate_increment'], config['welfare_increment'])
 
@@ -201,11 +208,12 @@ class City(Simulation):
 
         for household in self.households:
             if not household.check_goods():
-                for p in household.people:
-                    print(p in self.people)
-                    self.dies(p)
-                    n_deaths += 1
+                pass
+                # for p in household.people:
+                    # self.dies(p)
+                    # n_deaths += 1
         self.stat('n_deaths', n_deaths)
+        self.stat('n_population', len(self.people))
 
         # taxes and wages
         for person in self.people:
@@ -316,6 +324,10 @@ class City(Simulation):
         household.people.remove(person)
         if not household.people:
             self.households.remove(household)
+        logger.info('person:{}'.format(json.dumps({
+            'event': 'died',
+            'id': person.id
+        })))
 
     def firm_distribution(self, firms):
         """computes a probability distribution over firms based on their prices.

@@ -15,10 +15,6 @@ from world.work import offer_prob
 from cess.util import random_choice
 
 
-MIN_CONSUMPTION = 1
-WAGE_UNDER_MARKET_MULTIPLIER = 2
-MIN_BUSINESS_CAPITAL = 50000 # initial required capital, plus whatever rent and an employee costs
-
 logger = logging.getLogger('simulation.people')
 
 # precompute and cache to save a lot of time
@@ -26,6 +22,10 @@ emp_dist = work.precompute_employment_dist()
 
 
 class Person(Agent):
+    base_min_consumption = 1
+    wage_under_market_multiplier = 2
+    min_business_capital = 50000 # initial required capital, plus whatever rent and an employee costs
+
     @classmethod
     def generate(cls, year, given=None, **kwargs):
         """generate a random person"""
@@ -36,6 +36,8 @@ class Person(Agent):
 
     def purchasing_utility(self, utility, price):
         """`utility` is abstract; it can be "quality" for instance"""
+        if not price:
+            return utility**2
         return (utility**2)/(price * math.sqrt(1.1 + self.frugality))
 
     def health_utility(self, health):
@@ -78,7 +80,7 @@ class Person(Agent):
         self.wage_minimum = 0
         self.employer = None
         self.firm = None
-        self.min_consumption = MIN_CONSUMPTION * (2 - self.frugality)
+        self.min_consumption = self.base_min_consumption * (2 - self.frugality)
 
         super().__init__(
             state={
@@ -191,8 +193,8 @@ class Person(Agent):
         if world['mean_consumer_good_price'] * self.min_consumption > self.wage:
             self.wage_minimum = world['mean_consumer_good_price'] * self.min_consumption
             return True
-        elif world['mean_wage'] > self.wage * WAGE_UNDER_MARKET_MULTIPLIER:
-            self.wage_minimum = self.wage * WAGE_UNDER_MARKET_MULTIPLIER
+        elif world['mean_wage'] > self.wage * self.wage_under_market_multiplier:
+            self.wage_minimum = self.wage * self.wage_under_market_multiplier
             return True
         return False
 
@@ -210,7 +212,7 @@ class Person(Agent):
         building = random_choice([(b, 1/(b.rent*denom)) for b in buildings])
 
         # must be able to hire at least one employee
-        min_cost = MIN_BUSINESS_CAPITAL + building.rent + world['mean_wage']
+        min_cost = self.min_business_capital + building.rent + world['mean_wage']
 
         if self._state['cash'] < min_cost:
             return False, None, None
