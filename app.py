@@ -13,4 +13,8 @@ for msg, v in handlers.items():
     ns = v.get('namespace', '/')
     socketio.on(msg, namespace=ns)(v['func'])
 
+@socketio.on('connect', namespace='/simulation')
+def foo():
+    print('SIMULATION CONNECTED')
+
 socketio.run(app, host='0.0.0.0', port=5000, debug=True)

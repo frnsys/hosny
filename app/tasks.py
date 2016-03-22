@@ -35,7 +35,6 @@ model = None
 votes = []
 players = []
 logger = logging.getLogger('simulation')
-socketio = SocketIO(message_queue='redis://localhost:6379')
 
 
 @celery.task
@@ -59,6 +58,7 @@ def setup_simulation(given, config):
     model = City(pop, config)
 
     # send population to the frontend
+    socketio = SocketIO(message_queue='redis://localhost:6379')
     socketio.emit('setup', {
         'population': [p.as_json() for p in pop],
         'buildings': [{'id': b.id} for b in model.buildings]
@@ -73,6 +73,7 @@ def step_simulation():
         model.step()
 
     # send population to the frontend
+    socketio = SocketIO(message_queue='redis://localhost:6379')
     socketio.emit('simulation', {'success': True}, namespace='/simulation')
 
 
@@ -100,5 +101,6 @@ def add_player(id):
 @celery.task
 def remove_player(id):
     global players
-    players.remove(id)
-    print('DEregistered', id)
+    if id in players:
+        players.remove(id)
+        print('DEregistered', id)
