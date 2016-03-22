@@ -6,7 +6,7 @@ require([
       rows = 6,
       cols = 6,
       max_tenants = 10,
-      socket = io(),
+      socket = io('/simulation'),
       config = {
         patient_zero_prob: 0.01,
         contact_rate: 0.1,
