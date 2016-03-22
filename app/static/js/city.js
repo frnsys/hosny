@@ -11,7 +11,6 @@ define([
     this.config = config;
 
     this.fullSide = this.side + 2*this.margin;
-
     this.gridWidth = this.fullSide * cols;
     this.gridDepth = this.fullSide * rows;
 
@@ -54,11 +53,10 @@ define([
     update: function() {
       var self = this;
       _.each(this.population, function(p) {
-        var radius = p.radius;
         p.update();
 
         // destroy when out of the city
-        if (p.distanceTraveled.x > self.gridWidth + 2*radius || p.distanceTraveled.z > self.gridDepth + 2*radius) {
+        if (p.distanceTraveled.x > self.gridWidth + 2*p.radius || p.distanceTraveled.z > self.gridDepth + 2*p.radius) {
           p.stop();
           self.scene.remove(p.mesh);
           self.placePersonDelayed(p);
@@ -69,7 +67,7 @@ define([
     // spawn the city
     spawn: function(population, buildings) {
       this.spawnBuildings(buildings);
-      this.spawnRoads();
+      this.spawnGround();
 
       var self = this;
       for (var i=0; i < population.length; i++) {
@@ -111,11 +109,7 @@ define([
         velocity.z = z < 0 ? 0.1 : -0.1;
 
         // "lanes", people keep to the right
-        if (z == -radius) {
-          x -= radius;
-        } else {
-          x += radius;
-        }
+        x += z == -radius ? -radius : radius;
       } else {
         x = _.sample([-radius, this.gridWidth + radius]);
         var row = _.random(0, this.rows);
@@ -123,11 +117,7 @@ define([
         velocity.x = x < 0 ? 0.1 : -0.1;
 
         // "lanes", people keep to the right
-        if (x == -radius) {
-          z -= radius;
-        } else {
-          z += radius;
-        }
+        z += x == -radius ? -radius : radius;
       }
       this.place(person.mesh, x - radius, radius, z - radius);
       person.wander(velocity);
@@ -140,7 +130,7 @@ define([
       }, Math.random() * 5000);
     },
 
-    spawnRoads: function() {
+    spawnGround: function() {
       var planeGeometry = new THREE.PlaneGeometry(this.gridWidth, this.gridDepth),
           planeMaterial = new THREE.MeshLambertMaterial( {color: 0x333333, side: THREE.DoubleSide} ),
           plane = new THREE.Mesh( planeGeometry, planeMaterial );

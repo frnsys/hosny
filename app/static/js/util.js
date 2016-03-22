@@ -5,6 +5,7 @@ function slugify(str) {
     .replace(/\-+/g, '_');          // replace - with single _
 }
 
+
 // https://gist.github.com/jasdeepkhalsa/767bfd5f24c7ecf09363
 function RecurringTimer(callback, delay) {
     var timerId, start, remaining = delay;
@@ -26,6 +27,7 @@ function RecurringTimer(callback, delay) {
     this.resume = resume;
     this.resume();
 }
+
 
 function renderTemplate(template, data) {
   return Handlebars.templates[template + '.hbs'](data);

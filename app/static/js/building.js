@@ -1,6 +1,5 @@
 define([], function() {
   var colors = {
-    // TODO diff colors for public vs private
     'Hospital': 0xff2222,
     'CapitalEquipmentFirm': 0x44ffff,
     'ConsumerGoodFirm': 0x44ff44,
@@ -35,24 +34,24 @@ define([], function() {
       // basically just rebuild the building without the removed tenant
       var self = this;
       _.each(this.tenants, function(t) {
-          this.city.remove(t.mesh);
+          self.city.remove(t.mesh);
       });
 
       var tenants = _.without(this.tenants, tenant);
       this.tenants = [];
 
       _.each(tenants, function(t) {
-          self.add(t);
+          self.add({
+            id: t.id,
+            type: t.type
+          });
       });
     },
 
-    removeById: function(id) {
-      var tenant = _.find(this.tenants, function(t) {
+    getTenant: function(id) {
+      return _.find(this.tenants, function(t) {
         return t.id === id;
       });
-      if (tenant) {
-        this.remove(tenant);
-      }
     },
 
     // total height of the building
@@ -77,6 +76,7 @@ define([], function() {
         });
     this.mesh = new THREE.Mesh(geometry, material);
     this.id = id;
+    this.type = type;
   }
 
   return Building;

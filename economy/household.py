@@ -1,15 +1,23 @@
 import math
 
-CONSUMER_GOOD_UTILITY = 1
 
 class Household():
-    def __init__(self, people):
+    def __init__(self, people, consumer_good_utility):
         self.people = people
         self.goods = 0
-        self.days_without_goods = 0
+        self.health = 1
+        self.good_utility = consumer_good_utility
+
+        for p in self.people:
+            p.household = self
 
     def step(self):
         self.goods = 0
+
+    @property
+    def quality_of_life(self):
+        """pretty simple - should also incorporate leisure time"""
+        return ((self.goods * self.good_utility) + sum(p.health_utility(p._state['health']) for p in self.people)/len(self.people)) * self.health
 
     @property
     def min_consumption(self):
@@ -23,7 +31,7 @@ class Household():
 
     def marginal_utility(self, n_goods, price):
         return sum(round(p.cash_change_utility(-price)
-                   + p.purchasing_utility(CONSUMER_GOOD_UTILITY, price)
+                   + p.purchasing_utility(self.good_utility, price)
                    + self.consumer_good_utility_change(n_goods), 4)
                    for p in self.people)
 
@@ -37,14 +45,17 @@ class Household():
         # sigmoid
         return 1/(1 + math.exp(-n_goods)) - 0.5
 
+    @property
+    def cash(self):
+        return sum(p._state['cash'] for p in self.people)
+
     def purchase_goods(self, supplier):
-        cash = sum(p._state['cash'] for p in self.people)
-        desired_goods = (self.min_consumption + self.excess_consumption(supplier.price)) - self.goods
+        desired_goods = max(0, (self.min_consumption + self.excess_consumption(supplier.price)) - self.goods)
 
         if not supplier.price:
             to_purchase = desired_goods
         else:
-            can_afford = math.floor(cash/supplier.price)
+            can_afford = max(0,  math.floor(self.cash/supplier.price))
             desired_goods = min(can_afford, desired_goods)
             to_purchase = min(desired_goods, supplier.supply)
         cost = to_purchase * supplier.price
@@ -61,9 +72,8 @@ class Household():
 
     def check_goods(self):
         if self.goods < self.min_consumption:
-            self.days_without_goods += 1
+            self.health -= ((self.min_consumption - self.goods)/self.min_consumption) * 0.1
         else:
-            self.days_without_goods = 0
-
-        if self.days_without_goods >= 7:
-            pass # destitute/dead
+            self.health += (self.goods - self.min_consumption) * 0.1
+            self.health = min(1, self.health)
+        return self.health > 0

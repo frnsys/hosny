@@ -71,13 +71,13 @@ define([], function() {
 
       var svg = d3.select("."+this.name).transition();
       svg.select(".line")   // change the line
-          .duration(750)
+          .duration(500)
           .attr("d", this.line(this.data));
       svg.select(".x.axis") // change the x axis
-          .duration(750)
+          .duration(500)
           .call(this.xAxis);
       svg.select(".y.axis") // change the y axis
-          .duration(750)
+          .duration(500)
           .call(this.yAxis);
     }
   };
