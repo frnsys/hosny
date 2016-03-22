@@ -78,12 +78,10 @@ def step_simulation():
 votes = []
 players = []
 
-@celery.task
-def record_vote(vote):
-    global votes
-    print('received vote', vote)
-    votes.append(vote)
 
+def check_votes():
+    global votes
+    global players
     print('n_votes', len(votes))
     print('n_players', len(players))
     if len(votes) >= len(players):
@@ -91,6 +89,12 @@ def record_vote(vote):
         print('vote done!')
         votes = []
 
+@celery.task
+def record_vote(vote):
+    global votes
+    print('received vote', vote)
+    votes.append(vote)
+    check_votes()
 
 @celery.task
 def add_player(id):
@@ -105,3 +109,4 @@ def remove_player(id):
     if id in players:
         players.remove(id)
         print('DEregistered', id)
+        check_votes()
