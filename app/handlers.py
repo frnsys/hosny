@@ -10,7 +10,7 @@ class SocketsHandler(logging.Handler):
         try:
             # format: 'CHAN:DATA'
             chan, datastr = record.getMessage().split(':', 1)
-            self.socketio.emit(chan, json.loads(datastr))
+            self.socketio.emit(chan, json.loads(datastr), namespace='/namespace')
         except (KeyboardInterrupt, SystemExit):
             raise
         except:

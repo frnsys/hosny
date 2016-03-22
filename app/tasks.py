@@ -62,7 +62,7 @@ def setup_simulation(given, config):
     socketio.emit('setup', {
         'population': [p.as_json() for p in pop],
         'buildings': [{'id': b.id} for b in model.buildings]
-    })
+    }, namespace='/simulation')
 
 
 @celery.task
@@ -73,7 +73,7 @@ def step_simulation():
         model.step()
 
     # send population to the frontend
-    socketio.emit('simulation', {'success': True})
+    socketio.emit('simulation', {'success': True}, namespace='/simulation')
 
 
 @celery.task
