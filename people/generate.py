@@ -71,10 +71,7 @@ edges = [
 
     (Var.year, Var.employed),
 
-    (Var.wage_income, Var.welfare_income),
     (Var.business_income, Var.wage_income),
-    (Var.wage_income, Var.retirement_income),
-
     (Var.occupation, Var.wage_income),
     (Var.industry, Var.wage_income),
 ]
@@ -83,8 +80,6 @@ edges = [
 income_vars = [
     Var.wage_income,
     Var.investment_income,
-    Var.welfare_income,
-    Var.retirement_income,
     Var.business_income,
 ]
 
@@ -141,10 +136,11 @@ def generate(year, given=None):
 
     sample['rent'] = rent.sample_rent(year, sample['puma'])
 
-    sample['occupation_code'] = sample['occupation']
+    sample['occupation_code'] = int(sample['occupation'])
     sample['occupation'] = random.choice(occupations[str(sample['occupation_code'])])
 
-    sample['industry_code'] = sample['industry']
+    sample['industry_code'] = int(sample['industry'])
     sample['industry'] = industries[str(sample['industry_code'])]
+    sample['puma'] = int(sample['puma'])
 
     return sample

@@ -68,6 +68,23 @@ Then, run the simulation across the cluster:
 
     python run.py <population size> <number of days> <arbiter host:port>
 
+## Running the frontend
+
+(run each of the following in separate tabs)
+
+    # run redis
+    redis-server
+
+    # run the server
+    python app
+
+    # run the celery worker
+    # only run one celery process; this is a bit of a hack to ensure that
+    # only one City model is created and we step only that model
+    celery -A app.tasks.celery worker --concurrency=1
+
+Then visit `http://localhost:5000`
+
 ## Sources
 
 - [Frequently Occurring Surnames from the Census 2000](http://www.census.gov/topics/population/genealogy/data/2000_surnames.html). Surnames occurring >= 100 more times in the 2000 census. Details here: <http://www2.census.gov/topics/genealogy/2000surnames/surnames.pdf>

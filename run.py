@@ -1,7 +1,5 @@
-import os
 import json
 import click
-import shutil
 import config
 import logging
 from city import City
@@ -29,27 +27,44 @@ def run_simulation(population, days, arbiter):
     else:
         arbiter = None
 
-    pop = generate_population(population)
+    if isinstance(population, str):
+        pop = load_population(population)
+    else:
+        pop = generate_population(population)
     model = City(pop, arbiter=arbiter)
 
     s = time()
     with click.progressbar(range(days), label='simulating...') as days:
         for day in days:
             model.step()
+
     print('elapsed:', str(timedelta(seconds=time() - s)))
 
-    print('gathering histories...')
-    shutil.rmtree('histories')
-    os.makedirs('histories')
-    histories = model.history()
-    for id, name, history, goals in histories:
-        with open('histories/{}_{}.json'.format(name, id), 'w') as f:
-            json.dump({
-                'id': id,
-                'name': name,
-                'history': history,
-                'goals': [goal.name for goal in goals]
-            }, f)
+
+
+def load_population(path):
+    raw = json.load(open(path, 'r'))
+    pop = [Person(**p) for p in raw]
+
+    # update ids
+    for p, p_raw in zip(pop, raw):
+        p.id = p_raw['id']
+        p.friends = p_raw['friends']
+
+    # setup friends
+    for p in pop:
+        friends = []
+        for f in p.friends:
+            friend = next(p_ for p_ in pop if p_.id == f)
+            friends.append(friend)
+        p.friends = friends
+    return pop
+
+
+def save_population(pop, path):
+    json_pop = [p.as_json() for p in pop]
+    with open(path, 'w') as f:
+        json.dump(json_pop, f)
 
 
 def generate_population(n):
@@ -59,12 +74,11 @@ def generate_population(n):
         for i in n:
             agent = Person.generate(config.START_DATE.year)
             population.append(agent)
-            # print(agent, 'is moving into', agent.neighborhood)
-            # print('  ', ','.join([agent.occupation, str(agent.sex), str(agent.race), agent.neighborhood, str(agent.education), str(agent.rent)]))
 
     social_network = social.social_network(population, base_prob=0.4)
     for i, person in enumerate(population):
         person.friends = [population[j] for _, j in social_network.edges(i)]
+    print('avg n of friends', sum(len(p.friends) for p in population)/len(population))
     return population
 
 

@@ -1,0 +1,83 @@
+html, body {
+    background: rgb(0, 84, 255);
+}
+
+canvas {
+    margin: 4em auto;
+    display: block;
+}
+
+.twooter {
+    margin: 2em;
+    padding: 1em;
+    /*background: #f0f0f0;*/
+    overflow-x: scroll;
+    height: 18em;
+}
+.twoot {
+    /*background: #fff;*/
+    padding: 1em;
+    margin: 0;
+    /*border: 1px solid #ddd;*/
+    /*border-bottom: none;*/
+}
+.twoot:last-child {
+    /*border-bottom: 1px solid #ddd;*/
+}
+.twooter-header {
+    text-align: center;
+}
+.twooter-brand {
+    width: 3em;
+}
+.twooter-feed {
+    list-style-type: none;
+    margin: 0em auto 1em;
+    max-width: 28em;
+}
+.twoot-by {
+    font-size: 0.8em;
+}
+.twoot-meta {
+    color: #aaa;
+}
+.twoot-time:before {
+    content: "\00b7";
+}
+.twoot-author {
+    font-weight: bold;
+    cursor: pointer;
+}
+.twoot-content {
+    font-size: 1.2em;
+    margin: 0;
+}
+
+button {
+    background: #fff;
+    margin: 0 auto 2em auto;
+    display: block;
+}
+.step-simulation {
+    display: none;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.8);
+    //display: none;
+}
+.overlay-content {
+    margin: 2em auto;
+    background: #fff;
+    padding: 2em;
+    width: 48em;
+}
+
+.actions {
+    clear: both;
+}

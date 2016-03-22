@@ -1,25 +1,28 @@
-import os
+import math
+import json
 import config
 import random
 import logging
 import asyncio
 import numpy as np
-from util import ewms
-from scipy import stats
-from cess import Agent, Goal
+from datetime import datetime
+from cess import Agent
 from world import work
 from .names import generate_name
 from .generate import generate
+from .attribs import Employed, Sex, Race, Education
+from world.work import offer_prob
+from cess.util import random_choice
 
+
+MIN_CONSUMPTION = 1
+WAGE_UNDER_MARKET_MULTIPLIER = 2
+MIN_BUSINESS_CAPITAL = 50000 # initial required capital, plus whatever rent and an employee costs
+
+logger = logging.getLogger('simulation.people')
 
 # precompute and cache to save a lot of time
 emp_dist = work.precompute_employment_dist()
-
-
-# assuming 1 adult. ofc these expenses will vary a lot depending on other
-# factors like neighborhood, but we could not find data that granular
-import json
-annual_expenses = sum(json.load(open('data/world/annual_expenses.json', 'r'))['1 adult'].values())
 
 
 class Person(Agent):
@@ -31,263 +34,197 @@ class Person(Agent):
         attribs.update(kwargs)
         return cls(**attribs)
 
+    def purchasing_utility(self, utility, price):
+        """`utility` is abstract; it can be "quality" for instance"""
+        return (utility**2)/(price * math.sqrt(1.1 + self.frugality))
+
+    def health_utility(self, health):
+        return -10000 if health <= 0 else math.sqrt(health) * 100
+
+    def health_change_utility(self, change):
+        return self.health_utility(self._state['health'] + change) - self.health_utility(self._state['health'])
+
+    def cash_utility(self, cash):
+        u = cash-1 if cash <= 0 else 400/(1 + math.exp(-cash/20000)) - (400/2) # sigmoid for cash > 0, linear otherwise
+        return u * math.sqrt(1.1 + self.frugality)
+
+    def cash_change_utility(self, change):
+        return self.cash_utility(self._state['cash'] + change) - self.cash_utility(self._state['cash'])
+
     """an individual in the city"""
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        self.name = generate_name(self.sex, self.race)
-        self.dead = False
+        if 'name' not in kwargs:
+            self.name = generate_name(self.sex, self.race)
 
-        # days to "burn in" agent, so mean utility and stuff settle
-        self.burn_in = 14
-
-        self.last_utility = None
-        self.mean_utility = None
-        self.stddev_utility = 0
+        self.diary = {
+            'days_unemployed': 0,
+            'days_employed': 0
+        }
 
         # the world initializes this
         self.friends = []
 
-        # keep track of past day's actions
-        self.diary = []
+        self.sex = Sex(self.sex)
+        self.race = Race(self.race)
+        self.education = Education(self.education)
 
-        # keep track of "life" history
-        self.history = {
-            'salient_actions': [],
-            'accomplished_goals': []
-        }
-
-        # values estimated from
-        # Temporal Discounting in Choice Between Delayed Rewards: The Role of Age and Income
-        # Leonard Green, Joel Myerson, David Lichtman, Suzanne Rosen, Astrid Fry
-        # <http://psych.wustl.edu/lengreen/publications/Temporal%20discounting%20in%20choice%20between%20delayed%20rewards%20(1996).pdf>
-        self.discounting_rate = 0.01 if self.wage_income > 50000 else 0.046
+        # TODO these are being set manually
+        self.altruism = 0
+        self.frugality = 0
+        self.wage = 0
+        self.wage_minimum = 0
+        self.employer = None
+        self.firm = None
+        self.min_consumption = MIN_CONSUMPTION * (2 - self.frugality)
 
         super().__init__(
             state={
                 'health': 1.,
                 'stress': 0.5,
-                'cash': 1000,
+                'sick': False,
+
+                # starting wealth
+                'cash': 2*(self.wage_income + self.business_income + self.investment_income),
+
                 'employed': self.employed,
                 'wage_income': self.wage_income,
                 'business_income': self.business_income,
                 'investment_income': self.investment_income,
-                'retirement_income': self.retirement_income,
+
+                # this will eventually be set by the dynamics of the world
                 'welfare_income': self.welfare_income,
+
                 'rent_fail': 0,
                 'sex': self.sex,
                 'race': self.race,
                 'age': int(self.age),
-                'education': self.education
+                'education': self.education,
+                'firm_owner': self.business_income > 0,
+
+                # attribs
+                'altruism': 0,      # negative: greedy
+                'frugality': 0,     # negative: decadent/wasteful
+                'myopism': 0,       # negative: better at long-term thinking
+                'sociability': 0    # negative: introverted
             },
-            actions=config.ACTIONS,
-            goals=[],
-            utility_funcs=config.UTILITY_FUNCS,
             constraints=config.CONSTRAINTS)
-
-    def __repr__(self):
-        return self.name
-
-    def _is_significant(self, utility, mean, stddev):
-        """determines if a utility is significant or not"""
-        if utility >= mean + 2.5 * stddev:
-            return True
-        elif utility <= mean - 2.5 * stddev:
-            return True
-        return False
 
     @asyncio.coroutine
     def step(self, world):
         """one time-step"""
-        if self.dead:
-            return
+        if self.state['employed'] == Employed.employed:
+            self.diary['days_employed'] += 1
 
-        # keep track of person's utility at "end" (of the previous) day
-        self.last_utility = self.utility(self.state)
-        if self.mean_utility is None:
-            self.mean_utility = self.last_utility
+            f = self.fire_prob(world)
+            if random.random() < f:
+                self._state['employed'] = Employed.unemployed
+                self.twoot('ah shit I got fired!', world)
         else:
-            self.mean_utility, self.stddev_utility = ewms(self.mean_utility, self.stddev_utility, self.last_utility)
+            self.diary['days_unemployed'] += 1
 
-        if self.burn_in == 0:
-            # get salient actions for yesterday
-            self.history['salient_actions'].extend([(a, u) for a, s, u in self.diary
-                                                    if self._is_significant(u, self.mean_utility, self.stddev_utility)])
-        else:
-            self.burn_in -= 1
+            c = world['contact_rate']
+            for friend in self.friends:
+                employed = yield from friend['employed']
+                if employed == Employed.employed and random.random() <= c:
+                    p = self.hire_prob(world, 'friend')
+                    if random.random() <= p:
+                        self.twoot('got a job from my friend :)', world)
+                        self._state['employed'] == Employed.employed
+                        break
 
-        # make money off non-wage income
-        for income_attr in ['business_income', 'investment_income', 'retirement_income', 'welfare_income']:
-            self.state['cash'] += self.state[income_attr]/365
+            # still don't have a job, cold call
+            if self.state['employed'] != Employed.employed:
+                p = self.hire_prob(world, 'ad_or_cold_call')
+                if random.random() <= p:
+                    self.twoot('got a job from a cold call!', world)
+                    self._state['employed'] == Employed.employed
 
-        # pay (very roughly estimated) expenses
-        self.state['cash'] -= annual_expenses/365 * (0.5 + stats.beta.rvs(2,2))
+    def as_json(self):
+        obj = self.state.copy()
+        obj['friends'] = [friend.id for friend in self.friends]
 
-        # new day, see what happens
-        self.daily_effects(world)
+        attrs = ['id', 'name',
+                 'puma', 'industry',
+                 'occupation', 'industry_code',
+                 'occupation_code', 'neighborhood',
+                 'rent']
+        for attr in attrs:
+            obj[attr] = getattr(self, attr)
 
-        # update last utility after day's effects
-        self.last_utility = self.utility(self.state)
+        # coerce numpy datatypes
+        for k, v in obj.items():
+            if isinstance(v, np.integer):
+                obj[k] = int(v)
+        return obj
 
-        # update friends
-        emp_friends = 0
-        for f in self.friends:
-            emp = yield from f['employed']
-            if emp > 0:
-                emp_friends += 1
-        self['employed_friends'] = emp_friends
+    def __repr__(self):
+        return self.name
 
-        yield from self.check_friends()
+    def hire_prob(self, world, referral):
+        """referral can either be 'friend' or 'ad_or_cold_call'"""
+        return offer_prob(world['year'], world['month'], self.state['sex'], self.state['race'], referral)
 
-        # make a plan for day
-        action = self.plan_day(world)
+    def fire_prob(self, world):
+        employment_dist = emp_dist[world['year']][world['month'] - 1][self.race.name][self.sex.name]
+        p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
+        return p_unemployed
 
-        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-        print('TAKING ACTION', action.name)
-        self.take_action(action, world)
+    def twoot(self, message, world):
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'msg': message,
+            'date': datetime.strptime(
+                '{}/{}'.format(
+                    world['month'],
+                    world['year']),
+                '%m/%Y').isoformat()
+        }
+        logger.info('twooter:{}'.format(json.dumps(data)))
 
-        if isinstance(action, Goal):
-            self.history['accomplished_goals'].append(action)
+    def seeking_job(self, world):
+        if self._state['firm_owner']:
+            return False
+        if world['mean_consumer_good_price'] * self.min_consumption > self.wage:
+            self.wage_minimum = world['mean_consumer_good_price'] * self.min_consumption
+            return True
+        elif world['mean_wage'] > self.wage * WAGE_UNDER_MARKET_MULTIPLIER:
+            self.wage_minimum = self.wage * WAGE_UNDER_MARKET_MULTIPLIER
+            return True
+        return False
 
-        # record (action, resulting state, utility)
-        self.last_utility = self.utility(self.state)
-        self.diary.append((action.name, self.state.copy(), self.last_utility))
-        print('GOALS', self.goals)
+    def start_business(self, world, buildings):
+        # can only have one business
+        if self._state['firm_owner']:
+            return False, None, None
 
-    def salient_lifetime_actions(self):
-        # utilities = [u for a, u in self.history['salient_actions']]
-        # if utilities:
-            # mean, std = np.mean(utilities), np.std(utilities)
-            # self.history['salient_actions'] = [(a, u) for a, u in self.history['salient_actions'] if self._is_significant(u, mean, std)]
-            # return self.history['salient_actions']
-        # return []
-        return self.id, self.name, self.diary, self.goals
+        # must be able to find a place with affordable rent
+        buildings = [b for b in buildings if b.available_space]
+        if not buildings:
+            return False, None, None
 
-    def plan_day(self, world):
-        """agents execute only one action per day
-        (to keep the model computationally feasible at large scales).
-        they choose the actiont that maximizes expected utility
-        and gets them closer to their goals"""
-        state = self._joint_state(self.state, world)
+        denom = sum(1/b.rent for b in buildings)
+        building = random_choice([(b, 1/(b.rent*denom)) for b in buildings])
 
-        # returns all successors, even ones not possible
-        # in this state, so we can consider aspirational actions
-        # (which become goals)
-        succs = self.successors(state, self.goals)
+        # must be able to hire at least one employee
+        min_cost = MIN_BUSINESS_CAPITAL + building.rent + world['mean_wage']
 
-        for action, _ in succs:
-            if not action.satisfied(state):
-                self.goals.add(action)
-            else:
-                return action
+        if self._state['cash'] < min_cost:
+            return False, None, None
 
-    def take_action(self, action, world):
-        """execute an action, applying its effects"""
-        state = self._joint_state(self.state, world)
+        industries = ['equip', 'material', 'consumer_good', 'healthcare']
+        total_mean_profit = sum(world['mean_{}_profit'.format(name)] for name in industries)
+        industry_dist = [(name, world['mean_{}_profit'.format(name)]/total_mean_profit) for name in industries]
+        industry = random_choice(industry_dist)
 
-        for g in self.goals:
-            if g.name == action.name:
-                self.goals.remove(g)
+        # choose an industry (based on highest EWMA profit)
+        self.twoot('i\'m starting a BUSINESS in {}!'.format(industry), world)
 
-        print('BEFORE STATE ------------------')
-        print(self.state)
-        self.state = action(state)
-        print('AFTER STATE ------------------')
-        print(self.state)
-        print('------------------------------')
-        self.state, new_world = self._disjoint_state(state)
-
-    def _joint_state(self, state, world):
-        """create a state combining the agent state and the world's state.
-        keys for the world's state are prefixed with 'world.'"""
-        state = state.copy()
-        state.update({'world.{}'.format(k): v for k, v in world.items()})
-        return state
-
-    def _disjoint_state(self, state):
-        """separates the agent and world states"""
-        world, agent = {}, {}
-        for k, v in state.items():
-            if k.startswith('world.'):
-                k = k[len('world.'):]
-                world[k] = v
-            else:
-                agent[k] = v
-        return agent, world
-
-    @asyncio.coroutine
-    def check_friends(self):
-        """see how friends are doing"""
-        for friend in self.friends:
-            utility, stddev_utility = yield from friend.request(['last_utility', 'stddev_utility'])
-            if utility is not None:
-                if utility > utility + 1.5*stddev_utility:
-                    # friend had a good day
-                    self['stress'] = max(0, self['stress'] - 0.005)
-                elif utility < utility - 1.5*stddev_utility:
-                    # friend had a bad day
-                    self['stress'] = min(1, self['stress'] + 0.005)
-
-    def set_logger(self, log_dir):
-        """creates a logger. only run this _after_ agents have
-        been distributed to workers; this opens a file which can't be pickled"""
-        slug = self.name.lower().replace(' ', '_')
-        logger = logging.getLogger(slug)
-
-        # configure the logger
-        formatter = logging.Formatter('%(name)s - %(message)s')
-
-        # output to file
-        fh = logging.FileHandler(os.path.join(log_dir, '{}.log'.format(slug)))
-        fh.setLevel(logging.INFO)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-        logger.setLevel(logging.INFO)
-        self.logger = logger
-
-    def daily_effects(self, world):
-        """apply daily effects to agent"""
-        # if an agent ends the day with <= 0 health, they are dead
-        if self.state['health'] <= 0:
-            self.dead = True
-            return
-
-        # getting sick
-        if random.random() < config.SICK_PROB:
-            self.state['health'] -= stats.beta.rvs(2, 10)
-
-        if self.state['employed'] == 1:
-            # wage change
-            if random.random() < 1/365: # arbitrary probability, what should this be?
-                # change = work.income_change(world['year'], world['year'] + 1, self.sex, self.race, self.wage_income_bracket, 'INCWAGE')
-                # self.state['wage_income'] += change # TODO this needs to change their income bracket if appropriate
-                pass
-            else:
-                employment_dist = emp_dist[world['year']][world['month'] - 1][self.race.name][self.sex.name]
-                p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
-                # fired
-                if random.random() < p_unemployed:
-                    self.state['employed'] = 0
-
-        # if the agent fails to pay rent/mortgage 3 months in a row,
-        # they get evicted/lose their house
-        if self.state['rent_fail'] >= 3:
-            # what are the effects of this?
-            pass # TODO
-
-        # tick goals/check failures
-        remaining_goals = set()
-        for goal in self.goals:
-            if isinstance(goal, Goal):
-                goal.tick()
-                if goal.time <= 0:
-                    self.state = goal.fail(self.state)
-                    if goal.repeats:
-                        goal.reset()
-                        remaining_goals.add(goal)
-                else:
-                    remaining_goals.add(goal)
-            else:
-                remaining_goals.add(goal)
-        self.goals = remaining_goals
+        logger.info('person:{}'.format(json.dumps({
+            'event': 'started_firm',
+            'id': self.id
+        })))
+        return True, industry, building

@@ -9,3 +9,8 @@ pytz==2015.7
 scipy==0.17.0
 six==1.10.0
 wheel==0.24.0
+redis==2.10.5
+eventlet==0.18.4
+celery==3.1.21
+flask==0.10.1
+flask-socketio==2.2
