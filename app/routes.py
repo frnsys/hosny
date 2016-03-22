@@ -7,29 +7,17 @@ routes = Blueprint('routes', __name__)
 
 @routes.route('/')
 def index():
-    return render_template('index.html')
-
-
-@routes.route('/game')
-def game():
-    return render_template('game.html')
-
-
-@routes.route('/city')
-def city():
     return render_template('city.html')
 
 
 @routes.route('/step', methods=['POST'])
 def step():
-    print('STEP REQUEST RECEIVED')
     step_simulation.delay()
     return jsonify(success=True)
 
 
 @routes.route('/setup', methods=['POST'])
 def setup():
-    print('SIMULATION REQUEST RECEIVED')
     data = request.get_json()
     person = data['person']
     race = int(person['race'])
