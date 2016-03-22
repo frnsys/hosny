@@ -1,6 +1,5 @@
 define([], function() {
   var colors = {
-    // TODO diff colors for public vs private
     'Hospital': 0xff2222,
     'CapitalEquipmentFirm': 0x44ffff,
     'ConsumerGoodFirm': 0x44ff44,
@@ -49,13 +48,10 @@ define([], function() {
       });
     },
 
-    removeById: function(id) {
-      var tenant = _.find(this.tenants, function(t) {
+    getTenant: function(id) {
+      return _.find(this.tenants, function(t) {
         return t.id === id;
       });
-      if (tenant) {
-        this.remove(tenant);
-      }
     },
 
     // total height of the building

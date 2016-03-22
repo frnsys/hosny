@@ -1,66 +1,12 @@
 require([
-  'city',
+  'simulation',
   'graph'
-], function(City, Graph) {
-  var fps = 30;
-  var game = {
-    // setup the scene
-    setup: function(rows, cols, margin, population, buildings, config) {
-        var width = 960,
-            height = 500,
-            aspect = width/height,
-            D = 1,
-            light = new THREE.PointLight(0xffffff, 1, 40);
-
-        this.scene = new THREE.Scene();
-        this.renderer = new THREE.WebGLRenderer({alpha: true, canvas: document.getElementById("stage")});
-        this.camera = new THREE.OrthographicCamera(-D*aspect, D*aspect, D, -D, 1, 1000),
-
-        this.renderer.setSize(width, height);
-        this.renderer.setClearColor(0xffffff, 0);
-        this.scene.add( new THREE.AmbientLight(0x4000ff) );
-
-        light.position.set(15, 20, 15);
-        this.scene.add(light);
-
-        light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1);
-        this.scene.add(light);
-
-        this.camera.zoom = 0.1;
-        this.camera.position.set(20, 20, 20);
-        this.camera.lookAt(this.scene.position);
-        this.camera.updateProjectionMatrix();
-
-        this.city = new City(rows, cols, margin, population, buildings, config, this.scene);
-    },
-
-    render: function() {
-        this.renderer.render(this.scene, this.camera);
-    },
-
-    pause: function() {
-      this.loop.pause();
-    },
-
-    resume: function() {
-      this.loop.resume();
-    },
-
-    start: function() {
-      this.loop = new RecurringTimer(this.update.bind(this), fps);
-    },
-
-    update: function() {
-      this.city.update();
-      this.render();
-    }
-  };
-
-  var socket = io();
-
-  var rows = 6,
+], function(Simulation, Graph) {
+  var sim = new Simulation(),
+      rows = 6,
       cols = 6,
-      max_tenants = 10;
+      max_tenants = 10,
+      socket = io();
 
   $(function() {
       $(".setup-simulation").on("submit", function(ev) {
@@ -108,8 +54,8 @@ require([
         var config = {
           maxTenants: max_tenants
         }
-        game.setup(rows, cols, 0.5, data.population, data.buildings, config);
-        game.start();
+        sim.setup(rows, cols, 0.5, data.population, data.buildings, config);
+        sim.start();
       });
 
       socket.on("simulation", function(data){
@@ -121,16 +67,19 @@ require([
 
       socket.on("twooter", function(data){
         data.username = slugify(data.name);
-        //console.log(data);
         $(".twooter-feed").prepend(renderTemplate('twoot', data));
       });
 
       socket.on("buildings", function(data){
-        var id = data.id;
+        var id = data.id,
+            building = sim.city.buildings[id];
         if (data.event === 'added_tenant') {
-          game.city.buildings[id].add(data.tenant);
+          building.add(data.tenant);
         } else if (data.event === 'removed_tenant') {
-          game.city.buildings[id].removeById(data.tenant.id);
+          var tenant = building.getTenant(data.tenant.id);
+          if (tenant) {
+            building.remove(tenant);
+          }
         }
       });
 
@@ -181,5 +130,4 @@ require([
         });
       });
   });
-
 });
