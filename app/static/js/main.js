@@ -66,8 +66,11 @@ require([
       });
 
       socket.on("twooter", function(data){
-        data.username = slugify(data.name);
-        $(".twooter-feed").prepend(renderTemplate('twoot', data));
+        // don't twoot everything, it's too much
+        if (Math.random() < 0.2) {
+          data.username = slugify(data.name);
+          $(".twooter-feed").prepend(renderTemplate('twoot', data));
+        }
       });
 
       socket.on("person", function(data){
