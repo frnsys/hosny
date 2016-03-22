@@ -1,16 +1,41 @@
 import math
 import json
 import random
-import config
 import logging
+from datetime import datetime
 from cess import Simulation
 from cess.util import random_choice
-from economy import Household, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Hospital, Building, Government
+from economy import Household, Firm, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Hospital, Building, Government
 from dateutil.relativedelta import relativedelta
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
 
-STARTING_WAGE = 5
+default_conf = {
+    'starting_wage': 5,
+    'max_tenants': 10,
+    'n_buildings': 16,
+    'patient_zero_prob': 0.01,
+    'contact_rate': 0.1,
+    'transmission_rate': 0.1,
+    'sickness_severity': 0.01,
+    'tax_rate': 0.3,
+    'tax_rate_increment': 0.1,
+    'welfare_increment': 1,
+    'welfare': 10,
+    'consumer_good_utility': 1,
+    'rent': 1000,
+    'labor_cost_per_good': 2,
+    'material_cost_per_good': 2,
+    'labor_per_worker': 20,
+    'labor_per_equipment': 1,
+    'supply_increment': 1,
+    'profit_increment': 1,
+    'wage_increment': 1,
+    'extravagant_wage_range': 10,
+    'residence_size_limit': 100
+}
+
+START_DATE = datetime(day=1, month=1, year=2005)
 MAX_ROUNDS = 10
 
 logger = logging.getLogger('simulation.city')
@@ -30,30 +55,35 @@ class City(Simulation):
     def __init__(self, people, conf):
         super().__init__(people)
 
-        self.government = Government()
+        config = default_conf.copy()
+        config.update(conf)
+
+        Firm.config = config
+
+        self.government = Government(config['tax_rate'], config['welfare'], config['tax_rate_increment'], config['welfare_increment'])
 
         self.buildings = [
-            Building(conf['max_tenants'])
-                     for _ in range(conf['n_buildings'])]
+            Building(config['max_tenants'], config['rent'])
+                     for _ in range(config['n_buildings'])]
 
         # the world state
-        self.date = config.START_DATE
+        self.date = START_DATE
         self.state = {
             'month': self.date.month,
             'year': self.date.year,
 
             # contagion model
-            'patient_zero_prob': 0.001,
-            'contact_rate': 0.1,
-            'transmission_rate': 0.1,
-            'sickness_severity': 0.01,
+            'patient_zero_prob': config['patient_zero_prob'],
+            'contact_rate': config['contact_rate'],
+            'transmission_rate': config['transmission_rate'],
+            'sickness_severity': config['sickness_severity'],
 
-            'mean_wage': STARTING_WAGE,
-            'available_space': len(self.buildings) * conf['max_tenants'],
-            'mean_equip_price': 5, #TODO what should this be?
-            'mean_consumer_good_price': 5, #TODO what should this be?
+            'mean_wage': config['starting_wage'],
+            'available_space': len(self.buildings) * config['max_tenants'],
 
             # just initialize to some values
+            'mean_equip_price': 1,
+            'mean_consumer_good_price': 1,
             'mean_equip_profit': 1,
             'mean_material_profit': 1,
             'mean_consumer_good_profit': 1,
@@ -63,7 +93,7 @@ class City(Simulation):
         self.people = people
 
         # TODO create "real" households
-        self.households = [Household([p]) for p in people]
+        self.households = [Household([p], config['consumer_good_utility']) for p in people]
 
         self.firms = []
         self.consumer_good_firms = []
@@ -132,13 +162,13 @@ class City(Simulation):
                     continue
                 for friend in person.friends:
                     if random.random() <= c and random.random() <= self.state['transmission_rate']:
-                        person.twoot('feeling sick...', self)
+                        person.twoot('feeling sick...', self.state)
                         break
         # otherwise, see if a new sickness starts
         elif random.random() < self.state['patient_zero_prob']:
             patient_zero = random.choice(self.people)
             patient_zero._state['sick'] = True
-            patient_zero.twoot('feeling sick...', self)
+            patient_zero.twoot('feeling sick...', self.state)
 
         self.stat('n_sick', len([p for p in self.people if p._state['sick']]))
 
@@ -229,17 +259,23 @@ class City(Simulation):
                 person._state['cash'] += (person.wage - taxes)
             self.government.cash += taxes
 
+        for firm in self.hospitals:
+            firm.produce(self.state)
+
         sold, profits = self.healthcare_market()
         mean = sum(profits)/len(profits) if profits else 0
         self.ewma_stat('mean_healthcare_profit', mean, graph=True)
         mean = sum(sold)/len(sold) if sold else 0
         self.ewma_stat('mean_healthcare_price', mean, graph=True)
 
+        n_bankruptcies = 0
         for firm in self.firms:
             # bankrupt
             if firm.cash < 0:
+                n_bankruptcies += 1
                 self.close_firm(firm)
 
+        self.stat('n_bankruptcies', n_bankruptcies)
         self.stat('n_firms', len(self.firms))
 
         mean_quality_of_life = sum(h.quality_of_life for h in self.households)/len(self.households)
@@ -292,8 +328,8 @@ class City(Simulation):
             _jobs = []
             for job in jobs:
                 # filter down to valid applicants
-                apps = [a for a in applicants[firm] if a in job_seekers]
                 n_vacancies, wage, firm = job
+                apps = [a for a in applicants[firm] if a in job_seekers]
                 hired, n_vacancies, wage = firm.hire(apps, wage)
 
                 # remove hired people from the job seeker pool

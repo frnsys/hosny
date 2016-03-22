@@ -76,9 +76,11 @@ require([
               education: $('[name=education]').val(),
               employment: $('[name=employment]').val(),
             },
+
+            // user config for the world
             world: {
-              minWage: $('[name=minWage]').val(),
-              desiredWage: $('[name=desiredWage]').val(),
+              starting_wage: parseFloat($('[name=minWage]').val()),
+              desiredWage: $('[name=desiredWage]').val(), // TODO where does this fit in?
               n_buildings: rows * cols,
               max_tenants: max_tenants
             }
@@ -95,7 +97,10 @@ require([
       $('.step-simulation').on('click', function() {
         $.ajax({
           type: "POST",
-          url: "/step"
+          url: "/step",
+          success: function() {
+            $('.step-simulation').hide();
+          }
         })
       });
 
@@ -105,6 +110,13 @@ require([
         }
         game.setup(rows, cols, 0.5, data.population, data.buildings, config);
         game.start();
+      });
+
+      socket.on("simulation", function(data){
+        // simulation step finished
+        if (data.success) {
+          $('.step-simulation').show();
+        }
       });
 
       socket.on("twooter", function(data){
@@ -136,6 +148,7 @@ require([
         mean_cash: new Graph(".graphs", "mean_cash", 650, 200, "mean cash"),
         n_sick: new Graph(".graphs", "n_sick", 650, 200, "n sick"),
         n_firms: new Graph(".graphs", "n_firms", 650, 200, "n firms"),
+        n_bankruptcies: new Graph(".graphs", "n_bankruptcies", 650, 200, "n bankruptcies"),
         welfare: new Graph(".graphs", "welfare", 650, 200, "welfare"),
         tax_rate: new Graph(".graphs", "tax_rate", 650, 200, "tax rate")
       };

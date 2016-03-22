@@ -70,3 +70,7 @@ def step_simulation():
     _, n_days = monthrange(model.state['year'], model.state['month'])
     for _ in range(n_days):
         model.step()
+
+    # send population to the frontend
+    socketio = SocketIO(message_queue='redis://localhost:6379')
+    socketio.emit('simulation', {'success': True})

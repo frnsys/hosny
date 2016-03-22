@@ -42,7 +42,10 @@ define([], function() {
       this.tenants = [];
 
       _.each(tenants, function(t) {
-          self.add(t);
+          self.add({
+            id: t.id,
+            type: t.type
+          });
       });
     },
 
@@ -77,6 +80,7 @@ define([], function() {
         });
     this.mesh = new THREE.Mesh(geometry, material);
     this.id = id;
+    this.type = type;
   }
 
   return Building;

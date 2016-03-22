@@ -3,6 +3,13 @@ import scipy.stats as st
 from world.work import offer_prob, job
 
 
+CONSTRAINTS = {
+    'stress': [0., None],
+    'health': [0., 1.],
+    'rent_fail': [0, None],
+}
+
+
 def hire_dist(state):
     # more employed friends, more likely to have a referral
     p_referral = st.beta.rvs(state['employed_friends'] + 1, 10)

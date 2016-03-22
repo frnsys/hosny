@@ -2,12 +2,10 @@ import json
 import logging
 from uuid import uuid4
 
-STARTING_RENT = 100
-
 logger = logging.getLogger('simulation.buildings')
 
 class Building():
-    def __init__(self, max_tenants, rent=STARTING_RENT):
+    def __init__(self, max_tenants, rent):
         self.id = uuid4().hex
         self.rent = rent
         self.tenants = []

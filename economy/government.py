@@ -1,16 +1,13 @@
-from cess.util import random_choice
 from cess.agent.learn import QLearner
-
-TAX_RATE = 0.3
-TAX_RATE_INCREMENT = 0.01
-WELFARE_INCREMENT = 10
 
 
 class Government():
-    def __init__(self):
+    def __init__(self, tax_rate, welfare, tax_rate_increment, welfare_increment):
         self.cash = 0
-        self.tax_rate = TAX_RATE
-        self.welfare = 0
+        self.tax_rate = tax_rate
+        self.tax_rate_increment = tax_rate_increment
+        self.welfare_increment = welfare_increment
+        self.welfare = welfare
 
         # all states map to the same actions
         action_ids = [i for i in range(len(self.actions))]
@@ -23,12 +20,12 @@ class Government():
     def actions(self):
         """these actions are possible from any state"""
         return [
-            {'tax_rate': TAX_RATE_INCREMENT},
-            {'tax_rate': -TAX_RATE_INCREMENT},
-            {'tax_rate': TAX_RATE_INCREMENT, 'welfare': WELFARE_INCREMENT},
-            {'tax_rate': TAX_RATE_INCREMENT, 'welfare': -WELFARE_INCREMENT},
-            {'tax_rate': -TAX_RATE_INCREMENT, 'welfare': WELFARE_INCREMENT},
-            {'tax_rate': -TAX_RATE_INCREMENT, 'welfare': -WELFARE_INCREMENT}
+            {'tax_rate': self.tax_rate_increment},
+            {'tax_rate': -self.tax_rate_increment},
+            {'tax_rate': self.tax_rate_increment, 'welfare': self.welfare_increment},
+            {'tax_rate': self.tax_rate_increment, 'welfare': -self.welfare_increment},
+            {'tax_rate': -self.tax_rate_increment, 'welfare': self.welfare_increment},
+            {'tax_rate': -self.tax_rate_increment, 'welfare': -self.welfare_increment}
         ]
 
     def current_state(self, households):
@@ -51,4 +48,5 @@ class Government():
         action = self.learner.choose_action(self.current_state(households))
         action = self.actions[action]
         self.tax_rate = min(1, max(0, self.tax_rate + action.get('tax_rate', 0)))
-        self.welfare = max(0, self.welfare + action.get('welfare', 0))
+        self.welfare = min(max(0, self.welfare + action.get('welfare', 0)), self.cash/sum(len(h.people) for h in households))
+        self.prev_qol = sum(h.quality_of_life for h in households)/len(households)
