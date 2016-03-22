@@ -119,20 +119,7 @@ class City(Simulation):
                 if person._state['firm_owner']:
                     industry = random.choice(['equip', 'material', 'consumer_good', 'healthcare'])
                     building = random.choice(self.buildings)
-                    if industry == 'equip':
-                        firm = CapitalEquipmentFirm(person)
-                        self.capital_equipment_firms.append(firm)
-                    elif industry == 'material':
-                        firm = RawMaterialFirm(person)
-                        self.raw_material_firms.append(firm)
-                    elif industry == 'consumer_good':
-                        firm = ConsumerGoodFirm(person)
-                        self.consumer_good_firms.append(firm)
-                    elif industry == 'healthcare':
-                        firm = Hospital(person)
-                        self.hospitals.append(firm)
-                    building.add_tenant(firm)
-                    self.firms.append(firm)
+                    self.start_firm(person, industry, building)
             self.initialized = True
 
         # month change
@@ -145,31 +132,7 @@ class City(Simulation):
         for household in self.households:
             household.step()
 
-        # if anyone is sick
-        if any(p._state['sick'] for p in self.people):
-            # run contagion/sickness model
-            c = self.state['contact_rate']
-            for person in self.people:
-                if person._state['sick']:
-                    # each sick person loses a little health
-                    person._state['health'] -= self.state['sickness_severity']
-                    if person._state['health'] <= 0:
-                        # person dies
-                        if person._state['firm_owner']:
-                            self.close_firm(person.firm)
-                        self.people.remove(person)
-                        # TODO remove from their household
-                    continue
-                for friend in person.friends:
-                    if random.random() <= c and random.random() <= self.state['transmission_rate']:
-                        person.twoot('feeling sick...', self.state)
-                        break
-        # otherwise, see if a new sickness starts
-        elif random.random() < self.state['patient_zero_prob']:
-            patient_zero = random.choice(self.people)
-            patient_zero._state['sick'] = True
-            patient_zero.twoot('feeling sick...', self.state)
-
+        n_deaths = self.contagion_model()
         self.stat('n_sick', len([p for p in self.people if p._state['sick']]))
 
         # self.real_estate_market()
@@ -184,20 +147,7 @@ class City(Simulation):
             for person in shuffle(self.people):
                 yes, industry, building = person.start_business(self.state, self.buildings)
                 if yes:
-                    if industry == 'equip':
-                        firm = CapitalEquipmentFirm(person)
-                        self.capital_equipment_firms.append(firm)
-                    elif industry == 'material':
-                        firm = RawMaterialFirm(person)
-                        self.raw_material_firms.append(firm)
-                    elif industry == 'consumer_good':
-                        firm = ConsumerGoodFirm(person)
-                        self.consumer_good_firms.append(firm)
-                    elif industry == 'healthcare':
-                        firm = Hospital(person)
-                        self.hospitals.append(firm)
-                    building.add_tenant(firm)
-                    self.firms.append(firm)
+                    self.start_firm(person, industry, building)
 
         jobs = []
         for firm in shuffle(self.firms):
@@ -248,6 +198,13 @@ class City(Simulation):
         mean = sum(sell_prices)/len(sell_prices) if sell_prices else 0
         self.ewma_stat('mean_consumer_good_price', mean, graph=True)
 
+        for household in self.households:
+            if not household.check_goods():
+                for p in household.people:
+                    self.dies(p)
+                    n_deaths += 1
+        self.stat('n_deaths', n_deaths)
+
         # taxes and wages
         for person in self.people:
             if person._state['firm_owner']:
@@ -284,7 +241,7 @@ class City(Simulation):
         mean_cash = sum(h.cash for h in self.households)/len(self.households)
         self.ewma_stat('mean_cash', mean_cash, graph=True)
 
-        self.government.make_decisions(self.households)
+        self.government.adjust(self.households)
         self.stat('welfare', self.government.welfare)
         self.stat('tax_rate', self.government.tax_rate)
 
@@ -292,8 +249,23 @@ class City(Simulation):
             person._state['cash'] += self.government.welfare
             self.government.cash -= self.government.welfare
 
+    def start_firm(self, person, industry, building):
+        if industry == 'equip':
+            firm = CapitalEquipmentFirm(person)
+            self.capital_equipment_firms.append(firm)
+        elif industry == 'material':
+            firm = RawMaterialFirm(person)
+            self.raw_material_firms.append(firm)
+        elif industry == 'consumer_good':
+            firm = ConsumerGoodFirm(person)
+            self.consumer_good_firms.append(firm)
+        elif industry == 'healthcare':
+            firm = Hospital(person)
+            self.hospitals.append(firm)
+        building.add_tenant(firm)
+        self.firms.append(firm)
+
     def close_firm(self, firm):
-        # logger.info('{} is going bankrupt!'.format(firm))
         self.firms.remove(firm)
         # messy
         for firm_group in [self.consumer_good_firms, self.capital_equipment_firms, self.raw_material_firms]:
@@ -305,9 +277,48 @@ class City(Simulation):
                 break
         firm.close()
 
-    def _log(self, chan, data):
-        """format a message for the logger"""
-        logger.info('{}:{}'.format(chan, json.dumps(data)))
+    def contagion_model(self):
+        deaths = 0
+
+        # if anyone is sick
+        if any(p._state['sick'] for p in self.people):
+            # run contagion/sickness model
+            c = self.state['contact_rate']
+            for person in self.people:
+                if person._state['sick']:
+                    # each sick person loses a little health
+                    person._state['health'] -= self.state['sickness_severity']
+                    if person._state['health'] <= 0:
+                        self.dies(person)
+                        deaths += 1
+                    continue
+                for friend in person.friends:
+                    if random.random() <= c and random.random() <= self.state['transmission_rate']:
+                        person.twoot('feeling sick...', self.state)
+                        break
+        # otherwise, see if a new sickness starts
+        elif random.random() < self.state['patient_zero_prob']:
+            patient_zero = random.choice(self.people)
+            patient_zero._state['sick'] = True
+            patient_zero.twoot('feeling sick...', self.state)
+
+        return deaths
+
+    def dies(self, person):
+        if person._state['firm_owner']:
+            self.close_firm(person.firm)
+        elif person.employer is not None:
+            person.employer.fire(person)
+        self.people.remove(person)
+        # TODO remove from their household
+
+    def firm_distribution(self, firms):
+        """computes a probability distribution over firms based on their prices.
+        the lower the price, the more likely they are to be chosen"""
+        firms = [f for f in firms if f.supply > 0]
+        probs = [math.exp(-math.log(f.price)) if f.price > 0 else 1. for f in firms]
+        mass = sum(probs)
+        return [(f, p/mass) for f, p in zip(firms, probs)]
 
     def labor_market(self, jobs):
         job_seekers = [p for p in self.people if p.seeking_job(self.state)]
@@ -367,14 +378,6 @@ class City(Simulation):
             rounds += 1
         profits = [f.revenue - f.costs for f in self.raw_material_firms]
         return sold, profits
-
-    def firm_distribution(self, firms):
-        """computes a probability distribution over firms based on their prices.
-        the lower the price, the more likely they are to be chosen"""
-        firms = [f for f in firms if f.supply > 0]
-        probs = [math.exp(-math.log(f.price)) if f.price > 0 else 1. for f in firms]
-        mass = sum(probs)
-        return [(f, p/mass) for f, p in zip(firms, probs)]
 
     def capital_equipment_market(self):
         sold = []
@@ -464,3 +467,7 @@ class City(Simulation):
         to graph the result"""
         data = json.dumps({'graph':name,'data':{'time':self.date.isoformat(),'value': value}})
         logger.info('graph:{}'.format(data))
+
+    def _log(self, chan, data):
+        """format a message for the logger"""
+        logger.info('{}:{}'.format(chan, json.dumps(data)))

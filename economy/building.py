@@ -4,6 +4,7 @@ from uuid import uuid4
 
 logger = logging.getLogger('simulation.buildings')
 
+
 class Building():
     def __init__(self, max_tenants, rent):
         self.id = uuid4().hex
@@ -27,6 +28,8 @@ class Building():
         if tenant in self.tenants:
             self.tenants.remove(tenant)
             self.log({'event': 'removed_tenant', 'tenant': {'id': tenant.id}})
+            return True
+        return False
 
     def collect_rent(self):
         for tenant in self.tenants:

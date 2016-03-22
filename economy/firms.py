@@ -86,14 +86,12 @@ class Firm(Agent):
             # TODO choose based on employment prob
             worker = random.choice(applicants)
             if worker.employer is not None:
-                # logger.info('{} is leaving their old job at {}'.format(worker, worker.employer))
                 worker.employer.fire(worker)
             worker.wage = wage
             worker.employer = self
             applicants.remove(worker)
             self.workers.append(worker)
             hired.append(worker)
-            # logger.info('{} hired {} at wage {}'.format(self, worker, wage))
             self.worker_change -= 1
 
         # increase wage to attract more employees
@@ -128,7 +126,6 @@ class Firm(Agent):
         n_sold = min(self.supply, quantity)
         self.supply -= n_sold
         self.n_sold += n_sold
-
         self.revenue = self.price * n_sold
         self.cash += self.revenue
 

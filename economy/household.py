@@ -5,7 +5,7 @@ class Household():
     def __init__(self, people, consumer_good_utility):
         self.people = people
         self.goods = 0
-        self.days_without_goods = 0
+        self.health = 1
         self.good_utility = consumer_good_utility
 
     def step(self):
@@ -13,7 +13,7 @@ class Household():
 
     @property
     def quality_of_life(self):
-        """pretty simple - how to incorporate leisure time??"""
+        """pretty simple - should also incorporate leisure time"""
         return (self.goods * self.good_utility) + sum(p.health_utility(p._state['health']) for p in self.people)/len(self.people)
 
     @property
@@ -69,9 +69,8 @@ class Household():
 
     def check_goods(self):
         if self.goods < self.min_consumption:
-            self.days_without_goods += 1
+            self.health -= ((self.min_consumption - self.goods)/self.min_consumption) * 0.1
         else:
-            self.days_without_goods = 0
-
-        if self.days_without_goods >= 7:
-            pass # destitute/dead
+            self.health += (self.goods - self.min_consumption) * 0.1
+            self.health = min(1, self.health)
+        return self.health > 0

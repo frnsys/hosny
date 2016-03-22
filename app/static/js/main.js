@@ -96,6 +96,7 @@ require([
         mean_quality_of_life: new Graph(".graphs", "mean_quality_of_life", 650, 200, "mean quality of life"),
         mean_cash: new Graph(".graphs", "mean_cash", 650, 200, "mean cash"),
         n_sick: new Graph(".graphs", "n_sick", 650, 200, "n sick"),
+        n_deaths: new Graph(".graphs", "n_deaths", 650, 200, "n deaths"),
         n_firms: new Graph(".graphs", "n_firms", 650, 200, "n firms"),
         n_bankruptcies: new Graph(".graphs", "n_bankruptcies", 650, 200, "n bankruptcies"),
         welfare: new Graph(".graphs", "welfare", 650, 200, "welfare"),
