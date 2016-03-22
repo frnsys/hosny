@@ -157,7 +157,8 @@ class City(Simulation):
         self.labor_market(jobs)
 
         labor_force = [p for p in self.people if p.wage != 0]
-        self.ewma_stat('mean_wage', sum(p.wage for p in labor_force)/len(labor_force), graph=True)
+        mean_wage = sum(p.wage for p in labor_force)/len(labor_force) if labor_force else 0
+        self.ewma_stat('mean_wage', mean_wage, graph=True)
 
         for firm in self.raw_material_firms:
             firm.produce(self.state)
@@ -201,6 +202,7 @@ class City(Simulation):
         for household in self.households:
             if not household.check_goods():
                 for p in household.people:
+                    print(p in self.people)
                     self.dies(p)
                     n_deaths += 1
         self.stat('n_deaths', n_deaths)
@@ -235,10 +237,10 @@ class City(Simulation):
         self.stat('n_bankruptcies', n_bankruptcies)
         self.stat('n_firms', len(self.firms))
 
-        mean_quality_of_life = sum(h.quality_of_life for h in self.households)/len(self.households)
+        mean_quality_of_life = sum(h.quality_of_life for h in self.households)/len(self.households) if self.households else 0
         self.ewma_stat('mean_quality_of_life', mean_quality_of_life, graph=True)
 
-        mean_cash = sum(h.cash for h in self.households)/len(self.households)
+        mean_cash = sum(h.cash for h in self.households)/len(self.households) if self.households else 0
         self.ewma_stat('mean_cash', mean_cash, graph=True)
 
         self.government.adjust(self.households)
@@ -310,7 +312,10 @@ class City(Simulation):
         elif person.employer is not None:
             person.employer.fire(person)
         self.people.remove(person)
-        # TODO remove from their household
+        household = person.household
+        household.people.remove(person)
+        if not household.people:
+            self.households.remove(household)
 
     def firm_distribution(self, firms):
         """computes a probability distribution over firms based on their prices.

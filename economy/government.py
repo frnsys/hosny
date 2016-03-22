@@ -31,7 +31,7 @@ class Government():
 
     def current_state(self, households):
         """represent as a discrete state"""
-        qol = sum(h.quality_of_life for h in households)/len(households)
+        qol = sum(h.quality_of_life for h in households)/len(households) if households else 0
 
         if qol <= 0:
             return 0
@@ -48,5 +48,6 @@ class Government():
         action = self.learner.choose_action(self.current_state(households))
         action = self.actions[action]
         self.tax_rate = min(1, max(0, self.tax_rate + action.get('tax_rate', 0)))
-        self.welfare = min(max(0, self.welfare + action.get('welfare', 0)), self.cash/sum(len(h.people) for h in households))
-        self.prev_qol = sum(h.quality_of_life for h in households)/len(households)
+        max_per_person = self.cash/sum(len(h.people) for h in households) if households else 0
+        self.welfare = min(max(0, self.welfare + action.get('welfare', 0)), max_per_person)
+        self.prev_qol = sum(h.quality_of_life for h in households)/len(households) if households else 0

@@ -8,13 +8,16 @@ class Household():
         self.health = 1
         self.good_utility = consumer_good_utility
 
+        for p in self.people:
+            p.household = self
+
     def step(self):
         self.goods = 0
 
     @property
     def quality_of_life(self):
         """pretty simple - should also incorporate leisure time"""
-        return (self.goods * self.good_utility) + sum(p.health_utility(p._state['health']) for p in self.people)/len(self.people)
+        return ((self.goods * self.good_utility) + sum(p.health_utility(p._state['health']) for p in self.people)/len(self.people)) * self.health
 
     @property
     def min_consumption(self):
