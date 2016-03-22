@@ -66,8 +66,28 @@ require([
       });
 
       socket.on("twooter", function(data){
-        data.username = slugify(data.name);
-        $(".twooter-feed").prepend(renderTemplate('twoot', data));
+        // don't twoot everything, it's too much
+        if (Math.random() < 0.2) {
+          data.username = slugify(data.name);
+          $(".twooter-feed").prepend(renderTemplate('twoot', data));
+        }
+      });
+
+      socket.on("person", function(data){
+        var person = sim.city.getPerson(data.id);
+        if (!person) {
+          return;
+        }
+        if (data.event === 'fired') {
+          person.status('unemployed');
+          sim.city.blink(person);
+        } else if (data.event === 'hired') {
+          person.status('employed');
+          sim.city.blink(person);
+        } else if (data.event === 'started_firm') {
+          person.status('owner');
+          sim.city.blink(person);
+        }
       });
 
       socket.on("buildings", function(data){
