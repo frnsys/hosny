@@ -42,7 +42,7 @@ define([], function() {
     this.xAxis = d3.svg.axis()
           .scale(this.x)
           .ticks(5)
-          .tickFormat(d3.time.format('%a %d'))
+          .tickFormat(d3.time.format('%b %d'))
           .orient("bottom");
 
     this.yAxis = d3.svg.axis()
