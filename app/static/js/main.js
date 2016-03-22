@@ -70,6 +70,23 @@ require([
         $(".twooter-feed").prepend(renderTemplate('twoot', data));
       });
 
+      socket.on("person", function(data){
+        var person = sim.city.getPerson(data.id);
+        if (!person) {
+          return;
+        }
+        if (data.event === 'fired') {
+          person.status('unemployed');
+          sim.city.blink(person);
+        } else if (data.event === 'hired') {
+          person.status('employed');
+          sim.city.blink(person);
+        } else if (data.event === 'started_firm') {
+          person.status('owner');
+          sim.city.blink(person);
+        }
+      });
+
       socket.on("buildings", function(data){
         var id = data.id,
             building = sim.city.buildings[id];

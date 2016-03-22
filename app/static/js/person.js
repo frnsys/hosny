@@ -28,6 +28,7 @@ define([], function() {
         geometry = new THREE.TetrahedronGeometry(radius*1.5);
     }
 
+    this.id = data.id;
     this.mesh = new THREE.Mesh(geometry, material);
     this.distanceTraveled = {x:0, z:0};
     this.velocity = {x:0, z:0};
@@ -50,6 +51,17 @@ define([], function() {
 
     stop: function() {
       this.velocity = 0;
+    },
+
+    status: function(status) {
+      if (status === 'owner') {
+          this.mesh.geometry = new THREE.SphereGeometry(radius);
+      } else if (status === 'employed') {
+          this.mesh.geometry = new THREE.BoxGeometry(radius*1.5, radius*1.5, radius*1.5);
+      } else {
+          this.mesh.geometry = new THREE.TetrahedronGeometry(radius*1.5);
+      }
+      // note that the mesh needs to removed then readded to the scene for the update to take place
     }
   };
 
