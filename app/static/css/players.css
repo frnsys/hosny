@@ -1,13 +1,46 @@
+.players-joining {
+
+}
 .players {
-    position: absolute;
     width: 100%;
-    bottom: 10%;
     color: #fff;
 }
 
+.players .left {
+    width: 40%;
+    float: left;
+}
 
-.players ul li {
+.players .right {
+    width: 60%;
+    float: left;
+}
+
+.players ul {
+    float: left;
+    width: 100%;
+    margin: 0;
+}
+
+.players ul li, .players-joining ul li {
     float: left;
     list-style-type: none;
-    width: 33%;
+    width: 10%;
+    margin: 0;
+}
+
+.pic {
+    border-radius: 999px;
+    width: 50px;
+    max-width: auto;
+
+}
+
+.vote-1 {
+    border-bottom: 20px solid red;
+
+}
+
+.vote-0 {
+    border-bottom: 20px solid green;
 }
