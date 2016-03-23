@@ -29,15 +29,26 @@ require([
         residence_size_limit: 100,
         base_min_consumption: 0,
         wage_under_market_multiplier: 1,
-        min_business_capital: 50000
+        min_business_capital: 50000,
+        starting_wage: 5,
+        desiredWage: 5
       };
 
   console.log(config);
 
   $(function() {
-      $(".setup-simulation").on("submit", function(ev) {
+      $(".next").on("click", function(ev) {
         ev.preventDefault();
         $('.overlay').fadeOut();
+        var numOfPlayers = Math.floor((Math.random() * 10) + 1);
+        
+
+        for(var i = 0; i < numOfPlayers; i++) {
+          var playerVote =  Math.round(Math.random());
+
+          $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');        
+          // $('.players ul li').css('width', 1/numOfPlayers * 100+'%');
+        }
 
         $.ajax({
           type: "POST",
@@ -51,8 +62,6 @@ require([
 
             // user config for the world
             world: _.extend({
-              starting_wage: parseFloat($('[name=minWage]').val()),
-              desiredWage: $('[name=desiredWage]').val(), // TODO where does this fit in?
               n_buildings: rows * cols,
               max_tenants: max_tenants,
             }, config)
@@ -160,12 +169,12 @@ require([
       });
 
       //Advancing from setup screen 1 to screen 2
-      var i = 0;
-      $(".next").on("click", function() {
-        $("fieldset").eq(i).removeClass("show").addClass("hide");
-        $("fieldset").eq(i+1).removeClass("hide").addClass("show");
-        i++;
-      });
+      // var i = 0;
+      // $(".next").on("click", function() {
+      //   $("fieldset").eq(i).removeClass("show").addClass("hide");
+      //   $("fieldset").eq(i+1).removeClass("hide").addClass("show");
+      //   i++;
+      // });
 
       $(".twooter-feed").on('click', '.twoot-author', function() {
         var id = $(this).data('id');

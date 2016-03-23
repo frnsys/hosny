@@ -8,6 +8,84 @@
     display: none;
 }
 
+input[type=submit] {
+    margin-top: .85rem
+}
+
+h3 {
+    font-size: 1.5em;
+    margin-bottom: 0;
+}
+
+table>thead {
+    border-bottom: thin solid rgba(250, 250, 250, .99)
+}
+
+table td,
+table th {
+    padding: .25rem;
+    word-wrap: none;
+    line-height: 1
+}
+
+.messages {
+    height: 20em;
+    overflow-y: scroll;
+}
+.messages li {
+    margin: 0;
+}
+
+
+
+/* game stuff */
+
+.bar-outer,
+.bar-inner {
+    width: 20em;
+    height: 2em;
+    background: #eee;
+    margin: 1em 0;
+}
+#time .bar-inner {
+    background: blue;
+}
+#energy .bar-inner {
+    background: green;
+}
+#health .bar-inner {
+    background: red;
+}
+
+.workspace {
+    padding: 4em;
+    background: #fafafa;
+    width: 14em;
+    margin: 0 auto;
+    border: 1px solid #aaa;
+    cursor: pointer;
+    text-align: center;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -khtml-user-select: none;    /* Konqueror */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* IE/Edge */
+    user-select: none;
+}
+
+.work, .home {
+    display: none;
+}
+
+.actions li {
+    padding: 0.5em 1em;
+    background: black;
+    color: #fff;
+    list-style-type: none;
+    cursor: pointer;
+    width: 10em;
+}
+
 /*body {
     margin: 0
 }
@@ -554,99 +632,7 @@ textarea {
     padding: .5rem;
     margin-bottom: .5rem;
     display: block;
-    /*width: 100%;*/
     box-shadow: none;
     border: thin solid rgba(216, 216, 216, .99)
-}
-
-input[type=submit] {
-    margin-top: .85rem
-}
-
-.media {
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-align-items: flex-start;
-    -ms-flex-align: start;
-    align-items: flex-start
-}
-
-.media .media-figure {
-    margin-right: 1em
-}
-
-.media .media-body {
-    -webkit-flex: 1 0 0;
-    -ms-flex: 1 0 0;
-    flex: 1 0 0
-}
-
-table>thead {
-    border-bottom: thin solid rgba(250, 250, 250, .99)
-}
-
-table td,
-table th {
-    padding: .25rem;
-    word-wrap: none;
-    line-height: 1
-}
-
-.messages {
-    height: 20em;
-    overflow-y: scroll;
-}
-.messages li {
-    margin: 0;
-}
-
-
-
-/* game stuff */
-
-.bar-outer,
-.bar-inner {
-    width: 20em;
-    height: 2em;
-    background: #eee;
-    margin: 1em 0;
-}
-#time .bar-inner {
-    background: blue;
-}
-#energy .bar-inner {
-    background: green;
-}
-#health .bar-inner {
-    background: red;
-}
-
-.workspace {
-    padding: 4em;
-    background: #fafafa;
-    width: 14em;
-    margin: 0 auto;
-    border: 1px solid #aaa;
-    cursor: pointer;
-    text-align: center;
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none;   /* Chrome/Safari/Opera */
-    -khtml-user-select: none;    /* Konqueror */
-    -moz-user-select: none;      /* Firefox */
-    -ms-user-select: none;       /* IE/Edge */
-    user-select: none;
-}
-
-.work, .home {
-    display: none;
-}
-
-.actions li {
-    padding: 0.5em 1em;
-    background: black;
-    color: #fff;
-    list-style-type: none;
-    cursor: pointer;
-    width: 10em;
 }*/
+

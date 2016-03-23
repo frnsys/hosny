@@ -217,6 +217,7 @@ class City(Simulation):
 
         # taxes and wages
         for person in self.people:
+            taxes = 0
             if person._state['firm_owner']:
                 profit = max(person.firm.profit, 0)
                 taxes = profit * self.government.tax_rate

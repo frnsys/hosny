@@ -11,6 +11,14 @@ html, body {
 canvas {
     margin: 4em auto;
     display: block;
+    z-index: 1;
+}
+
+.dashboard {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
 }
 
 .twooter {
@@ -20,9 +28,10 @@ canvas {
     overflow-x: scroll;
     overflow-y: scroll;
     height: 5em;
-    position: absolute;
+    position: relative;
+    /*position: absolute;
     bottom: 0;
-    left: 0;
+    left: 0;*/
 }
 
 .twooter-breaking {
@@ -81,13 +90,21 @@ button {
     display: none;
 }
 
-.voting-bill {
+.omni {
     position: absolute;
-    z-index: 0;
+    z-index: 2;
     top: 0;
     color: #fff;
     width: 100%;
     text-align: center;
+}
+
+.city-stats {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 0;
 }
 
 .overlay {
@@ -96,12 +113,12 @@ button {
     right: 0;
     bottom: 0;
     left: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(43, 0, 247, 0.7);
+    color: #fff;
     //display: none;
 }
 .overlay-content {
     margin: 2em auto;
-    background: #fff;
     padding: 2em;
     width: 48em;
 }

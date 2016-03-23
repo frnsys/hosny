@@ -1,6 +1,5 @@
 {% extends 'layout.html' %}
 {% block styles %}
-    <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/city.css">
     <link rel="stylesheet" href="/static/css/graph.css">
     <link rel="stylesheet" href="/static/css/players.css">
@@ -10,37 +9,21 @@
 
 <canvas id="stage"></canvas>
 
-<div class="voting-bill"><h1>This quarter's very pressing issue</h1></div>
+<div class="omni">
+    <div class="voting-bill"><h1>This quarter's very pressing issue</h1></div>
+    <div class="actions">
+        <button class="step-simulation">start month</button>
+    </div>    
+</div>
 
-<div class="players">
-    <ul>
-        <li>
-            <p class="player-vote">Player Vote</p>
-            <img src="" class="pic"/>
-            <h1>Name</h1>
-            <p>Race: </p>
-            <p>Education: </p>
-        </li>
-        <li>
-            <p class="player-vote">Player Vote</p>
-            <img src="" class="pic"/>
-            <h1>Name</h1>
-            <p>Race: </p>
-            <p>Education: </p>
-        </li>
-        <li>
-            <p class="player-vote">Player Vote</p>
-            <img src="" class="pic"/>
-            <h1>Name</h1>
-            <p>Race: </p>
-            <p>Education: </p>
-        </li>
-    </ul>
+
+<div class="city-stats">
+    <div class="stats"></div>
+    <!-- <div class="graphs"></div> -->
 </div>
 
 <div class="dashboard">
-    <div class="graphs"></div>
-    <div class="twooter">
+     <div class="twooter">
         <div class="twooter-breaking">
             <h2>BREAKING NEWS</h2>
         </div>
@@ -55,10 +38,12 @@
             </li>
         </ul>
     </div>
-</div>
-
-<div class="actions">
-    <button class="step-simulation">start month</button>
+    <div class="players">
+        <h1>Your Governing Body Says:</h1>
+        <ul>
+        </ul>
+    </div>
+   
 </div>
 
 <div class="overlay">
@@ -75,14 +60,32 @@
         <div class="row">
             <form action="" class="setup-simulation">
             <fieldset class="column1 show">
+                <h1>HOSNY</h1>
+                <p>We've got buildings and people. We just need the policy makers to govern them. Will you help VapeCity be the best city in this magnificent country?</p>
+                <p>Looking for governors...</p>
 
-                <h2>We've got buildings and people. We just need the policy makers to govern them. Will you help VapeCity be the best city in this magnificent country?</h2>
-                
-                <label for="minWageVals">In your world, what is the minimum wage?</label>
+                <div class="players-joining">
+                    <ul>
+                        <li>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/>
+                            <h3>Name</h3><p>has joined</p>
+                        </li>
+                        <li>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/>
+                            <h3>Name</h3><p>has joined</p>
+                        </li>
+                        <li>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/>
+                            <h3>Name</h3><p>has joined</p>
+                        </li>
+                    </ul>
+                    <a class="next">Have enough users</a>
+                </div>
+                <!-- <label for="minWageVals">In your world, what is the minimum wage?</label>
                     <input type="radio" name="minWage" value="1" checked>$7.75<br>
                     <input type="radio" name="minWage" value="2">$25<br>
                     <input type="radio" name="minWage" value="3">$50
-                <a class="next">More customization</a>
+                <a class="next">More customization</a> -->
             </fieldset>
             <fieldset class="column2 hide">
                 <label for="characterVals">Choose what sort of people you'd like your city to be populated with.</label>
