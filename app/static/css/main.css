@@ -1,3 +1,20 @@
+.player-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: -1;
+    background: rgba(163,230,255,1);
+    background: -moz-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(163,230,255,1)), color-stop(100%, rgba(255,222,219,1)));
+    background: -webkit-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -o-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -ms-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: linear-gradient(to bottom, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+}
+
+
 .show {
     opacity: 100;
     display: block;

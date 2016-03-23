@@ -1,0 +1,82 @@
+// By Ana Tudor
+// <http://codepen.io/thebabydino/pen/vNGjKo>
+
+svg {
+    width: 400px; height: 300px;
+}
+
+* {
+    stroke: #F39C12;
+    stroke-linecap: round;
+}
+
+[id='line'] { stroke-width: 3; }
+
+text {
+    font: .875em century gothic, verdana, sans-serif;
+}
+
+[id='mover'] {
+    animation: sun-motion 5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+}
+
+[id='main'] {
+    fill: transparent;
+    stroke-width: 7;
+}
+
+[id='eyes'] {
+    animation: eye-motion 5s ease-out infinite;
+    stroke-width: 0;
+    fill: #e74c3c;
+}
+
+[id='ray'] {
+    stroke-width: 4;
+}
+
+[id='rays'] {
+    animation: rot 5s linear infinite;
+}
+
+@keyframes rot {
+    to { transform: rotate(.25turn); }
+}
+
+@keyframes eye-motion {
+    0%, 20%, 49%, 100% { transform: translate(-23px); }
+    21%, 25%, 29%, 47% { transform: translate(13px) scaleY(1); }
+    27% { transform: translate(13px) scaleY(0); }
+    48% { transform: translate(0); }
+}
+
+@keyframes sun-motion {
+    0%, 99%, 100% { transform: translateY(-16px); }
+    50% { transform: translateY(-29px); }
+    52%, 98% { transform: translate(4px) scaleY(1.25); }
+    53%, 97% { transform: translateY(23px); }
+}
+
+@keyframes flickerAnimation {
+    0% {
+        opacity:1;
+        animation-timing-function: ease-inout;
+    }
+    50% {
+        opacity:0;
+        animation-timing-function: ease-inout;
+    }
+    100% {
+        opacity:1;
+        animation-timing-function: ease-inout;
+    }
+}
+.animate-pulse {
+    animation: flickerAnimation 3s infinite;
+}
+
+.loader {
+    width: 480px;
+    text-align: center;
+    margin: 0 auto;
+}
