@@ -29,7 +29,8 @@ require([
         residence_size_limit: 100,
         base_min_consumption: 0,
         wage_under_market_multiplier: 1,
-        min_business_capital: 50000
+        min_business_capital: 50000,
+        starting_welfare_req: 10000
       };
 
   console.log(config);

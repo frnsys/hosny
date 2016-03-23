@@ -1,0 +1,18 @@
+<div class="propose">
+    <div class="bar-outer" id="time">
+        <div class="bar-inner"></div>
+    </div>
+
+    <h2>Proposal</h2>
+    <select class="proposals" name="type">
+        {{#each proposals}}
+            <option data-type="{{ type }}">{{ type }}</option>
+        {{/each}}
+    </select>
+
+    <div class="proposal"></div>
+
+    <div class="make-proposal">
+        <button>Submit</button>
+    </div>
+</div>

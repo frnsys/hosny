@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, render_template, request, abort
-from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player
+from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote
 from run import load_population
 
 routes = Blueprint('routes', __name__)
@@ -62,6 +62,17 @@ def vote():
     data = request.get_json()
     vote = data.get('vote', None)
     record_vote.delay(vote)
+    return jsonify(success=True)
+
+
+@routes.route('/propose', methods=['POST'])
+def propose():
+    data = request.get_json()
+    proposal = data.get('proposal', None)
+    if proposal is None:
+        choose_proposer.delay()
+    else:
+        start_vote.delay(proposal)
     return jsonify(success=True)
 
 

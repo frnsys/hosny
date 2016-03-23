@@ -5,18 +5,20 @@
 
 {% block content %}
 
-<div class="bar-outer" id="time">
-    <div class="bar-inner"></div>
-</div>
+<main>
+~~~ welcome ~~~
+</main>
 
-<div class="cast-vote">
-    <button value='true'>YES</button>
-    <button value='false'>NO</button>
-</div>
 
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js"></script>
+<script src="/static/js/templates.js"></script>
+<script src="/static/js/util.js"></script>
 <script>
+  var person;
+
   function renderBar(p, id) {
     var bar = $('#'+id),
         width = bar.width();
@@ -35,10 +37,24 @@
         console.log("vote successfully cast");
       }
     });
+    $('main').html('<h1>thanks for your vote</h1>');
   }
 
-  $(function() {
-    var socket = io('/player');
+  function makeProposal(proposal) {
+    $.ajax({
+      type: "POST",
+      url: "/propose",
+      data: JSON.stringify({
+        proposal: proposal
+      }),
+      contentType: "application/json",
+      success: function(data, textStatus, jqXHR) {
+        console.log("proposal successfully made");
+      }
+    });
+  }
+
+  function timeout(time, callback) {
     var fps = 30,
         timeout = 10,
         totalTime = timeout * fps;
@@ -47,15 +63,68 @@
             time--;
             renderBar(time/totalTime, 'time');
             if (time <= 0) {
-                castVote(null);
+                callback();
                 clearInterval(updateInterval);
             }
         }, 1/fps * 1000);
+    return updateInterval;
+  }
 
+  function startProposal(proposals) {
+    console.log(proposals);
+    $("main").empty().html(renderTemplate('propose', {proposals: proposals}));
+    var updateInterval = timeout(10, function() {
+        makeProposal(null);
+    });
+    $('.proposal').empty().html(renderTemplate('proposal', proposals[0]));
+    $('button').on('click', function() {
+        var proposal = {
+            type: $('[name=type]').val(),
+            target: $('[name=target]').val(),
+            value: $('[name=value]').val()
+        };
+        makeProposal(proposal);
+        clearInterval(updateInterval);
+    });
+    $('.proposals').on('change', function() {
+        console.log("PROPOSAL CHANGED");
+        console.log($(this).val());
+        var proposalType = $(this).val(),
+            proposal = _.find(proposals, function(p) { return p.type == proposalType });
+        console.log(proposal);
+        $('.proposal').empty().html(renderTemplate('proposal', proposal));
+    });
+  }
+
+  function startVote(proposal) {
+    $("main").empty().html(renderTemplate('vote', proposal));
+    var updateInterval = timeout(10, function() {
+        castVote(null);
+    });
     $('button').on('click', function() {
         var val = $(this).val();
         castVote(val);
         clearInterval(updateInterval);
+    });
+  }
+
+  function showPerson() {
+    $("main").empty().html(renderTemplate('person', person));
+  }
+
+  $(function() {
+    var socket = io('/player');
+    socket.on('propose', function(data) {
+        startProposal(data.proposals);
+    });
+
+    socket.on('vote', function(data) {
+        startVote(data.proposal);
+    });
+
+    socket.on('person', function(data) {
+        person = data;
+        showPerson();
     });
   });
 </script>

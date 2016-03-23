@@ -1,3 +1,4 @@
+import random
 import logging
 from city import City
 from people import Person
@@ -39,6 +40,7 @@ logger = logging.getLogger('simulation')
 def setup_simulation(given, config):
     """prepare the simulation"""
     global model
+    global queued_players
 
     # don't redundantly add the handler
     if model is None:
@@ -62,32 +64,72 @@ def setup_simulation(given, config):
         'buildings': [{'id': b.id} for b in model.buildings]
     }, namespace='/simulation')
 
+    # setup queued players
+    for id in queued_players:
+        players.append(id)
+        person = random.choice([p for p in model.people if p.sid == None])
+        person.sid = id
+        socketio.emit('person', person.as_json(), namespace='/player', room=id)
+    queued_players = []
+
 
 @celery.task
 def step_simulation():
     """steps through one month of the simulation"""
+    global players
+    global model
     _, n_days = monthrange(model.state['year'], model.state['month'])
     for _ in range(n_days):
         model.step()
 
-    # send population to the frontend
     socketio = SocketIO(message_queue='redis://localhost:6379')
     socketio.emit('simulation', {'success': True}, namespace='/simulation')
+
+    # choose a legislation proposer for the next month
+    if players:
+        print('CHOOSING PROPOSER')
+        proposer = random.choice(players)
+        socketio.emit('propose', {'proposals': model.government.proposal_options(model)}, room=proposer, namespace='/player')
+
+
+@celery.task
+def choose_proposer():
+    global model
+    if players:
+        proposer = random.choice(players)
+        socketio = SocketIO(message_queue='redis://localhost:6379')
+        socketio.emit('propose', {'proposals': model.government.proposal_options(model)}, room=proposer, namespace='/player')
+
+
+@celery.task
+def start_vote(prop):
+    global proposal
+    proposal = prop
+    socketio = SocketIO(message_queue='redis://localhost:6379')
+    socketio.emit('vote', {'proposal': proposal}, namespace='/player')
 
 
 votes = []
 players = []
+proposal = None
+queued_players = []
 
 
 def check_votes():
     global votes
     global players
+    global model
+    global proposal
     print('n_votes', len(votes))
     print('n_players', len(players))
-    if len(votes) >= len(players):
+    if len(votes) >= len(players) and proposal is not None:
         # vote has concluded
         print('vote done!')
-        votes = []
+        yay = sum(1 if v else -1 for v in votes if v is not None)
+        if yay > 0:
+            model.government.apply_proposal(proposal, model)
+        proposal = None
+
 
 @celery.task
 def record_vote(vote):
@@ -96,17 +138,30 @@ def record_vote(vote):
     votes.append(vote)
     check_votes()
 
+
 @celery.task
 def add_player(id):
     global players
-    players.append(id)
+    global model
+    global queued_players
+    if model is not None:
+        players.append(id)
+        person = random.choice([p for p in model.people if p.sid == None])
+        person.sid = id
+        socketio = SocketIO(message_queue='redis://localhost:6379')
+        socketio.emit('person', person.as_json(), namespace='/player', room=id)
+    else:
+        queued_players.append(id)
     print('registered', id)
 
 
 @celery.task
 def remove_player(id):
     global players
+    global model
     if id in players:
+        person = next((p for p in model.people if p.sid == id), None)
         players.remove(id)
+        person.sid = None
         print('DEregistered', id)
         check_votes()
