@@ -1,13 +1,31 @@
+import random
+from cess import Agent
+from enum import IntEnum
 from cess.agent.learn import QLearner
+from .firms import ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Hospital
+
+industries = {
+    'consumer': ConsumerGoodFirm,
+    'equip': CapitalEquipmentFirm,
+    'material': RawMaterialFirm,
+    'hospital': Hospital
+}
 
 
-class Government():
-    def __init__(self, tax_rate, welfare, tax_rate_increment, welfare_increment):
-        self.cash = 0
+class Government(Agent):
+    def __init__(self, tax_rate, welfare, tax_rate_increment, welfare_increment, starting_welfare_req):
+        self._state = {'cash': 0}
         self.tax_rate = tax_rate
         self.tax_rate_increment = tax_rate_increment
         self.welfare = welfare
         self.welfare_increment = welfare_increment
+        self.welfare_req = starting_welfare_req
+        self.subsidies = {
+            ConsumerGoodFirm: 0,
+            CapitalEquipmentFirm: 0,
+            RawMaterialFirm: 0,
+            Hospital: 0
+        }
 
         # all states map to the same actions
         action_ids = [i for i in range(len(self.actions))]
@@ -16,6 +34,14 @@ class Government():
 
         # keep track of previous step's quality of life for comparison
         self.prev_qol = 0
+
+    @property
+    def cash(self):
+        return self._state['cash']
+
+    @cash.setter
+    def cash(self, value):
+        self._state['cash'] = value
 
     @property
     def actions(self):
@@ -51,3 +77,84 @@ class Government():
         max_per_person = self.cash/sum(len(h.people) for h in households) if households else 0
         self.welfare = min(max(0, self.welfare + action.get('welfare', 0)), max_per_person)
         self.prev_qol = sum(h.quality_of_life for h in households)/len(households) if households else 0
+
+    def apply_proposal(self, proposal, world):
+        t = proposal['type']
+        v = float(proposal['value']) if proposal['value'] is not None else None
+        if t == ProposalType.nationalize.name:
+            industry = proposal['target']
+            firm = random.choice(world.firms_of_type[industries[industry]])
+            firm.change_owner(self)
+        elif t == ProposalType.privatize.name:
+            industry = proposal['target']
+            firm = random.choice(world.firms_of_type[industries[industry]])
+
+            # randomly pick new owner
+            # we pick the person with the most money who does not already have a firm
+            candidates = sorted([p for p in world.people if not p._state['firm_owner']], key=lambda p: p._state['cash'], reverse=True)
+            new_owner = candidates[0]
+            firm.change_owner(new_owner)
+        elif t == ProposalType.tax_rate.name:
+            self.tax_rate = v
+        elif t == ProposalType.welfare.name:
+            self.welfare = v
+        elif t == ProposalType.welfare_req.name:
+            self.welfare_req = v
+        elif t == ProposalType.subsidy.name:
+            self.subsidies[industries[proposal['target']]] = v
+
+    def proposal_options(self, world):
+        options = [{
+            'type': ProposalType.tax_rate.name,
+            'values': [0, 1],
+            'targets': None,
+            'value': self.tax_rate
+        }, {
+            'type': ProposalType.welfare.name,
+            'values': [0, None],
+            'targets': None,
+            'value': self.welfare
+        }, {
+            'type': ProposalType.welfare_req.name,
+            'values': [0, None],
+            'targets': None,
+            'value': self.welfare_req
+        }, {
+            'type': ProposalType.subsidy.name,
+            'values': [0, None],
+            'targets': list(industries.keys()),
+            'value': None
+        }]
+
+        private_industries = self.filter_industries(world, public=False)
+        public_industries = self.filter_industries(world, public=True)
+        if public_industries:
+            options.append({
+                'type': ProposalType.privatize.name,
+                'values': None,
+                'targets': public_industries,
+                'value': None
+            })
+        if private_industries:
+            options.append({
+                'type': ProposalType.nationalize.name,
+                'values': None,
+                'targets': private_industries,
+                'value': None
+            })
+
+        return options
+
+    def filter_industries(self, world, public=False):
+        """return industries that have firms in them"""
+        return [ind for ind, typ in industries.items() if [f for f in world.firms_of_type(typ) if f.public == public]]
+
+
+
+class ProposalType(IntEnum):
+    nationalize = 0
+    privatize   = 1
+    tax_rate    = 2
+    welfare     = 3
+    welfare_req = 4
+    subsidy     = 5

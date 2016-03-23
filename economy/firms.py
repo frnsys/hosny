@@ -38,6 +38,18 @@ class Firm(Agent):
     def id(self):
         return self.owner.id
 
+    @property
+    def public(self):
+        return type(self.owner).__name__ == 'Government'
+
+    def change_owner(self, owner):
+        self.owner._state['firm_owner'] = False
+        self.owner.firm = None
+
+        owner._state['firm_owner'] = True
+        owner.firm = self
+        self.owner = owner
+
     def pay(self, cost):
         self.cash -= cost
         self.costs += cost

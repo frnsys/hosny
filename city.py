@@ -36,7 +36,8 @@ default_conf = {
     'residence_size_limit': 100,
     'base_min_consumption': 1,
     'wage_under_market_multiplier': 1,
-    'min_business_capital': 50000
+    'min_business_capital': 50000,
+    'starting_welfare_req': 10000
 }
 
 START_DATE = datetime(day=1, month=1, year=2005)
@@ -67,7 +68,7 @@ class City(Simulation):
         Person.wage_under_market_multiplier = config['wage_under_market_multiplier']
         Person.min_business_capital = config['min_business_capital']
 
-        self.government = Government(config['tax_rate'], config['welfare'], config['tax_rate_increment'], config['welfare_increment'])
+        self.government = Government(config['tax_rate'], config['welfare'], config['tax_rate_increment'], config['welfare_increment'], config['starting_welfare_req'])
 
         self.buildings = [
             Building(config['max_tenants'], config['rent'])
@@ -238,6 +239,20 @@ class City(Simulation):
         self.ewma_stat('mean_healthcare_profit', mean, graph=True)
         mean = sum(sold)/len(sold) if sold else 0
         self.ewma_stat('mean_healthcare_price', mean, graph=True)
+
+        # TODO this should be limited by the amount of cash the gov't actual
+        # has, or should deficit spending be ok?
+        # gov't subsidies
+        subs = self.government.subsidies
+        subsidy = subs[CapitalEquipmentFirm]/len(self.capital_equipment_firms) if self.capital_equipment_firms else 0
+        for firm in self.capital_equipment_firms:
+            firm.cash += subsidy
+        subsidy = subs[CapitalEquipmentFirm]/len(self.capital_equipment_firms) if self.capital_equipment_firms else 0
+        for firm in self.consumer_good_firms:
+            firm.cash += subsidy
+        subsidy = subs[RawMaterialFirm]/len(self.raw_material_firms) if self.raw_material_firms else 0
+        for firm in self.raw_material_firms:
+            firm.cash += subsidy
 
         n_bankruptcies = 0
         for firm in self.firms:
@@ -492,3 +507,6 @@ class City(Simulation):
     def _log(self, chan, data):
         """format a message for the logger"""
         logger.info('{}:{}'.format(chan, json.dumps(data)))
+
+    def firms_of_type(self, typ):
+        return [f for f in self.firms if type(f) == typ]

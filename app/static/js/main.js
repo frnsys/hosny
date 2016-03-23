@@ -31,7 +31,8 @@ require([
         wage_under_market_multiplier: 1,
         min_business_capital: 50000,
         starting_wage: 5,
-        desiredWage: 5
+        desiredWage: 5,
+        starting_welfare_req: 10000
       };
 
   console.log(config);

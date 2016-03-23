@@ -82,6 +82,9 @@ class Person(Agent):
         self.firm = None
         self.min_consumption = self.base_min_consumption * (2 - self.frugality)
 
+        # for associating websocket clients with a person
+        self.sid = None
+
         super().__init__(
             state={
                 'health': 1.,
