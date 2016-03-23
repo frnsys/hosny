@@ -70,6 +70,7 @@ def setup_simulation(given, config):
         person = random.choice([p for p in model.people if p.sid == None])
         person.sid = id
         socketio.emit('person', person.as_json(), namespace='/player', room=id)
+        socketio.emit('joined', person.as_json(), namespace='/simulation')
     queued_players = []
 
 
@@ -150,6 +151,7 @@ def add_player(id):
         person.sid = id
         socketio = SocketIO(message_queue='redis://localhost:6379')
         socketio.emit('person', person.as_json(), namespace='/player', room=id)
+        socketio.emit('joined', person.as_json(), namespace='/simulation')
     else:
         queued_players.append(id)
     print('registered', id)
@@ -165,3 +167,5 @@ def remove_player(id):
         person.sid = None
         print('DEregistered', id)
         check_votes()
+        socketio = SocketIO(message_queue='redis://localhost:6379')
+        socketio.emit('left', person.as_json(), namespace='/simulation')
