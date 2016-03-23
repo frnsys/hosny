@@ -221,9 +221,12 @@ class City(Simulation):
                 profit = max(person.firm.profit, 0)
                 taxes = profit * self.government.tax_rate
                 person.firm.cash -= taxes
-            else:
-                taxes = person.wage * self.government.tax_rate
-                person._state['cash'] += (person.wage - taxes)
+            elif person.employer is not None:
+                wage = min(person.wage, person.employer.cash)
+                taxes = wage * self.government.tax_rate
+                person._state['cash'] += (wage - taxes)
+                # TODO should people keep track of how much they are _actually_
+                # paid vs their stated wage?
             self.government.cash += taxes
 
         for firm in self.hospitals:
