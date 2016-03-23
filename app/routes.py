@@ -26,10 +26,14 @@ handlers = {
 }
 
 
-
 @routes.route('/')
 def index():
     return render_template('city.html')
+
+
+@routes.route('/graphs')
+def graphs():
+    return render_template('graphs.html')
 
 
 @routes.route('/step', methods=['POST'])

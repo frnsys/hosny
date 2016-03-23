@@ -2,7 +2,7 @@
 {% block styles %}
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/city.css">
-    <link rel="stylesheet" href="/static/css/graph.css">
+    <link rel="stylesheet" href="/static/css/graphs.css">
     <link rel="stylesheet" href="/static/css/players.css">
 {% endblock %}
 
@@ -71,13 +71,13 @@
                 <input type="submit" class="submit" value="Submit">
             </form>
         </div> -->
-        
+
         <div class="row">
             <form action="" class="setup-simulation">
             <fieldset class="column1 show">
 
                 <h2>We've got buildings and people. We just need the policy makers to govern them. Will you help VapeCity be the best city in this magnificent country?</h2>
-                
+
                 <label for="minWageVals">In your world, what is the minimum wage?</label>
                     <input type="radio" name="minWage" value="1" checked>$7.75<br>
                     <input type="radio" name="minWage" value="2">$25<br>
@@ -144,7 +144,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
 <script src="/static/js/templates.js"></script>
 <script src="/static/js/util.js"></script>
 <script data-main="/static/js/main" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.min.js"></script>

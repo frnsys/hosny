@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% block styles %}
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/graphs.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="graphs-bg"></div>
+<div class="graphs"></div>
+
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
+<script src="/static/js/templates.js"></script>
+<script src="/static/js/util.js"></script>
+<script data-main="/static/js/graphs" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.min.js"></script>
+
+{% endblock %}
