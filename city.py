@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 import scipy.stats as st
 from cess import Simulation
-from cess.util import random_choice
+from cess.util import random_choice, shuffle, ewma
 from people import Person
 from economy import Household, Firm, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Hospital, Building, Government
 from dateutil.relativedelta import relativedelta
@@ -46,16 +46,6 @@ START_DATE = datetime(day=1, month=1, year=2005)
 MAX_ROUNDS = 10
 
 logger = logging.getLogger('simulation.city')
-
-
-def shuffle(l):
-    random.shuffle(l)
-    return l
-
-
-def ewma(p_mean, val, alpha=0.8):
-    """computes exponentially weighted moving mean"""
-    return p_mean + (alpha * (val - p_mean))
 
 
 class City(Simulation):

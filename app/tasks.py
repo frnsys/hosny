@@ -1,7 +1,6 @@
 import random
 import logging
 from city import City
-from people import Person
 from celery import Celery
 from calendar import monthrange
 from flask_socketio import SocketIO
@@ -56,13 +55,8 @@ def setup_simulation(given, config):
         sockets_handler = SocketsHandler()
         logger.addHandler(sockets_handler)
 
-    # pop = generate_population(100)
-    person = Person.generate(2005, given=given)
-    print('YOU ARE', person)
-    print('YOUR JOB IS', person.occupation)
     pop = load_population('data/population.json')
     pop = pop[:200] # limit to 200 for now
-    pop.append(person) # TODO build out your social network
     model = City(pop, config)
 
     # send population to the frontend
@@ -136,6 +130,8 @@ def record_vote(vote):
 
 @celery.task
 def add_player(id):
+    """adds a player to the game, assigning them an unassigned simulant.
+    if the game is not ready, they are added to the player queue"""
     if model is not None:
         players.append(id)
         person = random.choice([p for p in model.people if p.sid == None])
@@ -150,10 +146,12 @@ def add_player(id):
 
 @celery.task
 def remove_player(id):
+    """removes a player from the game, releasing their simulant"""
     if id in players:
         person = next((p for p in model.people if p.sid == id), None)
         players.remove(id)
         person.sid = None
-        print('DEregistered', id)
-        check_votes()
         socketio().emit('left', person.as_json(), namespace='/simulation')
+
+        # since player count has changed, re-check votes
+        check_votes()
