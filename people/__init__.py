@@ -1,6 +1,5 @@
 import math
 import json
-import config
 import random
 import logging
 import asyncio
@@ -115,7 +114,9 @@ class Person(Agent):
                 'myopism': 0,       # negative: better at long-term thinking
                 'sociability': 0    # negative: introverted
             },
-            constraints=config.CONSTRAINTS)
+            constraints={
+                'health': [0., 1.]
+            })
 
     @asyncio.coroutine
     def step(self, world):
