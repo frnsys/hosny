@@ -106,21 +106,25 @@ class Government(Agent):
     def proposal_options(self, world):
         options = [{
             'type': ProposalType.tax_rate.name,
+            'name': 'adjust tax rate',
             'values': [0, 1],
             'targets': None,
             'value': self.tax_rate
         }, {
             'type': ProposalType.welfare.name,
+            'name': 'adjust welfare',
             'values': [0, None],
             'targets': None,
             'value': self.welfare
         }, {
             'type': ProposalType.welfare_req.name,
+            'name': 'adjust welfare income threshold',
             'values': [0, None],
             'targets': None,
             'value': self.welfare_req
         }, {
             'type': ProposalType.subsidy.name,
+            'name': 'adjust industry subsidy',
             'values': [0, None],
             'targets': list(industries.keys()),
             'value': None
@@ -131,6 +135,7 @@ class Government(Agent):
         if public_industries:
             options.append({
                 'type': ProposalType.privatize.name,
+                'name': 'privatize a public firm',
                 'values': None,
                 'targets': public_industries,
                 'value': None
@@ -138,6 +143,7 @@ class Government(Agent):
         if private_industries:
             options.append({
                 'type': ProposalType.nationalize.name,
+                'name': 'nationalize a private firm',
                 'values': None,
                 'targets': private_industries,
                 'value': None

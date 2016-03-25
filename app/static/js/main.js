@@ -41,12 +41,11 @@ require([
         ev.preventDefault();
         $('.overlay').fadeOut();
         var numOfPlayers = Math.floor((Math.random() * 10) + 1);
-        
 
         for(var i = 0; i < numOfPlayers; i++) {
           var playerVote =  Math.round(Math.random());
 
-          $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');        
+          $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');
           // $('.players ul li').css('width', 1/numOfPlayers * 100+'%');
         }
 
@@ -139,14 +138,6 @@ require([
           }
         }
       });
-
-      //Advancing from setup screen 1 to screen 2
-      // var i = 0;
-      // $(".next").on("click", function() {
-      //   $("fieldset").eq(i).removeClass("show").addClass("hide");
-      //   $("fieldset").eq(i+1).removeClass("hide").addClass("show");
-      //   i++;
-      // });
 
       $(".twooter-feed").on('click', '.twoot-author', function() {
         var id = $(this).data('id');

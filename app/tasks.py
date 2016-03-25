@@ -4,7 +4,7 @@ from city import City
 from celery import Celery
 from calendar import monthrange
 from flask_socketio import SocketIO
-from run import load_population #, generate population
+from world.population import load_population #, generate population
 from .handlers import SocketsHandler
 from app import create_app
 

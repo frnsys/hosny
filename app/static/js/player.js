@@ -18,9 +18,11 @@ require([
       contentType: "application/json",
       success: function(data, textStatus, jqXHR) {
         console.log("vote successfully cast");
+        setTimeout(function() {
+          $('main').empty().html(renderTemplate('voted'));
+        }, 2000);
       }
     });
-    $('main').html('<h1>thanks for your vote</h1>');
   }
 
   function makeProposal(proposal) {
@@ -33,6 +35,7 @@ require([
       contentType: "application/json",
       success: function(data, textStatus, jqXHR) {
         console.log("proposal successfully made");
+        console.log(proposal);
       }
     });
   }
@@ -98,6 +101,8 @@ require([
     });
 
     socket.on('vote', function(data) {
+      console.log('voting on:');
+      console.log(data);
       startVote(data.proposal);
     });
 
