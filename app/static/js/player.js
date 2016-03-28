@@ -74,6 +74,10 @@ require([
     $('.proposals').on('change', function() {
       var proposalType = $(this).val(),
           proposal = _.find(proposals, function(p) { return p.type == proposalType });
+      console.log('changed proposal to');
+      console.log(proposalType);
+      console.log(proposal);
+      console.log(proposals);
       $('.proposal').empty().html(renderTemplate('proposal', proposal));
     });
   }

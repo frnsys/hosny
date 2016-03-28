@@ -98,6 +98,7 @@ require([
       var i = 2;
       socket.on("joined", function(data){
         players.push(data);
+        console.log(players);
 
         console.log(i);
         // Adding players to the bottom section

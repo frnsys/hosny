@@ -67,6 +67,8 @@ def setup_simulation(given, config):
     }, namespace='/simulation')
 
     # setup queued players
+    print('QUEUED PLAYERS')
+    print(queued_players)
     for id in queued_players:
         players.append(id)
         person = random.choice([p for p in model.people if p.sid == None])
@@ -95,7 +97,8 @@ def step_simulation():
 
 @celery.task
 def choose_proposer():
-    if players:
+    global proposal
+    if players and proposal is None:
         proposer = random.choice(players)
         s = socketio()
         s.emit('propose', {'proposals': model.government.proposal_options(model)}, room=proposer, namespace='/player')
@@ -106,15 +109,31 @@ def start_vote(prop):
     global proposal
     proposal = prop
     socketio().emit('vote', {'proposal': proposal}, namespace='/player')
+    # end_vote.apply_async(countdown=30)
 
 
 def check_votes():
+    global votes
     global proposal
     print('n_votes', len(votes))
     print('n_players', len(players))
     if len(votes) >= len(players) and proposal is not None:
         # vote has concluded
         print('vote done!')
+        yay = sum(1 if v else -1 for v in votes if v is not None)
+        print('yay votes', yay)
+        if yay > 0:
+            model.government.apply_proposal(proposal, model)
+        proposal = None
+        votes = []
+
+
+@celery.task
+def end_vote():
+    global proposal
+    if proposal is not None:
+        # vote has concluded
+        print('vote done! (timeout)')
         yay = sum(1 if v else -1 for v in votes if v is not None)
         if yay > 0:
             model.government.apply_proposal(proposal, model)
@@ -159,6 +178,7 @@ def remove_player(id):
         check_votes()
     elif id in queued_players:
         s.emit('left_queue', {'id': id}, namespace='/simulation')
+    print('deregistered', id)
 
 
 @celery.task
