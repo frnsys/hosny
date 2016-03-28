@@ -108,6 +108,10 @@ button {
     color: #fff;
     width: 100%;
     text-align: center;
+    display: none;
+}
+.start-simulation {
+    display: none;
 }
 
 .city-stats {

@@ -2,6 +2,8 @@ require([
   'simulation'
 ], function(Simulation) {
   var sim = new Simulation(),
+      players = [],
+      queued_players = [],
       rows = 6,
       cols = 6,
       max_tenants = 10,
@@ -43,14 +45,6 @@ require([
   $(function() {
       $(".next").on("click", function(ev) {
         ev.preventDefault();
-        $('.overlay').fadeOut();
-        // var numOfPlayers = Math.floor((Math.random() * 10) + 1);
-
-        // for(var i = 0; i < numOfPlayers; i++) {
-        //   var playerVote =  Math.round(Math.random());
-        //   $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');
-        //   // $('.players ul li').css('width', 1/numOfPlayers * 100+'%');
-        // }
 
         $.ajax({
           type: "POST",
@@ -70,6 +64,8 @@ require([
           }),
           contentType: "application/json",
           success: function(data, textStatus, jqXHR) {
+            $('.overlay').fadeOut();
+            $('.omni').fadeIn();
             $('.step-simulation').show();
           }
         });
@@ -105,6 +101,8 @@ require([
       // Whenever players join
       var i = 2;
       socket.on("joined", function(data){
+        players.push(data);
+
         console.log(i);
         // Adding players to the bottom section
         $('.players-joining ul li.template').clone().appendTo('.players-joining ul').removeClass("template");
@@ -114,10 +112,42 @@ require([
         //console.log(data.quality_of_life);
         i++;
 
+        $(".n-players").text(players.length.toString() + " players");
       });
 
       socket.on("left", function(data){
-        console.log(data.name);
+        var player = _.findWhere(players, {id: data.id});
+        players = _.without(players, player);
+
+        $(".n-players").text(players.length.toString() + " players");
+      });
+
+      function update_start_players() {
+        if (queued_players.length >= 3) {
+          $('.start-simulation').show();
+          $('.start-queue').text('Ready to start!');
+        } else {
+          $('.start-simulation').hide();
+          if (queued_players.length == 0) {
+            $('.start-queue').text('Looking for at least 3 citizens to start...');
+          } else {
+            $('.start-queue').text('Looking for ' + (3 - queued_players.length).toString() + ' more citizens to start...');
+          }
+        }
+      }
+
+      socket.on("joined_queue", function(data) {
+        queued_players.push(data.id);
+        update_start_players();
+      });
+
+      socket.on("left_queue", function(data) {
+        queued_players = _.without(queued_players, data.id);
+        update_start_players();
+      });
+
+      socket.on("datetime", function(data) {
+        $(".datetime").text(data.month.toString() + "/" + data.day.toString() + "/" + data.year.toString());
       });
 
       socket.on("twooter", function(data){
