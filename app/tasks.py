@@ -159,3 +159,18 @@ def remove_player(id):
         check_votes()
     elif id in queued_players:
         s.emit('left_queue', {'id': id}, namespace='/simulation')
+
+
+@celery.task
+def reset():
+    """reset the currently-running simulation"""
+    global model
+    global votes
+    global proposal
+    global players
+    global queued_players
+    model = None
+    proposal = None
+    votes = []
+    players = []
+    queued_players = []
