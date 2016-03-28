@@ -14,6 +14,17 @@ canvas {
     z-index: 1;
 }
 
+.legend {
+    list-style-type: none;
+    padding: 1em;
+}
+.color {
+    width: 0.5em;
+    height: 0.5em;
+    display: inline-block;
+    margin-right: 0.5em;
+}
+
 .dashboard {
     position: absolute;
     bottom: 0;
