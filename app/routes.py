@@ -99,3 +99,4 @@ def person(id):
 def reset_sim():
     """reset the simulation"""
     reset.delay()
+    return 'ok resetted'
