@@ -80,7 +80,7 @@ class Government(Agent):
 
     def apply_proposal(self, proposal, world):
         t = proposal['type']
-        v = float(proposal['value']) if proposal['value'] is not None else None
+        v = float(proposal['value']) if proposal.get('value') is not None else None
         if t == ProposalType.nationalize.name:
             industry = proposal['target']
             firm = random.choice(world.firms_of_type[industries[industry]])
