@@ -38,6 +38,15 @@ canvas {
     position: absolute;
     top: 0;
     left: 0;
+    width: 25%;
+    overflow: hidden;
+}
+
+.marquee {
+  width: 75%;
+  margin-left: 25%;
+  overflow: hidden;
+  color: #fff;
 }
 
 .twotter-header {
@@ -81,6 +90,8 @@ canvas {
     margin: 0;
 }
 
+
+
 button {
     background: #fff;
     margin: 0 auto 2em auto;
@@ -113,9 +124,9 @@ button {
     right: 0;
     bottom: 0;
     left: 0;
-    background: rgba(43, 0, 247, 0.7);
+    background: rgba(43, 0, 247, 1);
     color: #fff;
-    //display: none;
+    z-index: 3;
 }
 .overlay-content {
     margin: 2em auto;

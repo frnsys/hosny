@@ -1,5 +1,5 @@
 .players-joining {
-
+    float: left;
 }
 
 .players {
@@ -26,8 +26,7 @@
 .players ul li, .players-joining ul li {
     float: left;
     list-style-type: none;
-    width: 10%;
-    margin: 0;
+    margin: 0 3em 0 0;
 }
 
 .players ul li.template, .players-joining ul li.template {

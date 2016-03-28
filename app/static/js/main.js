@@ -36,6 +36,10 @@ require([
 
   console.log(config);
 
+  $(document).ready(function() {
+    $('.marquee').marquee();
+  });
+
   $(function() {
       $(".next").on("click", function(ev) {
         ev.preventDefault();
