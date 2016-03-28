@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, render_template, request, abort
-from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote
+from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote, reset
 from world.population import load_population
 
 routes = Blueprint('routes', __name__)
@@ -93,3 +93,9 @@ def person(id):
     if per is None:
         abort(404)
     return jsonify(**per.as_json())
+
+
+@routes.route('/reset')
+def reset_sim():
+    """reset the simulation"""
+    reset.delay()
