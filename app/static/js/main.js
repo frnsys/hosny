@@ -46,7 +46,7 @@ require([
         for(var i = 0; i < numOfPlayers; i++) {
           var playerVote =  Math.round(Math.random());
 
-          $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');        
+          // $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');        
           // $('.players ul li').css('width', 1/numOfPlayers * 100+'%');
         }
 
@@ -98,6 +98,20 @@ require([
         if (data.success) {
           $('.step-simulation').show();
         }
+      });
+
+      // Whenever players join
+      var i = 2;
+      socket.on("joined", function(data){
+        console.log(i);
+        // Adding players to the bottom section
+        $('.players-joining ul li.template').clone().appendTo('.players-joining ul').removeClass("template");
+        $('.players-joining ul li:nth-child(' + i + ') h3.name').text(data.name);
+        i++;
+      });
+
+      socket.on("left", function(data){
+        console.log(data.name);
       });
 
       socket.on("twooter", function(data){
