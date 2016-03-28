@@ -40,13 +40,13 @@ require([
       $(".next").on("click", function(ev) {
         ev.preventDefault();
         $('.overlay').fadeOut();
-        var numOfPlayers = Math.floor((Math.random() * 10) + 1);
+        // var numOfPlayers = Math.floor((Math.random() * 10) + 1);
 
-        for(var i = 0; i < numOfPlayers; i++) {
-          var playerVote =  Math.round(Math.random());
-          $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');
-          // $('.players ul li').css('width', 1/numOfPlayers * 100+'%');
-        }
+        // for(var i = 0; i < numOfPlayers; i++) {
+        //   var playerVote =  Math.round(Math.random());
+        //   $('.players ul').append('<li class="vote-' + playerVote +'"><div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div><div class="right"><h3>Name</h3><span class="player-qli">QLI</span></div></li>');
+        //   // $('.players ul li').css('width', 1/numOfPlayers * 100+'%');
+        // }
 
         $.ajax({
           type: "POST",
@@ -104,7 +104,10 @@ require([
         console.log(i);
         // Adding players to the bottom section
         $('.players-joining ul li.template').clone().appendTo('.players-joining ul').removeClass("template");
+        $('.players ul li.template').clone().appendTo('.players ul').removeClass("template");
         $('.players-joining ul li:nth-child(' + i + ') h3.name').text(data.name);
+        $('.players ul li:nth-child(' + i + ') h3.name').text(data.name);
+        console.log(data.quality_life);
         i++;
       });
 
