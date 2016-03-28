@@ -30,6 +30,11 @@
     margin: 0;
 }
 
+.players ul li.template, .players-joining ul li.template {
+    display: none;
+}
+
+
 .pic {
     border-radius: 999px;
     width: 50px;
