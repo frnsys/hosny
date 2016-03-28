@@ -113,6 +113,8 @@ class City(Simulation):
         self.state['month'] = self.date.month
         self.state['year'] = self.date.year
 
+        self._log('datetime', {'month': self.date.month, 'day': self.date.day, 'year': self.date.year})
+
         if not self.initialized:
             # create initial firms
             for person in self.people:

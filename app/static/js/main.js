@@ -112,6 +112,10 @@ require([
         console.log(data.name);
       });
 
+      socket.on("datetime", function(data) {
+        $(".datetime").text(data.month.toString() + "/" + data.day.toString() + "/" + data.year.toString());
+      });
+
       socket.on("twooter", function(data){
         // don't twoot everything, it's too much
         if (Math.random() < 0.2) {
