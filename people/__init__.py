@@ -33,6 +33,12 @@ class Person(Agent):
         attribs.update(kwargs)
         return cls(**attribs)
 
+    @property
+    def quality_of_life(self):
+        if hasattr(self, 'household'):
+            return self.household.quality_of_life
+        return None
+
     def purchasing_utility(self, utility, price):
         """`utility` is abstract; it can be "quality" for instance"""
         if not price:
@@ -156,7 +162,7 @@ class Person(Agent):
                  'puma', 'industry',
                  'occupation', 'industry_code',
                  'occupation_code', 'neighborhood',
-                 'rent']
+                 'rent', 'quality_of_life']
         for attr in attrs:
             obj[attr] = getattr(self, attr)
 
