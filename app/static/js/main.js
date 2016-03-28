@@ -107,8 +107,9 @@ require([
         $('.players ul li.template').clone().appendTo('.players ul').removeClass("template");
         $('.players-joining ul li:nth-child(' + i + ') h3.name').text(data.name);
         $('.players ul li:nth-child(' + i + ') h3.name').text(data.name);
-        console.log(data.quality_life);
+        //console.log(data.quality_of_life);
         i++;
+
       });
 
       socket.on("left", function(data){
