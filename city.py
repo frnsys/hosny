@@ -3,11 +3,13 @@ import json
 import random
 import logging
 from datetime import datetime
+import scipy.stats as st
 from cess import Simulation
-from cess.util import random_choice
+from cess.util import random_choice, shuffle, ewma
 from people import Person
 from economy import Household, Firm, ConsumerGoodFirm, CapitalEquipmentFirm, RawMaterialFirm, Hospital, Building, Government
 from dateutil.relativedelta import relativedelta
+from world import work
 
 world_data = json.load(open('data/world/nyc.json', 'r'))
 
@@ -44,16 +46,6 @@ START_DATE = datetime(day=1, month=1, year=2005)
 MAX_ROUNDS = 10
 
 logger = logging.getLogger('simulation.city')
-
-
-def shuffle(l):
-    random.shuffle(l)
-    return l
-
-
-def ewma(p_mean, val, alpha=0.8):
-    """computes exponentially weighted moving mean"""
-    return p_mean + (alpha * (val - p_mean))
 
 
 class City(Simulation):
@@ -510,3 +502,17 @@ class City(Simulation):
 
     def firms_of_type(self, typ):
         return [f for f in self.firms if type(f) == typ]
+
+
+    def hire_dist(self, person):
+        # more employed friends, more likely to have a referral
+        p_referral = st.beta.rvs(person._state['employed_friends'] + 1, 10)
+        if random.random() < p_referral:
+            referral = 'friend'
+        else:
+            referral = 'ad_or_cold_call'
+        p = work.offer_prob(self.state['year'], self.state['month'], person._state['sex'], person._state['race'], referral)
+        return [1-p, p]
+
+    def get_job(self, person):
+        return work.job(self.person._state['year'], person._state['sex'], person._state['race'], person._state['education'])

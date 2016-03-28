@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request, abort
 from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote
-from run import load_population
+from world.population import load_population
 
 routes = Blueprint('routes', __name__)
 
@@ -76,6 +76,7 @@ def propose():
     if proposal is None:
         choose_proposer.delay()
     else:
+        print(proposal)
         start_vote.delay(proposal)
     return jsonify(success=True)
 

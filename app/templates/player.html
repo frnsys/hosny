@@ -1,12 +1,45 @@
 {% extends 'layout.html' %}
 {% block styles %}
     <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/loader.css">
+    <link rel="stylesheet" href="/static/css/player.css">
 {% endblock %}
 
 {% block content %}
 
-<main>
-~~~ welcome ~~~
+<div class="player-bg"></div>
+<main class="player">
+    <div class="loader">
+        <svg viewbox="-200 -150 400 150">
+          <defs>
+            <line id="ray" x1="-5" x2="5"></line>
+            <clipPath id="cp">
+              <rect x="-200" y="-150" width="400" height="150"></rect>
+            </clipPath>
+          </defs>
+          <line id="line" x1="-76" x2="76"></line>
+          <g id="sun" clip-path="url(#cp)">
+            <g id="mover">
+              <circle id="main" r="50"></circle>
+              <g id="eyes">
+                <circle r="3" cx="-13"></circle>
+                <circle r="3" cx="13"></circle>
+              </g>
+              <g id="rays">
+                <use xlink:href="#ray" transform="rotate(315) translate(70)"></use>
+                <use xlink:href="#ray" transform="rotate(270) translate(70)"></use>
+                <use xlink:href="#ray" transform="rotate(225) translate(70)"></use>
+                <use xlink:href="#ray" transform="rotate(180) translate(70)"></use>
+                <use xlink:href="#ray" transform="rotate(135) translate(70)"></use>
+                <use xlink:href="#ray" transform="rotate(90) translate(70)"></use>
+                <use xlink:href="#ray" transform="rotate(45) translate(70)"></use>
+                <use xlink:href="#ray" transform="rotate(0) translate(70)"></use>
+              </g>
+            </g>
+          </g>
+        </svg>
+        <h5 class="animate-pulse">waiting to join simulation...</h5>
+    </div>
 </main>
 
 
@@ -16,117 +49,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js"></script>
 <script src="/static/js/templates.js"></script>
 <script src="/static/js/util.js"></script>
-<script>
-  var person;
-
-  function renderBar(p, id) {
-    var bar = $('#'+id),
-        width = bar.width();
-    bar.find('.bar-inner').width(p * width);
-  }
-
-  function castVote(vote) {
-    $.ajax({
-      type: "POST",
-      url: "/vote",
-      data: JSON.stringify({
-        vote: vote
-      }),
-      contentType: "application/json",
-      success: function(data, textStatus, jqXHR) {
-        console.log("vote successfully cast");
-      }
-    });
-    $('main').html('<h1>thanks for your vote</h1>');
-  }
-
-  function makeProposal(proposal) {
-    $.ajax({
-      type: "POST",
-      url: "/propose",
-      data: JSON.stringify({
-        proposal: proposal
-      }),
-      contentType: "application/json",
-      success: function(data, textStatus, jqXHR) {
-        console.log("proposal successfully made");
-      }
-    });
-  }
-
-  function timeout(time, callback) {
-    var fps = 30,
-        timeout = 10,
-        totalTime = timeout * fps;
-        time = totalTime;
-        updateInterval = setInterval(function() {
-            time--;
-            renderBar(time/totalTime, 'time');
-            if (time <= 0) {
-                callback();
-                clearInterval(updateInterval);
-            }
-        }, 1/fps * 1000);
-    return updateInterval;
-  }
-
-  function startProposal(proposals) {
-    console.log(proposals);
-    $("main").empty().html(renderTemplate('propose', {proposals: proposals}));
-    var updateInterval = timeout(10, function() {
-        makeProposal(null);
-    });
-    $('.proposal').empty().html(renderTemplate('proposal', proposals[0]));
-    $('button').on('click', function() {
-        var proposal = {
-            type: $('[name=type]').val(),
-            target: $('[name=target]').val(),
-            value: $('[name=value]').val()
-        };
-        makeProposal(proposal);
-        clearInterval(updateInterval);
-    });
-    $('.proposals').on('change', function() {
-        console.log("PROPOSAL CHANGED");
-        console.log($(this).val());
-        var proposalType = $(this).val(),
-            proposal = _.find(proposals, function(p) { return p.type == proposalType });
-        console.log(proposal);
-        $('.proposal').empty().html(renderTemplate('proposal', proposal));
-    });
-  }
-
-  function startVote(proposal) {
-    $("main").empty().html(renderTemplate('vote', proposal));
-    var updateInterval = timeout(10, function() {
-        castVote(null);
-    });
-    $('button').on('click', function() {
-        var val = $(this).val();
-        castVote(val);
-        clearInterval(updateInterval);
-    });
-  }
-
-  function showPerson() {
-    $("main").empty().html(renderTemplate('person', person));
-  }
-
-  $(function() {
-    var socket = io('/player');
-    socket.on('propose', function(data) {
-        startProposal(data.proposals);
-    });
-
-    socket.on('vote', function(data) {
-        startVote(data.proposal);
-    });
-
-    socket.on('person', function(data) {
-        person = data;
-        showPerson();
-    });
-  });
-</script>
+<script data-main="/static/js/player" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.min.js"></script>
 
 {% endblock %}
