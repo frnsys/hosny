@@ -132,26 +132,30 @@ def record_vote(vote):
 def add_player(id):
     """adds a player to the game, assigning them an unassigned simulant.
     if the game is not ready, they are added to the player queue"""
+    s = socketio()
     if model is not None:
         players.append(id)
         person = random.choice([p for p in model.people if p.sid == None])
         person.sid = id
-        s = socketio()
         s.emit('person', person.as_json(), namespace='/player', room=id)
         s.emit('joined', person.as_json(), namespace='/simulation')
     else:
         queued_players.append(id)
+        s.emit('joined_queue', {'id': id}, namespace='/simulation')
     print('registered', id)
 
 
 @celery.task
 def remove_player(id):
     """removes a player from the game, releasing their simulant"""
+    s = socketio()
     if id in players:
         person = next((p for p in model.people if p.sid == id), None)
         players.remove(id)
         person.sid = None
-        socketio().emit('left', person.as_json(), namespace='/simulation')
+        s.emit('left', person.as_json(), namespace='/simulation')
 
         # since player count has changed, re-check votes
         check_votes()
+    elif id in queued_players:
+        s.emit('left_queue', {'id': id}, namespace='/simulation')
