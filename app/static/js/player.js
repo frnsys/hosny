@@ -74,6 +74,10 @@ require([
     $('.proposals').on('change', function() {
       var proposalType = $(this).val(),
           proposal = _.find(proposals, function(p) { return p.type == proposalType });
+      console.log('changed proposal to');
+      console.log(proposalType);
+      console.log(proposal);
+      console.log(proposals);
       $('.proposal').empty().html(renderTemplate('proposal', proposal));
     });
   }
@@ -110,8 +114,8 @@ require([
     if (person.education == 7 || person.education == 8 || person.education == 9 || person.education == 10) person.education = "College undergraduate";
     if (person.education == 11) person.education = "Postgraduate";
 
-    if (person.employed == 0) person.employed = "Decline to say";
-    if (person.employed == 1) person.employed = "Gainfully employed";
+    if (person.employed == 0) person.employed = "in the armed forces";
+    if (person.employed == 1) person.employed = "gainfully employed";
     if (person.employed == 2) person.employed = "unemployed";
     if (person.employed == 3) person.employed = " retired, student, those taking care of children or other family members, and others who are neither working nor seeking work";
 

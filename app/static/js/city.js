@@ -98,11 +98,15 @@ define([
     },
 
     spawnBuildings: function(buildings) {
+      var self = this;
       for (var i=0; i < this.rows; i++) {
         var row = [];
         for (var j=0; j < this.cols; j++) {
-          var id = buildings.shift().id;
-          this.buildings[id] = this.spawnBuilding(i, j);
+          var b = buildings.shift();
+          this.buildings[b.id] = this.spawnBuilding(i, j);
+          _.each(b.tenants, function(t) {
+            self.buildings[b.id].add(t);
+          });
         }
       }
     },

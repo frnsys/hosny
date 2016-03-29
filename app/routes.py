@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, render_template, request, abort
-from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote, reset
+from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote, reset, add_client
 from world.population import load_population
 
 routes = Blueprint('routes', __name__)
@@ -13,15 +13,20 @@ def unregister_player():
     remove_player.delay(request.sid)
 
 
+def register_simulation():
+    """a new simulation frontend"""
+    add_client.delay(request.sid)
+
+
+
 # hacky, but doesn't seem to work any other way
 handlers = {
     'connect': {
-        'func': register_player,
-        'namespace': '/player'
+        '/player': register_player,
+        '/simulation': register_simulation
     },
     'disconnect': {
-        'func': unregister_player,
-        'namespace': '/player'
+        '/player': unregister_player,
     }
 }
 

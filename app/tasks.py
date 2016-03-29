@@ -49,31 +49,61 @@ def setup_simulation(given, config):
     global model
     global queued_players
 
-    # don't redundantly add the handler
+    # only setup a new simulation if there
+    # is no existing simluation.
+    # to start a new simulation, first hit the reset endpoint
     if model is None:
+        # don't redundantly add the handler
         logger.setLevel(logging.INFO)
         sockets_handler = SocketsHandler()
         logger.addHandler(sockets_handler)
 
-    pop = load_population('data/population.json')
-    pop = pop[:200] # limit to 200 for now
-    model = City(pop, config)
+        pop = load_population('data/population.json')
+        pop = pop[:200] # limit to 200 for now
+        model = City(pop, config)
 
-    # send population to the frontend
+        # send population to the frontend
+        s = socketio()
+        s.emit('setup', {
+            'existing': False,
+            'population': [p.as_json() for p in pop],
+            'buildings': [{
+                'id': b.id,
+                'tenants': []
+            } for b in model.buildings]
+        }, namespace='/simulation')
+
+        # setup queued players
+        print('QUEUED PLAYERS')
+        print(queued_players)
+        for id in queued_players:
+            players.append(id)
+            person = random.choice([p for p in model.people if p.sid == None])
+            person.sid = id
+            s.emit('person', person.as_json(), namespace='/player', room=id)
+            s.emit('joined', person.as_json(), namespace='/simulation')
+        queued_players = []
+
+
+@celery.task
+def add_client(sid):
+    # existing simulation, sync new client up
+    print('===ADDING CLIENT===')
     s = socketio()
-    s.emit('setup', {
-        'population': [p.as_json() for p in pop],
-        'buildings': [{'id': b.id} for b in model.buildings]
-    }, namespace='/simulation')
-
-    # setup queued players
-    for id in queued_players:
-        players.append(id)
-        person = random.choice([p for p in model.people if p.sid == None])
-        person.sid = id
-        s.emit('person', person.as_json(), namespace='/player', room=id)
-        s.emit('joined', person.as_json(), namespace='/simulation')
-    queued_players = []
+    if model is not None:
+        s.emit('setup', {
+            'existing': True,
+            'population': [p.as_json() for p in model.people],
+            'buildings': [{
+                'id': b.id,
+                'tenants': [{'id': t.id, 'type': type(t).__name__} for t in b.tenants]
+            } for b in model.buildings],
+            'players': [p.as_json() for p in model.people if p.sid in players]
+        }, namespace='/simulation', room=sid)
+    else:
+        s.emit('init', {
+            'queued_players': queued_players
+        }, namespace='/simulation', room=sid)
 
 
 @celery.task
@@ -95,7 +125,8 @@ def step_simulation():
 
 @celery.task
 def choose_proposer():
-    if players:
+    global proposal
+    if players and proposal is None:
         proposer = random.choice(players)
         s = socketio()
         s.emit('propose', {'proposals': model.government.proposal_options(model)}, room=proposer, namespace='/player')
@@ -106,15 +137,36 @@ def start_vote(prop):
     global proposal
     proposal = prop
     socketio().emit('vote', {'proposal': proposal}, namespace='/player')
+    socketio().emit('voting', {'proposal': proposal}, namespace='/simulation')
+    # end_vote.apply_async(countdown=30)
 
 
 def check_votes():
+    global votes
     global proposal
     print('n_votes', len(votes))
     print('n_players', len(players))
+    yays = sum(1 if v else 0 for v in votes if v is not None)
+    nays = sum(1 if not v else 0 for v in votes if v is not None)
+    socketio().emit('votes', {'yays': yays, 'nays': nays}, namespace='/simulation')
     if len(votes) >= len(players) and proposal is not None:
         # vote has concluded
         print('vote done!')
+        yay = sum(1 if v else -1 for v in votes if v is not None)
+        print('yay votes', yay)
+        if yay > 0:
+            model.government.apply_proposal(proposal, model)
+        proposal = None
+        votes = []
+        socketio().emit('voted', {'passed': yay > 0}, namespace='/simulation')
+
+
+@celery.task
+def end_vote():
+    global proposal
+    if proposal is not None:
+        # vote has concluded
+        print('vote done! (timeout)')
         yay = sum(1 if v else -1 for v in votes if v is not None)
         if yay > 0:
             model.government.apply_proposal(proposal, model)
@@ -159,6 +211,7 @@ def remove_player(id):
         check_votes()
     elif id in queued_players:
         s.emit('left_queue', {'id': id}, namespace='/simulation')
+    print('deregistered', id)
 
 
 @celery.task

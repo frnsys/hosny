@@ -79,6 +79,7 @@ require([
           url: "/step",
           success: function() {
             $('.step-simulation').hide();
+            $('.voting').hide();
           }
         })
       });
@@ -89,6 +90,19 @@ require([
         }
         sim.setup(rows, cols, 0.5, data.population, data.buildings, config);
         sim.start();
+
+        // if this is an existing simulation, hide the setup
+        if (data.existing) {
+          $('.overlay').fadeOut();
+          $('.omni').fadeIn();
+          players = data.players;
+          update_players();
+        }
+      });
+
+      socket.on("init", function(data){
+        queued_players = data.queued_players;
+        update_start_players();
       });
 
       socket.on("simulation", function(data){
@@ -97,6 +111,10 @@ require([
           $('.step-simulation').show();
         }
       });
+
+      function update_players() {
+        $(".n-players").text(players.length.toString() + " players");
+      }
 
       // Whenever players join
       var i = 2;
@@ -109,15 +127,14 @@ require([
         $('.players ul li:nth-child(' + i + ') h3.name').text(data.name);
         //console.log(data.quality_of_life);
         i++;
-
         $(".n-players").text("Population of " + players.length.toString());
+        update_players();
       });
 
       socket.on("left", function(data){
         var player = _.findWhere(players, {id: data.id});
         players = _.without(players, player);
-
-        $(".n-players").text(players.length.toString() + " players");
+        update_players();
       });
 
       function update_start_players() {
@@ -186,6 +203,22 @@ require([
             building.remove(tenant);
           }
         }
+      });
+
+      socket.on("voting", function(data) {
+        $(".voting").show();
+        $('.votes, .status').empty();
+        $('.proposal').empty().html(renderTemplate('proposal', data.proposal));
+        console.log(data);
+      });
+
+      socket.on("votes", function(data) {
+        $('.votes').html(data.yays.toString() + " yay, " + data.nays.toString() + " nay");
+      });
+
+      socket.on("voted", function(data) {
+        var status = data.passed ? "PASSED!" : "FAILED!";
+        $('.status').html(status);
       });
 
       $(".twooter-feed").on('click', '.twoot-author', function() {

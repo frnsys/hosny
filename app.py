@@ -9,9 +9,9 @@ app = create_app(blueprints=[routes])
 socketio = SocketIO(app, message_queue='redis://localhost:6379')
 
 # have to do this manually
-for msg, v in handlers.items():
-    ns = v.get('namespace', '/')
-    socketio.on(msg, namespace=ns)(v['func'])
+for msg, funcs in handlers.items():
+    for ns, func in funcs.items():
+        socketio.on(msg, namespace=ns)(func)
 
 socketio.run(app, host='0.0.0.0', port=5000, debug=True)
 
