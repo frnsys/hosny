@@ -206,7 +206,7 @@ require([
       socket.on("voting", function(data) {
         $(".voting").show();
         $('.votes, .status').empty();
-        $('.proposal').empty().html(renderTemplate('proposal', data.proposal));
+        $('.proposal').empty().html(renderTemplate('voting', data.proposal));
       });
 
       socket.on("votes", function(data) {
