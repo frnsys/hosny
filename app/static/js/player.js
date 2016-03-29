@@ -20,7 +20,7 @@ require([
         console.log("vote successfully cast");
         setTimeout(function() {
           $('main').empty().html(renderTemplate('voted'));
-        }, 2000);
+        }, 10000);
       }
     });
   }

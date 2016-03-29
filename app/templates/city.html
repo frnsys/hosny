@@ -73,21 +73,25 @@
         </div> -->
 
         <div class="row">
+            <h1>SIMCITY, VERSION VAPE.0</h1>
+                <h2>Why?</h2>
+                <p>Simulations are a huge part of the reason why our economies are structured the way they are. Usually a very small group of people get to decide the parameters that effect the simulation. What if people from all groups and demographs were able to participate? We decided to create a game that helps you understand how these simulations work if that were the case.</p>
+                
+                <h2>First, let's set up our world.</h2>
             <form action="" class="setup-simulation">
-            <fieldset class="column1 show">
-                <h1>HOSNY</h1>
-                <p>We've got buildings and people. We just need the policy makers to govern them. Will you help VapeCity be the best city in this magnificent country?</p>
-                <p class="start-queue">Looking for at least 3 citizens to start...</p>
-                <div class="players-joining">
-                    <ul>
-                        <li class="template">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/>
-                            <h3 class="name">Name</h3><p>has joined</p>
-                        </li>
-                    </ul>
-                    <a class="next start-simulation">Let's Start</a>
-                </div>
-            </fieldset>
+                <fieldset class="column1 show">
+                    <label for="consumer_good_utility"><h4>The food sitch</h4></label>
+                        <input type="radio" name="good_utility" value="1">There a super food that is really affordable and filling.<br>
+                        <input type="radio" name="good_utility" value="2">McDonalds.<br>
+                        <input type="radio" name="good_utility" value="3">A blight leaves us with just expensive corn.                    
+                </fieldset>
+                <fieldset class="column2 show">
+                    <label for="labor_per_equipment"><h4>Will technology replace your job?</h4></label>
+                        <input type="radio" name="good_utility" value="1">Yes, everything will be automated. We can all just hang out now.<br>
+                        <input type="radio" name="good_utility" value="2">Not if you're a knowledge worker.<br>
+                        <input type="radio" name="good_utility" value="3">We go back to using tools made out of rocks.
+                </fieldset>
+
             <fieldset class="column2 hide">
                 <label for="characterVals">Choose what sort of people you'd like your city to be populated with.</label>
                     <input type="radio" name="character" value="1" checked>Random<br>
@@ -139,6 +143,10 @@
 
             </fieldset>
             </form>
+
+            <p class="start-queue">We're waiting for 3 citizens to register...</p>
+            <a class="next start-simulation">Let's Start</a>
+
         </div>
     </div>
 </div>

@@ -11,24 +11,24 @@ require([
       config = {
         patient_zero_prob: 0.01,
         contact_rate: 0.1,
-        transmission_rate: 0.1,
-        sickness_severity: 0.01,
+        transmission_rate: 0.1, // same as below
+        sickness_severity: 0.01, // 10 = Aggressive strain of rare virus? | 0.1 = Everyone is super healthy, no one ever gets sick. Like ever.
         tax_rate: 0.3,
         tax_rate_increment: 0,
         welfare_increment: 0,
         welfare: 10,
-        consumer_good_utility: 1,
+        consumer_good_utility: 1, // 10 = There a super food that is really affordable and filling? | 0.1 = A blight leaves us with just expensive corn.
         rent: 1000,
         labor_cost_per_good: 2,
         material_cost_per_good: 2,
-        labor_per_worker: 50,
-        labor_per_equipment: 50,
+        labor_per_worker: 50, // 10 = Everyone is extremely hard working | 0.1 = The entire population is demotivated to contribute to society
+        labor_per_equipment: 50, // 10 = Super automated tech | 0.1 = We go back to rock tools
         supply_increment: 10,
         profit_increment: 10,
         wage_increment: 1,
         extravagant_wage_range: 100,
         residence_size_limit: 100,
-        base_min_consumption: 0,
+        base_min_consumption: 0, 
         wage_under_market_multiplier: 1,
         min_business_capital: 50000,
         starting_wage: 5,
@@ -43,6 +43,8 @@ require([
   });
 
   $(function() {
+      // have form already, next submits that form
+      
       $(".next").on("click", function(ev) {
         ev.preventDefault();
 
