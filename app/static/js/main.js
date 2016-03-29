@@ -75,6 +75,7 @@ require([
           url: "/step",
           success: function() {
             $('.step-simulation').hide();
+            $('.voting').hide();
           }
         })
       });
@@ -200,6 +201,21 @@ require([
             building.remove(tenant);
           }
         }
+      });
+
+      socket.on("voting", function(data) {
+        $(".voting").show();
+        $('.votes, .status').empty();
+        $('.proposal').empty().html(renderTemplate('proposal', data.proposal));
+      });
+
+      socket.on("votes", function(data) {
+        $('.votes').html(data.yays.toString() + " yay, " + data.nays.toString() + " nay");
+      });
+
+      socket.on("voted", function(data) {
+        var status = data.passed ? "PASSED!" : "FAILED!";
+        $('.status').html(status);
       });
 
       $(".twooter-feed").on('click', '.twoot-author', function() {

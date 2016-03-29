@@ -137,6 +137,7 @@ def start_vote(prop):
     global proposal
     proposal = prop
     socketio().emit('vote', {'proposal': proposal}, namespace='/player')
+    socketio().emit('voting', {'proposal': proposal}, namespace='/simulation')
     # end_vote.apply_async(countdown=30)
 
 
@@ -145,6 +146,9 @@ def check_votes():
     global proposal
     print('n_votes', len(votes))
     print('n_players', len(players))
+    yays = sum(1 if v else 0 for v in votes if v is not None)
+    nays = sum(1 if not v else 0 for v in votes if v is not None)
+    socketio().emit('votes', {'yays': yays, 'nays': nays}, namespace='/simulation')
     if len(votes) >= len(players) and proposal is not None:
         # vote has concluded
         print('vote done!')
@@ -154,6 +158,7 @@ def check_votes():
             model.government.apply_proposal(proposal, model)
         proposal = None
         votes = []
+        socketio().emit('voted', {'passed': yay > 0}, namespace='/simulation')
 
 
 @celery.task
