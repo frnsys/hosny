@@ -102,8 +102,6 @@ require([
       var i = 2;
       socket.on("joined", function(data){
         players.push(data);
-
-        console.log(i);
         // Adding players to the bottom section
         $('.players-joining ul li.template').clone().appendTo('.players-joining ul').removeClass("template");
         $('.players ul li.template').clone().appendTo('.players ul').removeClass("template");
@@ -112,7 +110,7 @@ require([
         //console.log(data.quality_of_life);
         i++;
 
-        $(".n-players").text(players.length.toString() + " players");
+        $(".n-players").text("Population of " + players.length.toString());
       });
 
       socket.on("left", function(data){

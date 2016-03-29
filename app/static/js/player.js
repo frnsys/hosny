@@ -91,7 +91,33 @@ require([
   }
 
   function showPerson() {
+
+    if (person.sex == 1) person.sex = "man";
+    if (person.sex == 2) person.sex = "woman";
+
+    if (person.race == 1) person.race = "Caucasian";
+    if (person.race == 2) person.race = "Black";    
+    if (person.race == 3) person.race = "American Indian or Alaskan Native";    
+    if (person.race == 4 || person.race == 5) person.race = "East Asian";    
+    if (person.race == 6) person.race = "Other Asian or Pacific Islander";
+    if (person.race == 7 || person.race == 8) person.race = "Other or mixed";
+
+    console.log(person.education);
+
+    if (person.education == 0) person.education = "None";
+    if (person.education == 1 || person.education == 2) person.education = "Middle school";
+    if (person.education == 3 || person.education == 4 || person.education == 5 || person.education == 6) person.education = "High school";
+    if (person.education == 7 || person.education == 8 || person.education == 9 || person.education == 10) person.education = "College undergraduate";
+    if (person.education == 11) person.education = "Postgraduate";
+
+    if (person.employed == 0) person.employed = "Decline to say";
+    if (person.employed == 1) person.employed = "Gainfully employed";
+    if (person.employed == 2) person.employed = "unemployed";
+    if (person.employed == 3) person.employed = " retired, student, those taking care of children or other family members, and others who are neither working nor seeking work";
+
     $("main").empty().html(renderTemplate('person', person));
+
+
   }
 
   $(function() {
