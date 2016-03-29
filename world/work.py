@@ -43,8 +43,7 @@ income_brackets = {code: income_bracket(code) for code in income_codes}
 
 
 def employment_dist(year, month, sex, race):
-    return {'employed': 0.5, 'unemployed': 0.5}
-
+    # return {'employed': 0.5, 'unemployed': 0.5}
     """probability of employment/unemployment
     given year, month (int, zero-indexed), sex, and race"""
 
@@ -93,7 +92,7 @@ def offer_prob(year, month, sex, race, referral):
         elif race.name == 'black':
             race = 'black'
 
-        # mean of two random races. this is a sloppy guessj,
+        # mean of two random races. this is a sloppy guess,
         # since the actual evidence may not work this way
         elif race.name in ['other', 'two', 'three_plus']:
             races = list(p_offer['offered']['race'].keys())

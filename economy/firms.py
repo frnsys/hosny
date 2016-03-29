@@ -1,11 +1,12 @@
 import json
 import math
-import random
 import logging
 import numpy as np
 from scipy import optimize
 from cess import Agent
+from cess.util import random_choice
 from cess.agent.learn import QLearner
+from world.work import offer_prob, employment_dist
 
 logger = logging.getLogger('simulation.firms')
 
@@ -97,11 +98,19 @@ class Firm(Agent):
             'id': worker.id
         })))
 
-    def hire(self, applicants, wage):
+    def hire(self, applicants, wage, world):
         hired = []
         while self.worker_change > 0 and applicants:
-            # TODO choose based on employment prob
-            worker = random.choice(applicants)
+            # based on employment prob
+            apps = []
+            for a in applicants:
+                ref = 'friend' if set(a.friends).intersection(self.workers) else 'ad_or_cold_call'
+                p = offer_prob(world['year'], world['month'], a.sex, a.race, ref)
+                apps.append((a, p))
+            apps_mass = sum(p for a, p in apps)
+            apps = [(a, pr/apps_mass) for a, pr in apps]
+
+            worker = random_choice(apps)
             if worker.employer is not None:
                 worker.employer.fire(worker)
             worker.wage = wage
@@ -265,8 +274,14 @@ class Firm(Agent):
 
         # fire workers if necessary
         while self.worker_change < 0:
-            # TODO do weighted random choice by unemployment prob
-            worker = random.choice(self.workers)
+            # weighted random choice by unemployment prob
+            ws = []
+            for w in self.workers:
+                pu = employment_dist(world['year'], world['month'], w.sex, w.race)
+                ws.append((w, pu['unemployed']))
+            ws_mass = sum(p for w, p in ws)
+            ws = [(w, p/ws_mass) for w, p in ws]
+            worker = random_choice(ws)
             self.fire(worker)
             self.worker_change += 1
 
