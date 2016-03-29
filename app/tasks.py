@@ -49,33 +49,61 @@ def setup_simulation(given, config):
     global model
     global queued_players
 
-    # don't redundantly add the handler
+    # only setup a new simulation if there
+    # is no existing simluation.
+    # to start a new simulation, first hit the reset endpoint
     if model is None:
+        # don't redundantly add the handler
         logger.setLevel(logging.INFO)
         sockets_handler = SocketsHandler()
         logger.addHandler(sockets_handler)
 
-    pop = load_population('data/population.json')
-    pop = pop[:200] # limit to 200 for now
-    model = City(pop, config)
+        pop = load_population('data/population.json')
+        pop = pop[:200] # limit to 200 for now
+        model = City(pop, config)
 
-    # send population to the frontend
+        # send population to the frontend
+        s = socketio()
+        s.emit('setup', {
+            'existing': False,
+            'population': [p.as_json() for p in pop],
+            'buildings': [{
+                'id': b.id,
+                'tenants': []
+            } for b in model.buildings]
+        }, namespace='/simulation')
+
+        # setup queued players
+        print('QUEUED PLAYERS')
+        print(queued_players)
+        for id in queued_players:
+            players.append(id)
+            person = random.choice([p for p in model.people if p.sid == None])
+            person.sid = id
+            s.emit('person', person.as_json(), namespace='/player', room=id)
+            s.emit('joined', person.as_json(), namespace='/simulation')
+        queued_players = []
+
+
+@celery.task
+def add_client(sid):
+    # existing simulation, sync new client up
+    print('===ADDING CLIENT===')
     s = socketio()
-    s.emit('setup', {
-        'population': [p.as_json() for p in pop],
-        'buildings': [{'id': b.id} for b in model.buildings]
-    }, namespace='/simulation')
-
-    # setup queued players
-    print('QUEUED PLAYERS')
-    print(queued_players)
-    for id in queued_players:
-        players.append(id)
-        person = random.choice([p for p in model.people if p.sid == None])
-        person.sid = id
-        s.emit('person', person.as_json(), namespace='/player', room=id)
-        s.emit('joined', person.as_json(), namespace='/simulation')
-    queued_players = []
+    if model is not None:
+        s.emit('setup', {
+            'existing': True,
+            'population': [p.as_json() for p in model.people],
+            'buildings': [{
+                'id': b.id,
+                'tenants': [{'id': t.id, 'type': type(t).__name__} for t in b.tenants]
+            } for b in model.buildings],
+            'players': [p.as_json() for p in model.people if p.sid in players]
+        }, namespace='/simulation', room=sid)
+    else:
+        s.emit('init', {
+            'queued_players': queued_players
+        }, namespace='/simulation', room=sid)
 
 
 @celery.task

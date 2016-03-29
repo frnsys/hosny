@@ -85,6 +85,19 @@ require([
         }
         sim.setup(rows, cols, 0.5, data.population, data.buildings, config);
         sim.start();
+
+        // if this is an existing simulation, hide the setup
+        if (data.existing) {
+          $('.overlay').fadeOut();
+          $('.omni').fadeIn();
+          players = data.players;
+          update_players();
+        }
+      });
+
+      socket.on("init", function(data){
+        queued_players = data.queued_players;
+        update_start_players();
       });
 
       socket.on("simulation", function(data){
@@ -93,6 +106,10 @@ require([
           $('.step-simulation').show();
         }
       });
+
+      function update_players() {
+        $(".n-players").text(players.length.toString() + " players");
+      }
 
       // Whenever players join
       var i = 2;
@@ -108,15 +125,13 @@ require([
         $('.players ul li:nth-child(' + i + ') h3.name').text(data.name);
         //console.log(data.quality_of_life);
         i++;
-
-        $(".n-players").text(players.length.toString() + " players");
+        update_players();
       });
 
       socket.on("left", function(data){
         var player = _.findWhere(players, {id: data.id});
         players = _.without(players, player);
-
-        $(".n-players").text(players.length.toString() + " players");
+        update_players();
       });
 
       function update_start_players() {
