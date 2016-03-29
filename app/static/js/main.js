@@ -169,7 +169,11 @@ require([
         // don't twoot everything, it's too much
         if (Math.random() < 0.2) {
           data.username = slugify(data.name);
-          $(".twooter-feed").prepend(renderTemplate('twoot', data));
+          // max 5 elements in marquee
+          if ($('.marquee .twoot').length > 5) {
+            $('.marquee .twoot').first().remove();
+          }
+          $(".marquee").prepend(renderTemplate('twoot', data));
         }
       });
 
