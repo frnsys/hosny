@@ -1,3 +1,7 @@
+{{ description }}
+
+<input type="hidden" name="description" value="{{ description }}">
+
 {{#if values}}
     {{#if value}}
         <input type="number" name="value" min="{{ values.[0] }}" max="{{ values.[1] }}" value="{{ value }}">
