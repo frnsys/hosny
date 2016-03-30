@@ -75,6 +75,7 @@ def setup_simulation(config):
                 'tenants': []
             } for b in model.buildings]
         }, namespace='/simulation')
+        s.emit('government', model.government.as_json(), namespace='/simulation')
 
         # setup queued players
         print('QUEUED PLAYERS')
@@ -103,6 +104,7 @@ def add_client(sid):
             } for b in model.buildings],
             'players': [p.as_json() for p in model.people if p.sid in players]
         }, namespace='/simulation', room=sid)
+        s.emit('government', model.government.as_json(), namespace='/simulation')
     else:
         s.emit('init', {
             'queued_players': queued_players
@@ -154,7 +156,8 @@ def check_votes():
     print('n_players', len(players))
     yays = sum(1 if v else 0 for v in votes if v is not None)
     nays = sum(1 if not v else 0 for v in votes if v is not None)
-    socketio().emit('votes', {'yays': yays, 'nays': nays}, namespace='/simulation')
+    s = socketio()
+    s.emit('votes', {'yays': yays, 'nays': nays}, namespace='/simulation')
     if len(votes) >= len(players) and proposal is not None:
         # vote has concluded
         print('vote done!')
@@ -164,7 +167,8 @@ def check_votes():
             model.government.apply_proposal(proposal, model)
         proposal = None
         votes = []
-        socketio().emit('voted', {'passed': yay > 0}, namespace='/simulation')
+        s.emit('voted', {'passed': yay > 0}, namespace='/simulation')
+        s.emit('government', model.government.as_json(), namespace='/simulation')
 
 
 @celery.task
