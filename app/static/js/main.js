@@ -265,6 +265,10 @@ require([
         $('.proposal').empty().html(renderTemplate('voting', data.proposal));
       });
 
+      socket.on("government", function(data) {
+        $('.government').html(renderTemplate('government', data));
+      });
+
       socket.on("votes", function(data) {
         $('.votes').html(data.yays.toString() + " yay, " + data.nays.toString() + " nay");
       });

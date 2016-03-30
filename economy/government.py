@@ -155,6 +155,13 @@ class Government(Agent):
         """return industries that have firms in them"""
         return [ind for ind, typ in industries.items() if [f for f in world.firms_of_type(typ) if f.public == public]]
 
+    def as_json(self):
+        return {
+            'tax_rate': self.tax_rate,
+            'welfare': self.welfare,
+            'welfare_req': self.welfare_req,
+            'subsidies': {k.__name__: v for k, v in self.subsidies.items()}
+        }
 
 
 class ProposalType(IntEnum):

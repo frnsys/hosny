@@ -154,3 +154,9 @@ button {
 .actions {
     clear: both;
 }
+
+.government {
+    float: left;
+    text-align: left;
+    color: #303030;
+}
