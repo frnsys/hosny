@@ -1,6 +1,5 @@
 import math
 import json
-import random
 import logging
 import asyncio
 import numpy as np
@@ -8,7 +7,7 @@ from datetime import datetime
 from cess import Agent
 from .names import generate_name
 from .generate import generate
-from .attribs import Employed, Sex, Race, Education
+from .attribs import Sex, Race, Education
 from cess.util import random_choice
 
 
@@ -121,33 +120,7 @@ class Person(Agent):
 
     @asyncio.coroutine
     def step(self, world):
-        """one time-step"""
-        if self.state['employed'] == Employed.employed:
-            self.diary['days_employed'] += 1
-
-            f = self.fire_prob(world)
-            if random.random() < f:
-                self._state['employed'] = Employed.unemployed
-                self.twoot('ah shit I got fired!', world)
-        else:
-            self.diary['days_unemployed'] += 1
-
-            c = world['contact_rate']
-            for friend in self.friends:
-                employed = yield from friend['employed']
-                if employed == Employed.employed and random.random() <= c:
-                    p = self.hire_prob(world, 'friend')
-                    if random.random() <= p:
-                        self.twoot('got a job from my friend :)', world)
-                        self._state['employed'] == Employed.employed
-                        break
-
-            # still don't have a job, cold call
-            if self.state['employed'] != Employed.employed:
-                p = self.hire_prob(world, 'ad_or_cold_call')
-                if random.random() <= p:
-                    self.twoot('got a job from a cold call!', world)
-                    self._state['employed'] == Employed.employed
+        pass # this is all handled externally now
 
     def as_json(self):
         obj = self.state.copy()
