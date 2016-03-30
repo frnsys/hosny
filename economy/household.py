@@ -15,6 +15,10 @@ class Household():
         self.goods = 0
 
     @property
+    def income(self):
+        return sum(p.wage for p in self.people)
+
+    @property
     def quality_of_life(self):
         """pretty simple - should also incorporate leisure time"""
         return ((self.goods * self.good_utility) + sum(p.health_utility(p._state['health']) for p in self.people)/len(self.people)) * self.health

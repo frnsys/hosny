@@ -74,7 +74,7 @@ class Government(Agent):
         action = self.learner.choose_action(self.current_state(households))
         action = self.actions[action]
         self.tax_rate = min(1, max(0, self.tax_rate + action.get('tax_rate', 0)))
-        max_per_person = self.cash/sum(len(h.people) for h in households) if households else 0
+        max_per_person = self.cash/sum(len(h.people) for h in households if h.income <= self.welfare_req) if households else 0
         self.welfare = min(max(0, self.welfare + action.get('welfare', 0)), max_per_person)
         self.prev_qol = sum(h.quality_of_life for h in households)/len(households) if households else 0
 
