@@ -72,65 +72,27 @@
                 <h2>First, let's set up our world.</h2>
             <form action="" class="setup-simulation">
                 <fieldset class="column1 show">
-                    <label for="consumer_good_utility"><h4>The food sitch</h4></label>
+                    <label for="consumer_good_utility"><h4>Food</h4></label>
                         <input type="radio" name="good_utility" value="1">There a super food that is really affordable and filling.<br>
                         <input type="radio" name="good_utility" value="2">McDonalds.<br>
                         <input type="radio" name="good_utility" value="3">A blight leaves us with just expensive corn.                    
                 </fieldset>
                 <fieldset class="column2 show">
-                    <label for="labor_per_equipment"><h4>Will technology replace your job?</h4></label>
-                        <input type="radio" name="good_utility" value="1">Yes, everything will be automated. We can all just hang out now.<br>
-                        <input type="radio" name="good_utility" value="2">Not if you're a knowledge worker.<br>
-                        <input type="radio" name="good_utility" value="3">We go back to using tools made out of rocks.
+                    <label for="labor_per_equipment"><h4>Jobs</h4></label>
+                        <input type="radio" name="per_equipment" value="1">Everything will be automated. We can all just hang out now.<br>
+                        <input type="radio" name="per_equipment" value="2">Not if you're a knowledge worker.<br>
+                        <input type="radio" name="per_equipment" value="3">We go back to using tools made out of rocks.
                 </fieldset>
 
-            <fieldset class="column2 hide">
-                <label for="characterVals">Choose what sort of people you'd like your city to be populated with.</label>
-                    <input type="radio" name="character" value="1" checked>Random<br>
-                    <input type="radio" name="character" value="2">Past players<br>
-                    <input type="radio" name="character" value="3">Custom
-                <a class="next">Save city parameters</a>
-            </fieldset>
+                <fieldset class="column3 show">
+                    <label for="sickness_severity"><h4>Global Health</h4></label>
+                        <input type="radio" name="severity" value="1">Aggressive strain of rare virus.<br>
+                        <input type="radio" name="severity" value="2">You can still get a prescription pill for that.<br>
+                        <input type="radio" name="severity" value="3">Everyone is super healthy, no one ever gets sick. Like ever.
+                </fieldset>
             <fieldset class="column3 hide">
-                    <h2>Choose what sort of people you'd like your city to be populated with.</h2>
-                    <label>Race</label>
-                        <select name="race">
-                            <option value="1" selected>White</option>
-                            <option value="2">Black</option>
-                            <option value="3">American Indian or Alaskan Native</option>
-                            <option value="4">Chinese</option>
-                            <option value="5">Japanese</option>
-                            <option value="6">Other Asian or Pacific Islander</option>
-                            <option value="7">Other</option>
-                            <option value="8">Two major races</option>
-                            <option value="9">Three or more major races</option>
-                        </select>
-                        <label>Education</label>
-                        <select name="education">
-                            <option value="0" selected>None</option>
-                            <option value="1">Preschool through 4th grade</option>
-                            <option value="2">5th grade through 8th grade</option>
-                            <option value="3">9th grade</option>
-                            <option value="4">10th grade</option>
-                            <option value="5">11th grade</option>
-                            <option value="6">12th grade</option>
-                            <option value="7">College freshman</option>
-                            <option value="8">College sophomore</option>
-                            <option value="9">College junior</option>
-                            <option value="10">College senior</option>
-                            <option value="11">Post graduate</option>
-                        </select>
-                        <label>Employment</label>
-                        <select name="employment">
-                            <option value="0" selected>None</option>
-                            <option value="1" >Employed</option>
-                            <option value="2" >Unemployed</option>
-                            <option value="3" >Non labor</option>
-                        </select>
-                        <label for="desiredWageVals">Wage Desired per Hour</label>
-                        <input type="radio" name="desiredWage" value="1" checked> $7.75<br>
-                        <input type="radio" name="desiredWage" value="2"> $25<br>
-                        <input type="radio" name="desiredWage" value="3"> $50
+                    <!-- <h2>Choose what sort of people you'd like your city to be populated with.</h2> -->
+                
                     <input type="submit" class="submit" value="Submit">
 
             </fieldset>
