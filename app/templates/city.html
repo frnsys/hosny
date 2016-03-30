@@ -8,7 +8,8 @@
 {% block content %}
 
 <canvas id="stage"></canvas>
-
+<div class="graphs-qli">
+</div>
 <div class="omni">
     <div class="voting">
         <div class="voting-bill"><h1>This month's very pressing issue</h1></div>
@@ -23,18 +24,18 @@
     </div>
 </div>
 
-
-<div class="city-stats">
-    <div class="stats"></div>
-    <!-- <div class="graphs"></div> -->
-</div>
-
 <div class="dashboard">
     <ul class="legend">
         <li><div class="color" style="background:#ff2222;"></div> hospital</li>
         <li><div class="color" style="background:#44ffff;"></div> equipment firm</li>
         <li><div class="color" style="background:#44ff44;"></div> food firm</li>
         <li><div class="color" style="background:#C182E8;"></div> raw material firm</li>
+    </ul>
+
+    <ul class="city-equation">
+        <li>Quality of food: <span class="consumer_good_utility"></span> </li>
+        <li>Type of jobs: <span class="labor_per_equipment"></span> </li>
+        <li>Global health: <span class="sickness_severity"></span> </li>
     </ul>
 
      <div class="twooter">
@@ -72,23 +73,23 @@
                 <h2>First, let's set up our world.</h2>
             <form action="" class="setup-simulation">
                 <fieldset class="column1 show">
-                    <label for="consumer_good_utility"><h4>Food</h4></label>
-                        <input type="radio" name="good_utility" value="1">There a super food that is really affordable and filling.<br>
+                    <label for="consumer_good_utility"><h4>Quality of food</h4></label>
+                        <input type="radio" name="good_utility" value="1" >There a super food that is really affordable and filling.<br>
                         <input type="radio" name="good_utility" value="2">McDonalds.<br>
-                        <input type="radio" name="good_utility" value="3">A blight leaves us with just expensive corn.
+                        <input type="radio" name="good_utility" value="3" checked>A blight leaves us with just expensive corn.
                 </fieldset>
                 <fieldset class="column2 show">
-                    <label for="labor_per_equipment"><h4>Jobs</h4></label>
-                        <input type="radio" name="per_equipment" value="1">Everything will be automated. We can all just hang out now.<br>
+                    <label for="labor_per_equipment"><h4>Type of jobs</h4></label>
+                        <input type="radio" name="per_equipment" value="1" checked >Everything will be automated. We can all just hang out now.<br>
                         <input type="radio" name="per_equipment" value="2">Not if you're a knowledge worker.<br>
-                        <input type="radio" name="per_equipment" value="3">We go back to using tools made out of rocks.
+                        <input type="radio" name="per_equipment" value="3" >We go back to using tools made out of rocks.
                 </fieldset>
 
                 <fieldset class="column3 show">
-                    <label for="sickness_severity"><h4>Global Health</h4></label>
-                        <input type="radio" name="disease" value="1">Aggressive strain of rare virus.<br>
+                    <label for="sickness_severity"><h4>Global health</h4></label>
+                        <input type="radio" name="disease" value="1" checked >Aggressive strain of rare virus.<br>
                         <input type="radio" name="disease" value="2">You can still get a prescription pill for that.<br>
-                        <input type="radio" name="disease" value="3">Everyone is super healthy, no one ever gets sick. Like ever.
+                        <input type="radio" name="disease" value="3" >Everyone is super healthy, no one ever gets sick. Like ever.
                 </fieldset>
             <fieldset class="column3 hide">
                     <!-- <h2>Choose what sort of people you'd like your city to be populated with.</h2> -->
