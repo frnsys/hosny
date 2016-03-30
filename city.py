@@ -21,6 +21,7 @@ default_conf = {
     'contact_rate': 0.1,
     'transmission_rate': 0.1,
     'sickness_severity': 0.01,
+    'recovery_prob': 0.8,
     'tax_rate': 0.3,
     'tax_rate_increment': 0.1,
     'welfare_increment': 1,
@@ -54,6 +55,7 @@ class City(Simulation):
 
         config = default_conf.copy()
         config.update(conf)
+        self.config = config
 
         Firm.config = config
         Person.base_min_consumption = config['base_min_consumption']
@@ -77,6 +79,7 @@ class City(Simulation):
             'contact_rate': config['contact_rate'],
             'transmission_rate': config['transmission_rate'],
             'sickness_severity': config['sickness_severity'],
+            'recovery_prob': config['recovery_prob'],
 
             'mean_wage': config['starting_wage'],
             'available_space': len(self.buildings) * config['max_tenants'],
@@ -316,11 +319,12 @@ class City(Simulation):
                     if person._state['health'] <= 0:
                         self.dies(person)
                         deaths += 1
+                else:
                     continue
                 for friend in person.friends:
                     if random.random() <= c and random.random() <= self.state['transmission_rate']:
-                        person.twoot('feeling sick...', self.state)
-                        break
+                        friend.twoot('feeling sick...', self.state)
+                        friend._state['sick'] = True
         # otherwise, see if a new sickness starts
         elif random.random() < self.state['patient_zero_prob']:
             patient_zero = random.choice(self.people)
@@ -476,7 +480,7 @@ class City(Simulation):
                 hospital.sell(1)
                 person._state['cash'] -= hospital.price
                 person._state['health'] = 1
-                person._state['sick'] = False
+                person._state['sick'] = False if random.random() < self.state['recovery_prob'] else True
                 sold.append(hospital.price)
                 if hospital.supply == 0:
                     hospitals.remove(hospital)
