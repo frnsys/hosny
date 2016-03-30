@@ -206,10 +206,9 @@ class City(Simulation):
 
         for household in self.households:
             if not household.check_goods():
-                pass
-                # for p in household.people:
-                    # self.dies(p)
-                    # n_deaths += 1
+                for p in household.people:
+                    self.dies(p)
+                    n_deaths += 1
         self.stat('n_deaths', n_deaths)
         self.stat('n_population', len(self.people))
 
