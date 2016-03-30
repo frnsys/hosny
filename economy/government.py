@@ -83,11 +83,11 @@ class Government(Agent):
         v = float(proposal['value']) if proposal.get('value') is not None else None
         if t == ProposalType.nationalize.name:
             industry = proposal['target']
-            firm = random.choice(world.firms_of_type[industries[industry]])
+            firm = random.choice(world.firms_of_type(industries[industry]))
             firm.change_owner(self)
         elif t == ProposalType.privatize.name:
             industry = proposal['target']
-            firm = random.choice(world.firms_of_type[industries[industry]])
+            firm = random.choice(world.firms_of_type(industries[industry]))
 
             # randomly pick new owner
             # we pick the person with the most money who does not already have a firm
