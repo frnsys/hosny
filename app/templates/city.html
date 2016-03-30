@@ -7,101 +7,108 @@
 
 {% block content %}
 
-<canvas id="stage"></canvas>
+<div class="wrapper">
 
-<div class="omni">
-    <div class="voting">
-        <div class="voting-bill"><h1>This month's very pressing issue</h1></div>
-        <div class="proposal"></div>
-        <div class="votes"></div>
-        <div class="status"></div>
-    </div>
-    <div class="datetime"></div>
-    <div class="n-players">Population of 0</div>
-    <div class="actions">
-        <button class="step-simulation">start month</button>
+    <div class="stage-wrapper"><canvas id="stage"></canvas></div>
+    <div class="graph graphs-qli"><h1>Mean Quality of Life</h1></div>
+    <div class="graph graphs-healthcare"><h1>mean healthcare price</h1></div>
+    <div class="graph graphs-cash"><h1>Mean cash</h1></div>
+    <div class="graph graphs-sick"><h1>Sick citizens</h1></div>
+    <div class="omni">
+        <div class="voting">
+            <div class="voting-bill"><h1>This month's very pressing issue</h1></div>
+            <div class="proposal"></div>
+            <div class="votes"></div>
+            <div class="status"></div>
+        </div>
+        <div class="datetime"></div>
+        <div class="n-players">Population of 0</div>
+        <div class="actions">
+            <button class="step-simulation">start month</button>
+        </div>
     </div>
     <div class="government"></div>
 </div>
 
+    <div class="dashboard">
+        <ul class="legend">
+            <li><div class="color" style="background:#ff2222;"></div> hospital</li>
+            <li><div class="color" style="background:#44ffff;"></div> equipment firm</li>
+            <li><div class="color" style="background:#44ff44;"></div> food firm</li>
+            <li><div class="color" style="background:#C182E8;"></div> raw material firm</li>
+        </ul>
 
-<div class="city-stats">
-    <div class="stats"></div>
-    <!-- <div class="graphs"></div> -->
-</div>
+        <ul class="city-equation">
+            <li>Quality of food: <span class="consumer_good_utility"></span> </li>
+            <li>Type of jobs: <span class="labor_per_equipment"></span> </li>
+            <li>Global health: <span class="sickness_severity"></span> </li>
+        </ul>
 
-<div class="dashboard">
-    <ul class="legend">
-        <li><div class="color" style="background:#ff2222;"></div> hospital</li>
-        <li><div class="color" style="background:#44ffff;"></div> equipment firm</li>
-        <li><div class="color" style="background:#44ff44;"></div> food firm</li>
-        <li><div class="color" style="background:#C182E8;"></div> raw material firm</li>
-    </ul>
+         <div class="twooter">
+            <div class="twooter-breaking"><h2>BREAKING NEWS</h2></div>
+            <div class="marquee"></div>
+        </div>
+        <div class="players">
+            <h1>Meet Your Governing Body</h1>
+                <ul>
+                    <li class="template">
+                        <div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div>
+                        <div class="right"><h3 class="name">Name</h3><p>: QLI</p></div>
+                    </li>
+                </ul>
+        </div>
 
-     <div class="twooter">
-        <div class="twooter-breaking"><h2>BREAKING NEWS</h2></div>
-        <div class="marquee"></div>
     </div>
-    <div class="players">
-        <h1>Meet Your Governing Body</h1>
-            <ul>
-                <li class="template">
-                    <div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div>
-                    <div class="right"><h3 class="name">Name</h3><p>: QLI</p></div>
-                </li>
-            </ul>
-    </div>
 
-</div>
-
-<div class="overlay">
-    <div class="overlay-content">
-        <!-- <div class="row">
-            <form action="" class="setup-simulation">
-                <h2>We have all the necessary things to make a city, except its decision-makers.</h2>
-                <p>Think you have what it takes to make good ideas?</p>
-
-                <input type="submit" class="submit" value="Submit">
-            </form>
-        </div> -->
-
-        <div class="row">
-            <h1>SIMCITY, VERSION VAPE.0</h1>
-                <h2>Why?</h2>
-                <p>Simulations are a huge part of the reason why our economies are structured the way they are. Usually a very small group of people get to decide the parameters that effect the simulation. What if people from all groups and demographs were able to participate? We decided to create a game that helps you understand how these simulations work if that were the case.</p>
-
-                <h2>First, let's set up our world.</h2>
-            <form action="" class="setup-simulation">
-                <fieldset class="column1 show">
-                    <label for="consumer_good_utility"><h4>Food</h4></label>
-                        <input type="radio" name="good_utility" value="1">There a super food that is really affordable and filling.<br>
-                        <input type="radio" name="good_utility" value="2">McDonalds.<br>
-                        <input type="radio" name="good_utility" value="3">A blight leaves us with just expensive corn.
-                </fieldset>
-                <fieldset class="column2 show">
-                    <label for="labor_per_equipment"><h4>Jobs</h4></label>
-                        <input type="radio" name="per_equipment" value="1">Everything will be automated. We can all just hang out now.<br>
-                        <input type="radio" name="per_equipment" value="2">Not if you're a knowledge worker.<br>
-                        <input type="radio" name="per_equipment" value="3">We go back to using tools made out of rocks.
-                </fieldset>
-
-                <fieldset class="column3 show">
-                    <label for="sickness_severity"><h4>Global Health</h4></label>
-                        <input type="radio" name="disease" value="1">Aggressive strain of rare virus.<br>
-                        <input type="radio" name="disease" value="2">You can still get a prescription pill for that.<br>
-                        <input type="radio" name="disease" value="3">Everyone is super healthy, no one ever gets sick. Like ever.
-                </fieldset>
-            <fieldset class="column3 hide">
-                    <!-- <h2>Choose what sort of people you'd like your city to be populated with.</h2> -->
+    <div class="overlay">
+        <div class="overlay-content">
+            <!-- <div class="row">
+                <form action="" class="setup-simulation">
+                    <h2>We have all the necessary things to make a city, except its decision-makers.</h2>
+                    <p>Think you have what it takes to make good ideas?</p>
 
                     <input type="submit" class="submit" value="Submit">
+                </form>
+            </div> -->
 
-            </fieldset>
-            </form>
+            <div class="row">
+                <h1>SIMCITY, VERSION VAPE.0</h1>
+                    <h2>Why?</h2>
+                    <p>Simulations are a huge part of the reason why our economies are structured the way they are. Usually a very small group of people get to decide the parameters that effect the simulation. What if people from all groups and demographs were able to participate? We decided to create a game that helps you understand how these simulations work if that were the case.</p>
 
-            <p class="start-queue">We're waiting for 3 citizens to register...</p>
-            <a class="next start-simulation">Let's Start</a>
+                    <h2>First, let's set up our world.</h2>
+                <form action="" class="setup-simulation">
+                    <fieldset class="column1 show">
+                        <label for="consumer_good_utility"><h4>Quality of food</h4></label>
+                            <input type="radio" name="good_utility" value="1" >There a super food that is really affordable and filling.<br>
+                            <input type="radio" name="good_utility" value="2">McDonalds.<br>
+                            <input type="radio" name="good_utility" value="3" checked>A blight leaves us with just expensive corn.
+                    </fieldset>
+                    <fieldset class="column2 show">
+                        <label for="labor_per_equipment"><h4>Type of jobs</h4></label>
+                            <input type="radio" name="per_equipment" value="1" checked >Everything will be automated. We can all just hang out now.<br>
+                            <input type="radio" name="per_equipment" value="2">Not if you're a knowledge worker.<br>
+                            <input type="radio" name="per_equipment" value="3" >We go back to using tools made out of rocks.
+                    </fieldset>
 
+                    <fieldset class="column3 show">
+                        <label for="sickness_severity"><h4>Global health</h4></label>
+                            <input type="radio" name="disease" value="1" >Aggressive strain of rare virus.<br>
+                            <input type="radio" name="disease" value="2">You can still get a prescription pill for that.<br>
+                            <input type="radio" name="disease" value="3" checked >Everyone is super healthy, no one ever gets sick. Like ever.
+                    </fieldset>
+                <fieldset class="column3 hide">
+                        <!-- <h2>Choose what sort of people you'd like your city to be populated with.</h2> -->
+
+                        <input type="submit" class="submit" value="Submit">
+
+                </fieldset>
+                </form>
+
+                <p class="start-queue">We're waiting for 3 citizens to register...</p>
+                <a class="next start-simulation">Let's Start</a>
+
+            </div>
         </div>
     </div>
 </div>
@@ -112,6 +119,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
 <script src="/static/js/templates.js"></script>
 <script src="/static/js/util.js"></script>
 <script data-main="/static/js/main" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.min.js"></script>

@@ -43,34 +43,62 @@ require([
     $('.marquee').marquee();
   });
 
+require([
+  'graph'
+], function(Graph) {
+
+  $(function() {
+    var socket = io('/simulation'),
+        graphs = {
+          mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 650, 200, ""),
+          mean_healthcare_price: new Graph(".graphs-healthcare", "mean_healthcare_price", 650, 200, ""),
+          mean_cash: new Graph(".graphs-cash", "mean_cash", 650, 200, ""),
+          n_sick: new Graph(".graphs-sick", "n_sick", 650, 200, "")
+        };
+
+    socket.on("graph", function(data){
+      if (data.graph in graphs) {
+        var graph = graphs[data.graph];
+        graph.update(data.data);
+      }
+    });
+  });
+});
+
+
   $(function() {
       // have form already, next submits that form
       $(".next").on("click", function(ev) {
         ev.preventDefault();
-
-        var consumer_good_utility, labor_per_equipment, sickness_severity, transmission_rate, patient_zero_prob;
+        var consumer_good_utility, consumer_good_utility_translation, labor_per_equipment, labor_per_equipment_translation, sickness_severity, sickness_severity_translation, transmission_rate, transmission_rate_translation;
 
         switch ($('[name=good_utility]:checked').val()) {
           case "1":
             consumer_good_utility = 10;
+            consumer_good_utility_translation = "Outstanding";
             break;
           case "2":
             consumer_good_utility = 1;
+            consumer_good_utility_translation = "Average";
             break;
           case "3":
             consumer_good_utility = 0.2;
+            consumer_good_utility_translation = "Poor";
             break;
         }
 
         switch ($('[name=per_equipment]:checked').val()) {
           case "1":
             labor_per_equipment = 200;
+            labor_per_equipment_translation = "Extremely automated";
             break;
           case "2":
             labor_per_equipment = 50;
+            labor_per_equipment_translation = "As it is now";
             break;
           case "3":
             labor_per_equipment = 5;
+            labor_per_equipment_translation = "Labor intensive";
             break;
         }
 
@@ -117,6 +145,9 @@ require([
             $('.overlay').fadeOut();
             $('.omni').fadeIn();
             $('.step-simulation').show();
+            console.log("hey");
+            $('.city-equation .consumer_good_utility').empty().text(consumer_good_utility + " " + consumer_good_utility_translation);
+            $('.city-equation .labor_per_equipment').empty().text(labor_per_equipment + " " + labor_per_equipment_translation);
           }
         });
 
