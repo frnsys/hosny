@@ -6,18 +6,13 @@ import asyncio
 import numpy as np
 from datetime import datetime
 from cess import Agent
-from world import work
 from .names import generate_name
 from .generate import generate
 from .attribs import Employed, Sex, Race, Education
-from world.work import offer_prob
 from cess.util import random_choice
 
 
 logger = logging.getLogger('simulation.people')
-
-# precompute and cache to save a lot of time
-emp_dist = work.precompute_employment_dist()
 
 
 class Person(Agent):
@@ -174,15 +169,6 @@ class Person(Agent):
 
     def __repr__(self):
         return self.name
-
-    def hire_prob(self, world, referral):
-        """referral can either be 'friend' or 'ad_or_cold_call'"""
-        return offer_prob(world['year'], world['month'], self.state['sex'], self.state['race'], referral)
-
-    def fire_prob(self, world):
-        employment_dist = emp_dist[world['year']][world['month'] - 1][self.race.name][self.sex.name]
-        p_unemployed = employment_dist['unemployed']/365 # kind of arbitrary denominator, what should this be?
-        return p_unemployed
 
     def twoot(self, message, world):
         data = {

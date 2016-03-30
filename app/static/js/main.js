@@ -30,7 +30,7 @@ require([
         residence_size_limit: 100,
         base_min_consumption: 0,
         wage_under_market_multiplier: 1,
-        min_business_capital: 50000,
+        min_business_capital: 75000,
         starting_wage: 5,
         desiredWage: 5,
         starting_welfare_req: 10000

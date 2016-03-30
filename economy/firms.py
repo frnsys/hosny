@@ -6,9 +6,12 @@ from scipy import optimize
 from cess import Agent
 from cess.util import random_choice
 from cess.agent.learn import QLearner
-from world.work import offer_prob, employment_dist
+from world.work import offer_prob, precompute_employment_dist
 
 logger = logging.getLogger('simulation.firms')
+
+# save time, precompute and cache
+emp_dist = precompute_employment_dist()
 
 
 class Firm(Agent):
@@ -105,7 +108,7 @@ class Firm(Agent):
             apps = []
             for a in applicants:
                 ref = 'friend' if set(a.friends).intersection(self.workers) else 'ad_or_cold_call'
-                p = offer_prob(world['year'], world['month'], a.sex, a.race, ref)
+                p = offer_prob(world['year'], world['month'], a.sex, a.race, ref, precomputed_emp_dist=emp_dist)
                 apps.append((a, p))
             apps_mass = sum(p for a, p in apps)
             apps = [(a, pr/apps_mass) for a, pr in apps]
@@ -277,7 +280,7 @@ class Firm(Agent):
             # weighted random choice by unemployment prob
             ws = []
             for w in self.workers:
-                pu = employment_dist(world['year'], world['month'], w.sex, w.race)
+                pu = emp_dist[world['year']][world['month'] - 1][w.race.name][w.sex.name]
                 ws.append((w, pu['unemployed']))
             ws_mass = sum(p for w, p in ws)
             ws = [(w, p/ws_mass) for w, p in ws]

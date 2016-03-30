@@ -72,12 +72,15 @@ def employment_dist(year, month, sex, race):
     return dist
 
 
-def offer_prob(year, month, sex, race, referral):
+def offer_prob(year, month, sex, race, referral, precomputed_emp_dist=None):
     """probability of a job offer
     referral keys: ['previous_contractor', 'other', 'headhunter_or_campus_recruiter', 'friend', 'ad_or_cold_call']
     race keys: ['nativeamerican', 'hispanic', 'black', 'asian', 'white']
     """
-    emp = employment_dist(year, month, sex, race)
+    if precomputed_emp_dist is not None:
+        emp = precomputed_emp_dist[year][month - 1][race.name][sex.name]
+    else:
+        emp = employment_dist(year, month, sex, race)
 
     # quick-and-dirty mapping to race keys
     if not isinstance(race, str):
