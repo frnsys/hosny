@@ -50,12 +50,7 @@ def step():
 @routes.route('/setup', methods=['POST'])
 def setup():
     data = request.get_json()
-    person = data['person']
-    race = int(person['race'])
-    education = int(person['education'])
-    employment = int(person['employment'])
     setup_simulation.delay(
-        {'race': race, 'education': education, 'employed': employment},
         data['world']
     )
     return jsonify(success=True)

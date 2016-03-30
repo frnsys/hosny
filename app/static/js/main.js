@@ -28,7 +28,7 @@ require([
         wage_increment: 1,
         extravagant_wage_range: 100,
         residence_size_limit: 100,
-        base_min_consumption: 0, 
+        base_min_consumption: 0,
         wage_under_market_multiplier: 1,
         min_business_capital: 50000,
         starting_wage: 5,
@@ -44,25 +44,64 @@ require([
 
   $(function() {
       // have form already, next submits that form
-      
       $(".next").on("click", function(ev) {
         ev.preventDefault();
+
+        var consumer_good_utility, labor_per_equipment, sickness_severity, transmission_rate;
+
+        switch ($('[name=good_utility]:checked').val()) {
+          case "1":
+            consumer_good_utility = 10;
+            break;
+          case "2":
+            consumer_good_utility = 1;
+            break;
+          case "3":
+            consumer_good_utility = 0.2;
+            break;
+        }
+
+        switch ($('[name=per_equipment]:checked').val()) {
+          case "1":
+            labor_per_equipment = 200;
+            break;
+          case "2":
+            labor_per_equipment = 50;
+            break;
+          case "3":
+            labor_per_equipment = 5;
+            break;
+        }
+
+        switch ($('[name=disease]:checked').val()) {
+          case "1":
+            sickness_severity = 0.1;
+            transmission_rate = 0.55;
+            break;
+          case "2":
+            sickness_severity = 0.01;
+            transmission_rate = 0.1;
+            break;
+          case "3":
+            sickness_severity = 0;
+            transmission_rate = 0;
+            break;
+        }
 
         $.ajax({
           type: "POST",
           url: "/setup",
           data: JSON.stringify({
-            person: {
-              race: $('[name=race]').val(),
-              education: $('[name=education]').val(),
-              employment: $('[name=employment]').val(),
-            },
-
             // user config for the world
             world: _.extend({
               n_buildings: rows * cols,
-              max_tenants: max_tenants,
-            }, config)
+              max_tenants: max_tenants
+            }, config, {
+              consumer_good_utility: consumer_good_utility,
+              labor_per_equipment: labor_per_equipment,
+              sickness_severity: sickness_severity,
+              transmission_rate: transmission_rate
+            })
           }),
           contentType: "application/json",
           success: function(data, textStatus, jqXHR) {

@@ -143,6 +143,7 @@ button {
     background: rgba(43, 0, 247, 1);
     color: #fff;
     z-index: 3;
+    overflow-y: scroll;
 }
 .overlay-content {
     margin: 2em auto;

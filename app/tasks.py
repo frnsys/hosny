@@ -44,7 +44,7 @@ logger = logging.getLogger('simulation')
 
 
 @celery.task
-def setup_simulation(given, config):
+def setup_simulation(config):
     """prepare the simulation"""
     global model
     global queued_players

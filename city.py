@@ -374,7 +374,7 @@ class City(Simulation):
                 # filter down to valid applicants
                 n_vacancies, wage, firm = job
                 apps = [a for a in applicants[firm] if a in job_seekers]
-                hired, n_vacancies, wage = firm.hire(apps, wage)
+                hired, n_vacancies, wage = firm.hire(apps, wage, self.state)
 
                 # remove hired people from the job seeker pool
                 for p in hired:
