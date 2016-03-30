@@ -50,10 +50,10 @@ require([
   $(function() {
     var socket = io('/simulation'),
         graphs = {
-          mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 650, 200, "mean quality of life"),
-          mean_healthcare_price: new Graph(".graphs-qli", "mean_healthcare_price", 650, 200, "mean healthcare price"),
-          mean_cash: new Graph(".graphs-qli", "mean_cash", 650, 200, "mean cash"),
-          n_sick: new Graph(".graphs-qli", "n_sick", 650, 200, "n sick")
+          mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 650, 200, ""),
+          mean_healthcare_price: new Graph(".graphs-healthcare", "mean_healthcare_price", 650, 200, ""),
+          mean_cash: new Graph(".graphs-cash", "mean_cash", 650, 200, ""),
+          n_sick: new Graph(".graphs-sick", "n_sick", 650, 200, "")
         };
 
     socket.on("graph", function(data){
