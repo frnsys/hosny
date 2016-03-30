@@ -36,7 +36,7 @@ class Firm(Agent):
         # all states map to the same actions
         action_ids = [i for i in range(len(self.actions))]
         states_actions = {s: action_ids for s in range(5)}
-        self.learner = QLearner(states_actions, self.reward, discount=0.5, explore=0.01, learning_rate=0.5)
+        self.learner = QLearner(states_actions, self.reward, discount=0.5, explore=0.01, learning_rate=0.8)
 
     @property
     def id(self):

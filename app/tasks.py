@@ -48,6 +48,8 @@ def setup_simulation(config):
     """prepare the simulation"""
     global model
     global queued_players
+    print('----------------------CONFIG')
+    print(config)
 
     # only setup a new simulation if there
     # is no existing simluation.
@@ -122,6 +124,9 @@ def step_simulation():
         print('CHOOSING PROPOSER')
         proposer = random.choice(players)
         s.emit('propose', {'proposals': model.government.proposal_options(model)}, room=proposer, namespace='/player')
+
+    print('---CONFIG------')
+    print(model.config)
 
 
 @celery.task

@@ -10,9 +10,10 @@ require([
       socket = io('/simulation'),
       config = {
         patient_zero_prob: 0.01,
-        contact_rate: 0.1,
+        contact_rate: 0.2,
         transmission_rate: 0.1, // same as below
         sickness_severity: 0.01, // 10 = Aggressive strain of rare virus? | 0.1 = Everyone is super healthy, no one ever gets sick. Like ever.
+        recovery_prob: 0.8,
         tax_rate: 0.3,
         tax_rate_increment: 0,
         welfare_increment: 0,
@@ -74,7 +75,6 @@ require([
       // have form already, next submits that form
       $(".next").on("click", function(ev) {
         ev.preventDefault();
-
         var consumer_good_utility, consumer_good_utility_translation, labor_per_equipment, labor_per_equipment_translation, sickness_severity, sickness_severity_translation, transmission_rate, transmission_rate_translation;
 
         switch ($('[name=good_utility]:checked').val()) {
@@ -109,16 +109,22 @@ require([
 
         switch ($('[name=disease]:checked').val()) {
           case "1":
-            sickness_severity = 0.1;
-            transmission_rate = 0.55;
+            sickness_severity = 0.3;
+            transmission_rate = 0.7;
+            patient_zero_prob = 0.2;
+            recovery_prob = 0.3;
             break;
           case "2":
             sickness_severity = 0.01;
             transmission_rate = 0.1;
+            patient_zero_prob = 0.01;
+            recovery_prob = 0.8;
             break;
           case "3":
             sickness_severity = 0;
             transmission_rate = 0;
+            patient_zero_prob = 0;
+            recovery_prob = 1;
             break;
         }
 
@@ -134,7 +140,9 @@ require([
               consumer_good_utility: consumer_good_utility,
               labor_per_equipment: labor_per_equipment,
               sickness_severity: sickness_severity,
-              transmission_rate: transmission_rate
+              transmission_rate: transmission_rate,
+              patient_zero_prob: patient_zero_prob,
+              recovery_prob: recovery_prob
             })
           }),
           contentType: "application/json",
