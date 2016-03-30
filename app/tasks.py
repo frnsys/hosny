@@ -53,10 +53,11 @@ def setup_simulation(config):
     # is no existing simluation.
     # to start a new simulation, first hit the reset endpoint
     if model is None:
-        # don't redundantly add the handler
-        logger.setLevel(logging.INFO)
-        sockets_handler = SocketsHandler()
-        logger.addHandler(sockets_handler)
+        if not any(isinstance(h, SocketsHandler) for h in logger.handlers):
+            # don't redundantly add the handler
+            logger.setLevel(logging.INFO)
+            sockets_handler = SocketsHandler()
+            logger.addHandler(sockets_handler)
 
         pop = load_population('data/population.json')
         pop = pop[:200] # limit to 200 for now
