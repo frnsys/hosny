@@ -1,5 +1,5 @@
 html, body {
-    
+
 }
 
 canvas {
@@ -49,9 +49,7 @@ canvas {
     background: #2b00f7;
     color: #fff;
     width: 100%;
-    overflow-x: scroll;
-    overflow-y: scroll;
-    height: 5em;
+    height: 7em;
     position: relative;
     /*position: absolute;
     bottom: 0;
@@ -67,27 +65,24 @@ canvas {
 }
 
 .marquee {
-  width: 75%;
-  margin-left: 25%;
+  width: 100%;
+  margin-left: 16em;
   overflow: hidden;
   color: #fff;
-}
-
-.twotter-header {
-    margin-left: 5em;
+  white-space: nowrap;
 }
 
 .twoot {
     /*background: #fff;*/
     padding: 1em;
-    margin: 0;
+    margin: 1em 0 0 0;
+    display: inline-block;
+    list-style-type: none;
     /*border: 1px solid #ddd;*/
     /*border-bottom: none;*/
 }
 .twoot:last-child {
     /*border-bottom: 1px solid #ddd;*/
-}
-.twooter-header {
 }
 .twooter-brand {
     width: 3em;
