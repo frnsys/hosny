@@ -1,6 +1,7 @@
 require([
 ], function() {
-  var person;
+  var person,
+      socket;
 
   function renderBar(p, id) {
     var bar = $('#'+id),
@@ -13,7 +14,8 @@ require([
       type: "POST",
       url: "/vote",
       data: JSON.stringify({
-        vote: vote
+        vote: vote,
+        sid: socket.io.engine.id
       }),
       contentType: "application/json",
       success: function(data, textStatus, jqXHR) {
@@ -107,8 +109,6 @@ require([
     if (person.race == 6) person.race = "Other Asian or Pacific Islander";
     if (person.race == 7 || person.race == 8) person.race = "Other or mixed";
 
-    console.log(person.education);
-
     if (person.education == 0) person.education = "None";
     if (person.education == 1 || person.education == 2) person.education = "Middle school";
     if (person.education == 3 || person.education == 4 || person.education == 5 || person.education == 6) person.education = "High school";
@@ -126,7 +126,7 @@ require([
   }
 
   $(function() {
-    var socket = io('/player');
+    socket = io('/player');
     socket.on('propose', function(data) {
       startProposal(data.proposals);
     });
