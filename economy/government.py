@@ -26,6 +26,7 @@ class Government(Agent):
             RawMaterialFirm: 0,
             Hospital: 0
         }
+        self.altruism = 0
 
         # all states map to the same actions
         action_ids = [i for i in range(len(self.actions))]
