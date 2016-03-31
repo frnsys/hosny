@@ -65,7 +65,8 @@ def player():
 def vote():
     data = request.get_json()
     vote = data.get('vote', None)
-    record_vote.delay(vote, request.sid)
+    sid = data['sid']
+    record_vote.delay(vote, sid)
     return jsonify(success=True)
 
 
