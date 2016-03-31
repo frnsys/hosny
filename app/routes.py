@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, render_template, request, abort
-from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote, reset, add_client
+from .tasks import step_simulation, setup_simulation, record_vote, add_player, remove_player, choose_proposer, start_vote, reset, add_client, end_vote
 from world.population import load_population
 
 routes = Blueprint('routes', __name__)
@@ -65,7 +65,16 @@ def player():
 def vote():
     data = request.get_json()
     vote = data.get('vote', None)
-    record_vote.delay(vote)
+    record_vote.delay(vote, request.sid)
+    return jsonify(success=True)
+
+
+@routes.route('/vote/end')
+def force_end_vote():
+    """terminate vote manually, e.g. as a timeout.
+    this is a stop-gap for when the number of registered clients
+    is inconsistent with the actual number of players"""
+    end_vote.delay()
     return jsonify(success=True)
 
 

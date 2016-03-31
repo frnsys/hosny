@@ -39,10 +39,6 @@ require([
 
   console.log(config);
 
-  $(document).ready(function() {
-    $('.marquee').marquee();
-  });
-
 require([
   'graph'
 ], function(Graph) {
@@ -160,6 +156,9 @@ require([
           success: function() {
             $('.step-simulation').hide();
             $('.voting').hide();
+
+            // flush
+            $('.marquee .twoot').remove();
           }
         })
       });
@@ -245,15 +244,30 @@ require([
         $(".datetime").text(data.month.toString() + "/" + data.day.toString() + "/" + data.year.toString());
       });
 
+      var offset = 0,
+          step = 4;
+      var i = setInterval(function() {
+        $('.marquee').css({ textIndent: '-=' + step.toString() + 'px' });
+        offset += step;
+
+        //var w = $('.marquee').width(),
+            //t = parseInt($('.marquee').css('text-indent'));
+        //$('.marquee .twoot').each(function() {
+          //if (parseInt($(this).css('text-indent')) + offset + t <= 0) {
+            //$(this).remove();
+          //}
+        //});
+
+      }, 1000/30);
+
       socket.on("twooter", function(data){
         // don't twoot everything, it's too much
         if (Math.random() < 0.2) {
           data.username = slugify(data.name);
-          // max 5 elements in marquee
-          if ($('.marquee .twoot').length > 5) {
-            $('.marquee .twoot').first().remove();
-          }
-          $(".marquee").prepend(renderTemplate('twoot', data));
+          var t = $(renderTemplate('twoot', data));
+          t.css({ textIndent: offset.toString() + 'px' });
+          $(".marquee").append(t);
+          offset = 0;
         }
       });
 
