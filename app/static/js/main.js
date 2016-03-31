@@ -46,8 +46,8 @@ require([
   $(function() {
     var socket = io('/simulation'),
         graphs = {
-          mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 650, 200, "", false),
-          mean_healthcare_price: new Graph(".graphs-healthcare", "mean_healthcare_price", 650, 200, "", false),
+          mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 350, 100, "", false),
+          mean_healthcare_price: new Graph(".graphs-healthcare", "mean_healthcare_price", 350, 100, "", false),
           mean_cash: new Graph(".graphs-cash", "mean_cash", 650, 200, "", false),
           n_sick: new Graph(".graphs-sick", "n_sick", 650, 200, "", false)
         };
@@ -100,6 +100,8 @@ require([
 
         switch ($('[name=disease]:checked').val()) {
           case "1":
+            $('.graphs-sick').removeClass('hide').addClass('show');
+            $('.graphs-healthcare').removeClass('hide').addClass('show');
             sickness_severity = 0.3;
             transmission_rate = 0.7;
             patient_zero_prob = 0.2;
@@ -204,7 +206,6 @@ require([
         $('.players ul li.template').clone().appendTo('.players ul').removeClass("template");
         $('.players-joining ul li:nth-child(' + i + ') h3.name').text(data.name);
         $('.players ul li:nth-child(' + i + ') h3.name').text(data.name);
-        //console.log(data.quality_of_life);
         i++;
         $(".n-players").text("Population of " + players.length.toString());
         update_players();
