@@ -3,8 +3,8 @@ define([
 ], function(City) {
   var fps = 30;
   var Simulation = function() {
-      var width = 960,
-          height = 500,
+      var width = 1260,
+          height = 700,
           aspect = width/height,
           D = 1,
           light = new THREE.PointLight(0xffffff, 1, 40);

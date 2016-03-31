@@ -50,10 +50,10 @@ require([
   $(function() {
     var socket = io('/simulation'),
         graphs = {
-          mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 650, 200, ""),
-          mean_healthcare_price: new Graph(".graphs-healthcare", "mean_healthcare_price", 650, 200, ""),
-          mean_cash: new Graph(".graphs-cash", "mean_cash", 650, 200, ""),
-          n_sick: new Graph(".graphs-sick", "n_sick", 650, 200, "")
+          mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 650, 200, "", false),
+          mean_healthcare_price: new Graph(".graphs-healthcare", "mean_healthcare_price", 650, 200, "", false),
+          mean_cash: new Graph(".graphs-cash", "mean_cash", 650, 200, "", false),
+          n_sick: new Graph(".graphs-sick", "n_sick", 650, 200, "", false)
         };
 
     socket.on("graph", function(data){
@@ -145,9 +145,8 @@ require([
             $('.overlay').fadeOut();
             $('.omni').fadeIn();
             $('.step-simulation').show();
-            console.log("hey");
-            $('.city-equation .consumer_good_utility').empty().text(consumer_good_utility + " " + consumer_good_utility_translation);
-            $('.city-equation .labor_per_equipment').empty().text(labor_per_equipment + " " + labor_per_equipment_translation);
+            $('.voting .consumer_good_utility').empty().text(consumer_good_utility + " " + consumer_good_utility_translation);
+            $('.voting .labor_per_equipment').empty().text(labor_per_equipment + " " + labor_per_equipment_translation);
           }
         });
 

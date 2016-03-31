@@ -2,13 +2,7 @@
     width: 100%;
     height: 100%;
     position: absolute;
-    background: rgba(163,230,255,1);
-    background: -moz-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
-    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(163,230,255,1)), color-stop(100%, rgba(255,222,219,1)));
-    background: -webkit-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
-    background: -o-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
-    background: -ms-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
-    background: linear-gradient(to bottom, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+
 }
 
 .player-bg {
@@ -40,6 +34,10 @@
 
 input[type=submit] {
     margin-top: .85rem
+}
+
+h1, h2, h3 {
+    font-family: 'M+ M Type-1 (basic latin) Thin';
 }
 
 h3 {

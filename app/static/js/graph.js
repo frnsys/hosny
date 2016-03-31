@@ -19,9 +19,10 @@ define([], function() {
     return v.toFixed(1);
   }
 
-  var Graph = function(container, className, width, height, yLabel) {
+  var Graph = function(container, className, width, height, yLabel, axis) {
     this.data = [];
     this.name = className;
+    this.axis = axis === undefined ? true : axis;
 
     var margin = {top: 20, right: 20, bottom: 30, left: 50};
     var svg = d3.select(container)
@@ -51,12 +52,13 @@ define([], function() {
           .tickFormat(humanFormat)
           .orient("left");
 
-    svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(this.xAxis);
+    if (this.axis) {
+      svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(this.xAxis);
 
-    svg.append("g")
+      svg.append("g")
         .attr("class", "y axis")
         .call(this.yAxis)
       .append("text")
@@ -64,7 +66,8 @@ define([], function() {
         .attr("y", 6)
         .attr("dy", ".5em")
         .style("text-anchor", "end")
-        .text(yLabel);
+        .text(yLabel);  
+    }
 
     svg.append("path")
       .datum(this.data)

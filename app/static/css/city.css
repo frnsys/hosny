@@ -1,11 +1,21 @@
 html, body {
-    
+    font-family: 'M+ P Type-2 (basic latin) Thin';
 }
 
 canvas {
     margin: 4em auto;
     display: block;
     z-index: 1;
+}
+
+.wrapper {
+    background: rgba(163,230,255,1);
+    background: -moz-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(163,230,255,1)), color-stop(100%, rgba(255,222,219,1)));
+    background: -webkit-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -o-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: -ms-linear-gradient(top, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
+    background: linear-gradient(to bottom, rgba(163,230,255,1) 0%, rgba(255,222,219,1) 100%);
 }
 
 .stage-wrapper {
@@ -18,17 +28,32 @@ canvas {
     position: relative;
 }
 
-.axis text { display: none; }
-
 .graphs h1 {
     position: absolute;
     top: 0;
     left: 0;
 }
 
+.graph-right {
+    position: absolute;
+    top: 5em;
+    left: 0;
+}
+
+.graph-left {
+    position: absolute;
+    top: 5em;
+    right: 0;
+}
+
+//.axis text { display: none; }
+
 .legend {
     list-style-type: none;
     padding: 1em;
+    bottom: 10em;
+    left: 30%;
+    position: absolute;
 }
 .color {
     width: 0.5em;
@@ -127,7 +152,7 @@ button {
 
 .omni {
     position: absolute;
-    z-index: 2;
+    z-index: 10;
     top: 0;
     color: #fff;
     width: 100%;
@@ -151,7 +176,7 @@ button {
     left: 0;
     background: rgba(43, 0, 247, 1);
     color: #fff;
-    z-index: 3;
+    z-index: 15;
     overflow-y: scroll;
 }
 .overlay-content {

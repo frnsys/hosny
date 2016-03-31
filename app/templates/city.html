@@ -8,15 +8,12 @@
 {% block content %}
 
 <div class="wrapper">
-
-    <div class="stage-wrapper"><canvas id="stage"></canvas></div>
-    <div class="graph graphs-qli"><h1>Mean Quality of Life</h1></div>
-    <div class="graph graphs-healthcare"><h1>mean healthcare price</h1></div>
-    <div class="graph graphs-cash"><h1>Mean cash</h1></div>
-    <div class="graph graphs-sick"><h1>Sick citizens</h1></div>
     <div class="omni">
         <div class="voting">
-            <div class="voting-bill"><h1>This month's very pressing issue</h1></div>
+            <h1>VAPE CITY: Quality of food: <span class="consumer_good_utility"></span>
+            Type of jobs: <span class="labor_per_equipment"></span>
+            Global health: <span class="sickness_severity"></span></h1>
+            <!-- <div class="voting-bill"><h1>This month's very pressing issue</h1></div> -->
             <div class="proposal"></div>
             <div class="votes"></div>
             <div class="status"></div>
@@ -27,22 +24,32 @@
             <button class="step-simulation">start month</button>
         </div>
     </div>
-    <div class="government"></div>
-</div>
-
-    <div class="dashboard">
+    <div class="stage-wrapper">
         <ul class="legend">
             <li><div class="color" style="background:#ff2222;"></div> hospital</li>
             <li><div class="color" style="background:#44ffff;"></div> equipment firm</li>
             <li><div class="color" style="background:#44ff44;"></div> food firm</li>
             <li><div class="color" style="background:#C182E8;"></div> raw material firm</li>
         </ul>
+        <canvas id="stage"></canvas></div>
+    <div class="graph graph-left">
+        <div class="graph graphs-qli"><h3>Quality of Life</h3></div>
+        <div class="graph graphs-cash"><h3>Cash</h3></div>
+    </div>
+    <div class="graph graph-right">
+        <div class="graph graphs-healthcare"><h3>Healthcare price</h3></div>
+        <div class="graph graphs-sick"><h3>Sick citizens</h3></div>
+    </div>
+</div>
 
-        <ul class="city-equation">
+    <div class="dashboard">
+        <!-- <ul class="city-equation">
             <li>Quality of food: <span class="consumer_good_utility"></span> </li>
             <li>Type of jobs: <span class="labor_per_equipment"></span> </li>
             <li>Global health: <span class="sickness_severity"></span> </li>
-        </ul>
+        </ul> -->
+
+        <div class="government"></div>
 
          <div class="twooter">
             <div class="twooter-breaking"><h2>BREAKING NEWS</h2></div>
