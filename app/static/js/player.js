@@ -66,7 +66,8 @@ require([
       var proposal = {
         type: $('[name=type]').val(),
         target: $('[name=target]').val(),
-        value: $('[name=value]').val()
+        value: $('[name=value]').val(),
+        description: $('[name=description]').val()
       };
       makeProposal(proposal);
       clearInterval(updateInterval);
@@ -100,9 +101,9 @@ require([
     if (person.sex == 2) person.sex = "woman";
 
     if (person.race == 1) person.race = "Caucasian";
-    if (person.race == 2) person.race = "Black";    
-    if (person.race == 3) person.race = "American Indian or Alaskan Native";    
-    if (person.race == 4 || person.race == 5) person.race = "East Asian";    
+    if (person.race == 2) person.race = "Black";
+    if (person.race == 3) person.race = "American Indian or Alaskan Native";
+    if (person.race == 4 || person.race == 5) person.race = "East Asian";
     if (person.race == 6) person.race = "Other Asian or Pacific Islander";
     if (person.race == 7 || person.race == 8) person.race = "Other or mixed";
 

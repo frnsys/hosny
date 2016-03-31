@@ -107,24 +107,28 @@ class Government(Agent):
         options = [{
             'type': ProposalType.tax_rate.name,
             'name': 'adjust tax rate',
+            'description': 'Adjust the tax rate for all income and corporate profits',
             'values': [0, 1],
             'targets': None,
             'value': self.tax_rate
         }, {
             'type': ProposalType.welfare.name,
             'name': 'adjust welfare',
+            'description': 'Set the amount of cash distributed to every citizen who makes less than the welfare requirement',
             'values': [0, None],
             'targets': None,
             'value': self.welfare
         }, {
             'type': ProposalType.welfare_req.name,
             'name': 'adjust welfare income threshold',
+            'description': 'Citizens who make less than this income will receive welfare',
             'values': [0, None],
             'targets': None,
             'value': self.welfare_req
         }, {
             'type': ProposalType.subsidy.name,
             'name': 'adjust industry subsidy',
+            'description': 'Set the amount of cash government gives a particular industry',
             'values': [0, None],
             'targets': list(industries.keys()),
             'value': None
@@ -136,6 +140,7 @@ class Government(Agent):
             options.append({
                 'type': ProposalType.privatize.name,
                 'name': 'privatize a public firm',
+                'description': 'Release a national firm into private management',
                 'values': None,
                 'targets': public_industries,
                 'value': None
@@ -144,6 +149,7 @@ class Government(Agent):
             options.append({
                 'type': ProposalType.nationalize.name,
                 'name': 'nationalize a private firm',
+                'description': 'Put a private firm into the control of the people',
                 'values': None,
                 'targets': private_industries,
                 'value': None
