@@ -54,6 +54,7 @@ canvas {
     bottom: 10em;
     left: 30%;
     position: absolute;
+    background: #a7e4ae;
 }
 .color {
     width: 0.5em;
