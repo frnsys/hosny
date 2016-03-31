@@ -37,6 +37,7 @@ celery = make_celery(app)
 # ehhh hacky
 model = None
 votes = []
+voted = []
 players = []
 proposal = None
 queued_players = []
@@ -151,42 +152,51 @@ def start_vote(prop):
 
 def check_votes():
     global votes
+    global voted
     global proposal
     print('n_votes', len(votes))
     print('n_players', len(players))
     yays = sum(1 if v else 0 for v in votes if v is not None)
     nays = sum(1 if not v else 0 for v in votes if v is not None)
-    s = socketio()
-    s.emit('votes', {'yays': yays, 'nays': nays}, namespace='/simulation')
+    socketio().emit('votes', {'yays': yays, 'nays': nays}, namespace='/simulation')
     if len(votes) >= len(players) and proposal is not None:
         # vote has concluded
         print('vote done!')
-        yay = sum(1 if v else -1 for v in votes if v is not None)
-        print('yay votes', yay)
-        if yay > 0:
-            model.government.apply_proposal(proposal, model)
-        proposal = None
-        votes = []
-        s.emit('voted', {'passed': yay > 0}, namespace='/simulation')
-        s.emit('government', model.government.as_json(), namespace='/simulation')
+        tally_vote()
 
 
 @celery.task
 def end_vote():
+    global votes
+    global voted
     global proposal
     if proposal is not None:
         # vote has concluded
         print('vote done! (timeout)')
-        yay = sum(1 if v else -1 for v in votes if v is not None)
-        if yay > 0:
-            model.government.apply_proposal(proposal, model)
-        proposal = None
+        tally_vote()
+
+def tally_vote():
+    global votes
+    global voted
+    global proposal
+    yay = sum(1 if v else -1 for v in votes if v is not None)
+    print('yay votes', yay)
+    if yay > 0:
+        model.government.apply_proposal(proposal, model)
+    s = socketio()
+    proposal = None
+    votes = []
+    voted = []
+    s.emit('voted', {'passed': yay > 0}, namespace='/simulation')
+    s.emit('government', model.government.as_json(), namespace='/simulation')
 
 
 @celery.task
-def record_vote(vote):
+def record_vote(vote, sid):
     print('received vote', vote)
-    votes.append(vote)
+    if sid not in voted:
+        votes.append(vote)
+        voted.append(sid)
     check_votes()
 
 
@@ -229,11 +239,13 @@ def reset():
     """reset the currently-running simulation"""
     global model
     global votes
+    global voted
     global proposal
     global players
     global queued_players
     model = None
     proposal = None
     votes = []
+    voted = []
     players = []
     queued_players = []
