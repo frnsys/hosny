@@ -33,7 +33,7 @@ class Household():
             i += 1
         return i
 
-    def marginal_utility(self, n_goods, price):
+    def marginal_utility(self, price, n_goods):
         return sum(round(p.cash_change_utility(-price)
                    + p.purchasing_utility(self.good_utility, price)
                    + self.consumer_good_utility_change(n_goods), 4)
