@@ -49,7 +49,9 @@ require([
           mean_quality_of_life: new Graph(".graphs-qli", "mean_quality_of_life", 350, 100, "", false),
           mean_healthcare_price: new Graph(".graphs-healthcare", "mean_healthcare_price", 350, 100, "", false),
           mean_cash: new Graph(".graphs-cash", "mean_cash", 650, 200, "", false),
-          n_sick: new Graph(".graphs-sick", "n_sick", 650, 200, "", false)
+          n_sick: new Graph(".graphs-sick", "n_sick", 650, 200, "", false),
+          mean_consumer_good_profit: new Graph(".graphs-consumer-good-profit", "mean_consumer_good_profit", 650, 200, "", false),
+          mean_wage: new Graph(".graphs-wage", "mean_wage", 650, 200, "", false)
         };
 
     socket.on("graph", function(data){

@@ -176,10 +176,48 @@ button {
     overflow-y: scroll;
 }
 .overlay-content {
-    margin: 2em auto;
-    padding: 2em;
-    width: 48em;
+    margin: 0 auto;
+    padding: .5em;
 }
+
+.world-selector input{
+    margin:0;padding:0;
+    -webkit-appearance:none;
+       -moz-appearance:none;
+            appearance:none;
+}
+.visa{background-image:url(http://www.canadianbusiness.com/wp-content/uploads/2014/03/14.jpg);}
+.mastercard{background-image:url(http://eatsomegreen.com/wp-content/uploads/2013/07/corn.jpg);}
+.middle{background-image:url(http://www.kerio.com/sites/default/files/mcdonalds-logo.png);}
+.world-selector input:active +.choice {opacity: .9;}
+.world-selector input:checked +.choice {
+    -webkit-filter: none;
+       -moz-filter: none;
+            filter: none;
+}
+.choice {
+    cursor:pointer;
+    background-size:contain;
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:100px;height:70px;
+    /*-webkit-transition: all 100ms ease-in;
+       -moz-transition: all 100ms ease-in;
+            transition: all 100ms ease-in;
+    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
+       -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
+            filter: brightness(1.8) grayscale(1) opacity(.7);*/
+}
+/*.drinkcard-cc:hover{
+    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
+       -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
+            filter: brightness(1.2) grayscale(.5) opacity(.9);
+}*/
+
+/* Extras */
+a:visited{color:#888}
+a{color:#444;text-decoration:none;}
+p{margin-bottom:.3em;}
 
 .actions {
     clear: both;

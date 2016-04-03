@@ -10,9 +10,9 @@
 <div class="wrapper">
     <div class="omni">
         <div class="voting">
-            <h1>VAPE CITY: Quality of food: <span class="consumer_good_utility"></span>
+            <h3>Quality of food: <span class="consumer_good_utility"></span>
             Type of jobs: <span class="labor_per_equipment"></span>
-            Global health: <span class="sickness_severity"></span></h1>
+            Global health: <span class="sickness_severity"></span></h3>
             <!-- <div class="voting-bill"><h1>This month's very pressing issue</h1></div> -->
             
         </div>
@@ -37,6 +37,8 @@
     <div class="graph graph-right">
         <div class="graph graphs-healthcare hide"><h3>Healthcare price</h3></div>
         <div class="graph graphs-sick hide"><h3>Sick citizens</h3></div>
+        <div class="graph wage"><h3>Wage</h3></div>
+        <div class="graph graphs-consumer-good-profit"><h3>Consumer Good Profit</h3></div>
     </div>
 </div>
 
@@ -51,7 +53,7 @@
 
          
         <div class="players">
-            <h1>Meet Your Governing Body</h1>
+            <h3>Meet Your Governing Body</h3>
                 <ul>
                     <li class="template">
                         <div class="left"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Octagonal_pyramid1.png" class="pic"/></div>
@@ -85,17 +87,25 @@
             </div> -->
 
             <div class="row">
-                <h1>SIMCITY, VERSION VAPE.0</h1>
-                    <h2>Why?</h2>
+                <h1>YOUR PIECE OF THE PIE</h1>
+                    <h2>Sim City, VAPE.0</h2>
                     <p>Simulations are a huge part of the reason why our economies are structured the way they are. Usually a very small group of people get to decide the parameters that effect the simulation. What if people from all groups and demographs were able to participate? We decided to create a game that helps you understand how these simulations work if that were the case.</p>
 
-                    <h2>First, let's set up our world.</h2>
+                    <h2>How do you want your world to be?</h2>
                 <form action="" class="setup-simulation">
+
                     <fieldset class="column1 show">
-                        <label for="consumer_good_utility"><h4>Quality of food</h4></label>
-                            <input type="radio" name="good_utility" value="1" >There a super food that is really affordable and filling.<br>
+                        <div class="world-selector">
+                            <h4>Quality of food</h4>
+                            <input id="visa" type="radio" name="good_utility" value="1" />
+                            <label class="choice visa" for="visa"></label>
+                            <input id="mastercard" type="radio" name="good_utility" value="2" />
+                            <label class="choice mastercard" for="mastercard"></label>
+                        </div>
+                        <!-- <label for="consumer_good_utility"><h4>Quality of food</h4></label>
+                            <input type="radio" name="good_utility" value="1"> <img src="http://www.canadianbusiness.com/wp-content/uploads/2014/03/14.jpg"/>There a super food that is really affordable and filling.<br>
                             <input type="radio" name="good_utility" value="2">McDonalds.<br>
-                            <input type="radio" name="good_utility" value="3" checked>A blight leaves us with just expensive corn.
+                            <input type="radio" name="good_utility" value="3" checked>A blight leaves us with just expensive corn. -->
                     </fieldset>
                     <fieldset class="column2 show">
                         <label for="labor_per_equipment"><h4>Type of jobs</h4></label>

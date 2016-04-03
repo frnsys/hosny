@@ -22,7 +22,7 @@ require([
         console.log("vote successfully cast");
         setTimeout(function() {
           $('main').empty().html(renderTemplate('voted'));
-        }, 10000);
+        }, 1000);
       }
     });
   }
@@ -44,7 +44,7 @@ require([
 
   function timeout(time, callback) {
     var fps = 30,
-        timeout = 10,
+        timeout = 600,
         totalTime = timeout * fps;
         time = totalTime;
         updateInterval = setInterval(function() {
