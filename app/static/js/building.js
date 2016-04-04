@@ -1,10 +1,9 @@
 define([], function() {
   var colors = {
-    'Hospital': 0xecb4bf,
+    'Hospital': 0xff2222,
     'CapitalEquipmentFirm': 0x47d1d5,
     'ConsumerGoodFirm': 0x4bfffe6,
-    'RawMaterialFirm': 0x555555,
-    'Residential': 0xffff44,
+    'RawMaterialFirm': 0x00ff7e
   };
 
   var Building = function(x, z, maxTenants, city) {

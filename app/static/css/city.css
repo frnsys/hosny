@@ -37,13 +37,13 @@ canvas {
 .graph-right {
     position: absolute;
     top: 5em;
-    left: 0;
+    left: 2em;
 }
 
 .graph-left {
     position: absolute;
     top: 5em;
-    right: 0;
+    right: 2em;
 }
 
 //.axis text { display: none; }
