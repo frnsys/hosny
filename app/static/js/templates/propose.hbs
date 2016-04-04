@@ -4,11 +4,14 @@
     </div>
 
     <h2>propose new legislation</h2>
-    <select class="proposals" name="type">
-        {{#each proposals}}
-            <option data-type="{{ type }}" value="{{ type }}">{{ name }}</option>
-        {{/each}}
-    </select>
+
+    <div>
+        <select class="proposals" name="type">
+            {{#each proposals}}
+                <option data-type="{{ type }}" value="{{ type }}">{{ name }}</option>
+            {{/each}}
+        </select>
+    </div>
 
     <div class="proposal"></div>
 

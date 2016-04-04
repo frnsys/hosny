@@ -1,19 +1,25 @@
-{{ description }}
+<div>{{ description }}</div>
 
-<input type="hidden" name="description" value="{{ description }}">
+<div>
+    <input type="hidden" name="description" value="{{ description }}">
+</div>
 
-{{#if values}}
-    {{#if value}}
-        <input type="number" name="value" min="{{ values.[0] }}" max="{{ values.[1] }}" value="{{ value }}">
-    {{ else }}
-        <input type="number" name="value" min="{{ values.[0] }}" max="{{ values.[1] }}">
+<div>
+    {{#if values}}
+        {{#if value}}
+            <input type="number" name="value" min="{{ values.[0] }}" max="{{ values.[1] }}" value="{{ value }}">
+        {{ else }}
+            <input type="number" name="value" min="{{ values.[0] }}" max="{{ values.[1] }}">
+        {{/if}}
     {{/if}}
-{{/if}}
+</div>
 
-{{#if targets}}
-    <select name="target">
-        {{#each targets}}
-            <option data-target="{{ this }}">{{ this }}</option>
-        {{/each}}
-    </select>
-{{/if}}
+<div>
+    {{#if targets}}
+        <select name="target">
+            {{#each targets}}
+                <option data-target="{{ this }}">{{ this }}</option>
+            {{/each}}
+        </select>
+    {{/if}}
+</div>

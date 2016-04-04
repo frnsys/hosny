@@ -2,6 +2,35 @@
     text-align: center;
     padding: 4em 2em 2em 2em;
 }
+
+.proposal {
+    padding: 3em;
+}
+
+.proposal input {
+    line-height: normal;
+    padding: 12px;
+    font-size: 48px;
+    width: 100%;
+
+}
+
+.cast-vote button {
+    width: 100%;
+    padding: 2em;
+    border: none;
+    display: block;
+    margin: 3em 0;
+}
+.cast-vote button:first-child {
+    background: green;
+}
+
+.cast-vote button:last-child {
+    background: red;
+}
+
+
 .bar-outer, .bar-inner {
     position: fixed;
     top: 0;

@@ -55,6 +55,7 @@ require([
         };
 
     socket.on("graph", function(data){
+      //console.log(data);
       if (data.graph in graphs) {
         var graph = graphs[data.graph];
         graph.update(data.data);
@@ -145,8 +146,8 @@ require([
             $('.overlay').fadeOut();
             $('.omni').fadeIn();
             $('.step-simulation').show();
-            $('.voting .consumer_good_utility').empty().text(consumer_good_utility + " " + consumer_good_utility_translation);
-            $('.voting .labor_per_equipment').empty().text(labor_per_equipment + " " + labor_per_equipment_translation);
+            $('.omni .consumer_good_utility').empty().text(consumer_good_utility + " " + consumer_good_utility_translation);
+            $('.omni .labor_per_equipment').empty().text(labor_per_equipment + " " + labor_per_equipment_translation);
           }
         });
 
@@ -222,7 +223,7 @@ require([
       function update_start_players() {
         if (queued_players.length >= 3) {
           $('.start-simulation').show();
-          $('.start-queue').text('Ready to start!');
+          $('.start-queue').empty();
         } else {
           $('.start-simulation').hide();
           if (queued_players.length == 0) {

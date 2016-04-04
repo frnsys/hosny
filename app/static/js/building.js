@@ -2,7 +2,7 @@ define([], function() {
   var colors = {
     'Hospital': 0xff2222,
     'CapitalEquipmentFirm': 0x47d1d5,
-    'ConsumerGoodFirm': 0x4bfffe6,
+    'ConsumerGoodFirm': 0x4bfffe,
     'RawMaterialFirm': 0x00ff7e
   };
 

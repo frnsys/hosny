@@ -26,6 +26,13 @@ canvas {
 
 .graph {
     position: relative;
+    border: 1px dashed white;
+}
+
+.graph h3 {
+    color: #fff;
+    font-weight: 500;
+    text-align: center;
 }
 
 .graphs h1 {
@@ -142,9 +149,8 @@ button {
     background: #fff;
     margin: 0 auto 2em auto;
     display: block;
-}
-.step-simulation {
-    display: none;
+    border: 0;
+    color: #000;
 }
 
 .omni {
@@ -219,6 +225,21 @@ button {
        -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
             filter: brightness(1.2) grayscale(.5) opacity(.9);
 }*/
+
+a.next {
+    background: #fff;
+    color: #000;
+    padding: 1em;
+    text-transform: uppercase;
+}
+
+.start-simulation {
+    background: #fff;
+    color: #000;
+    padding: 1em;
+    text-transform: uppercase;
+    border: none;
+}
 
 /* Extras */
 a:visited{color:#888}

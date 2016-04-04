@@ -1,5 +1,6 @@
 <h4>{{ description }}</h4>
 
+<div>
 {{#if values}}
     {{#if value}}
         <input type="number" name="value" min="{{ values.[0] }}" max="{{ values.[1] }}" value="{{ value }}">
@@ -7,7 +8,9 @@
         <input type="number" name="value" min="{{ values.[0] }}" max="{{ values.[1] }}">
     {{/if}}
 {{/if}}
+</div>
 
+<div>
 {{#if targets}}
     <select name="target">
         {{#each targets}}
@@ -15,3 +18,4 @@
         {{/each}}
     </select>
 {{/if}}
+</div>

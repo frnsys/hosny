@@ -106,8 +106,8 @@ require([
     if (person.race == 2) person.race = "Black";
     if (person.race == 3) person.race = "American Indian or Alaskan Native";
     if (person.race == 4 || person.race == 5) person.race = "East Asian";
-    if (person.race == 6) person.race = "Other Asian or Pacific Islander";
-    if (person.race == 7 || person.race == 8) person.race = "Other or mixed";
+    if (person.race == 6) person.race = "non-East Asian or Pacific Islander";
+    if (person.race == 7 || person.race == 8) person.race = "mixed race";
 
     if (person.education == 0) person.education = "no education";
     if (person.education == 1 || person.education == 2) person.education = "middle school education";
