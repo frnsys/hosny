@@ -29,7 +29,8 @@ class Household():
 
     def excess_consumption(self, price):
         i = 0
-        while self.marginal_utility(price, self.min_consumption + i) > 0:
+        # TODO this is a stop-gap - limit consumption to 10 items
+        while self.marginal_utility(price, self.min_consumption + i) > 0 and i < 10:
             i += 1
         return i
 
