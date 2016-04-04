@@ -1,0 +1,26 @@
+.line {
+    fill: none;
+    stroke: red;
+    stroke-width: 1.5px;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.graphs {
+    padding: 1em;
+    float: left;
+    width: 50%;
+
+    height: 26em;
+    overflow-y: scroll;
+}
+
+.graph-shell {
+    padding: 1em;
+    display: inline-block;
+}

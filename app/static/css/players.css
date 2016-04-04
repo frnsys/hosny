@@ -1,8 +1,5 @@
-.players-joining {
-    float: left;
-}
-
 .players {
+    display: none;
     width: 100%;
     color: #fff;
 }

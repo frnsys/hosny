@@ -109,11 +109,11 @@ require([
     if (person.race == 6) person.race = "Other Asian or Pacific Islander";
     if (person.race == 7 || person.race == 8) person.race = "Other or mixed";
 
-    if (person.education == 0) person.education = "None";
-    if (person.education == 1 || person.education == 2) person.education = "Middle school";
-    if (person.education == 3 || person.education == 4 || person.education == 5 || person.education == 6) person.education = "High school";
-    if (person.education == 7 || person.education == 8 || person.education == 9 || person.education == 10) person.education = "College undergraduate";
-    if (person.education == 11) person.education = "Postgraduate";
+    if (person.education == 0) person.education = "no education";
+    if (person.education == 1 || person.education == 2) person.education = "middle school education";
+    if (person.education == 3 || person.education == 4 || person.education == 5 || person.education == 6) person.education = "high school education";
+    if (person.education == 7 || person.education == 8 || person.education == 9 || person.education == 10) person.education = "college undergraduate education";
+    if (person.education == 11) person.education = "postgraduate education";
 
     if (person.employed == 0) person.employed = "in the armed forces";
     if (person.employed == 1) person.employed = "gainfully employed";

@@ -16,8 +16,8 @@
 
 .line {
     fill: none;
-    stroke: red;
-    stroke-width: 1.5px;
+    stroke: white;
+    stroke-width: 5px;
 }
 
 .axis path,

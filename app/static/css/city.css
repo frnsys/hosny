@@ -72,6 +72,7 @@ canvas {
 }
 
 .twooter {
+    display: none;
     background: #2b00f7;
     color: #fff;
     width: 100%;
@@ -186,9 +187,14 @@ button {
        -moz-appearance:none;
             appearance:none;
 }
-.visa{background-image:url(http://www.canadianbusiness.com/wp-content/uploads/2014/03/14.jpg);}
-.mastercard{background-image:url(http://eatsomegreen.com/wp-content/uploads/2013/07/corn.jpg);}
-.middle{background-image:url(http://www.kerio.com/sites/default/files/mcdonalds-logo.png);}
+.food_1{background-image:url(http://www.canadianbusiness.com/wp-content/uploads/2014/03/14.jpg);}
+.food_2{background-image:url(http://www.kerio.com/sites/default/files/mcdonalds-logo.png);}
+.food_3{background-image:url(http://eatsomegreen.com/wp-content/uploads/2013/07/corn.jpg);}
+
+.equipment_1{background-image:url(http://datagearbox.com/includes/images/layout/Automation.jpg);}
+.equipment_2{background-image:url(http://www.clker.com/cliparts/5/a/c/c/1356604702406402398people%20in%20the%20office2-md.png);}
+.equipment_3{background-image:url(http://www.wildernesscollege.com/images/stonetoolphoto02.jpg);}
+
 .world-selector input:active +.choice {opacity: .9;}
 .world-selector input:checked +.choice {
     -webkit-filter: none;
