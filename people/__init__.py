@@ -113,17 +113,19 @@ class Person(Agent):
                 'frugality': 0,     # negative: decadent/wasteful
                 'myopism': 0,       # negative: better at long-term thinking
                 'sociability': 0    # negative: introverted
-            },
-            constraints={
-                'health': [0., 1.]
             })
+
+            # TODO cess doesn't support constraints atm
+            # constraints={
+            #     'health': [0., 1.]
+            # })
 
     @asyncio.coroutine
     def step(self, world):
         pass # this is all handled externally now
 
     def as_json(self):
-        obj = self.state.copy()
+        obj = self._state.copy()
         obj['friends'] = [friend.id for friend in self.friends]
 
         attrs = ['id', 'name',

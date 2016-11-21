@@ -44,31 +44,28 @@ As days go by, the world environment changes according to real historical data; 
 
 ## Usage
 
-First setup your virtual environment and install the requirements.
+### Setup
 
-Note that `pandas` 18.0 (not yet released) is required to fix the following bug: <https://github.com/pydata/pandas/issues/11699>.
+First setup your virtual environment and install the requirements:
 
-You can run the simulation on a single machine like so:
+    pip install -r requirements.txt
 
-    python run.py <population size> <number of days>
+We also need `cess`:
 
-Running a simulation with a lot of agents is _slow_, so this simulator supports running the simulation across multiple machines.
+    git clone https://github.com/frnsys/cess.git
+    cd cess
+    pip install --editable .
 
-Start up the arbiter node (the node that manages workers) like so:
+And `handlebars`:
 
-    cess arbiter <host:port>
+    npm install -g handlebars
 
-Then on each worker machine, start workers like so:
+Then compile the JS templates:
 
-    cess node <arbiter host:port>
+    cd app/static/js
+    bash compile
 
-This creates a worker process for each core on the machine.
-
-Then, run the simulation across the cluster:
-
-    python run.py <population size> <number of days> <arbiter host:port>
-
-## Running the frontend
+### Running
 
 (run each of the following in separate tabs)
 
@@ -76,14 +73,16 @@ Then, run the simulation across the cluster:
     redis-server
 
     # run the server
-    python app
+    python app.py
 
     # run the celery worker
     # only run one celery process; this is a bit of a hack to ensure that
     # only one City model is created and we step only that model
     celery -A app.tasks.celery worker --concurrency=1
 
-Then visit `http://localhost:5000`
+Then visit `http://localhost:5000`.
+
+You'll be presented with a screen which provides some basic world configuration options. Hit "Let's Start" and you'll be taken to the main simulation screen. Hit "Start Month" to run one month of the simulation.
 
 ## Sources
 

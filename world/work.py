@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 # this gives us monthly unemployment percentages for NY
-monthly_df = pd.read_csv('data/world/src/unemployment.csv', index_col='Year')
+monthly_df = pd.read_csv('data/world/gen/unemployment.csv', index_col='Year')
 
 # group by years
 df = pd.read_csv('data/people/gen/pums_nyc.csv')

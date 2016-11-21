@@ -1,6 +1,8 @@
 require([
   'simulation'
 ], function(Simulation) {
+  // var REQUIRED_PLAYERS = 3;
+  var REQUIRED_PLAYERS = 0;
   var sim = new Simulation(),
       players = [],
       queued_players = [],
@@ -66,6 +68,8 @@ require([
 
 
   $(function() {
+      $('.n-required-citizens').text(REQUIRED_PLAYERS);
+
       // have form already, next submits that form
       $(".next").on("click", function(ev) {
         ev.preventDefault();
@@ -200,6 +204,7 @@ require([
         $(".n-players").text(players.length.toString() + " players");
       }
 
+
       // Whenever players join
       var i = 2;
       socket.on("joined", function(data){
@@ -221,7 +226,7 @@ require([
       });
 
       function update_start_players() {
-        if (queued_players.length >= 3) {
+        if (queued_players.length >= REQUIRED_PLAYERS) {
           $('.start-simulation').show();
           $('.start-queue').empty();
         } else {
@@ -233,6 +238,8 @@ require([
           }
         }
       }
+
+      update_start_players();
 
       socket.on("joined_queue", function(data) {
         queued_players.push(data.id);

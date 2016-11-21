@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-df = pd.read_csv('data/world/src/sp500.csv', index_col='Date', parse_dates=True)
+df = pd.read_csv('data/world/gen/sp500.csv', index_col='Date', parse_dates=True)
 
 
 def market_index(month, year, past_months=5):
