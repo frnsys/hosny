@@ -84,6 +84,10 @@ Then visit `http://localhost:5000`.
 
 You'll be presented with a screen which provides some basic world configuration options. Hit "Let's Start" and you'll be taken to the main simulation screen. Hit "Start Month" to run one month of the simulation.
 
+### Data
+
+Running the simulation will generate a log file at `simulation.log`. You can run the provided `log_to_csv.py` script to process this into a CSV of the simulation data.
+
 ## Sources
 
 - [Frequently Occurring Surnames from the Census 2000](http://www.census.gov/topics/population/genealogy/data/2000_surnames.html). Surnames occurring >= 100 more times in the 2000 census. Details here: <http://www2.census.gov/topics/genealogy/2000surnames/surnames.pdf>

@@ -1,5 +1,7 @@
 *.pyc
 *.swp
+*.log
+*.csv
 src
 env
 node_modules
