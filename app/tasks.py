@@ -62,6 +62,10 @@ def setup_simulation(config):
             sockets_handler = SocketsHandler()
             logger.addHandler(sockets_handler)
 
+        if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
+            file_handler = logging.FileHandler('simulation.log')
+            logger.addHandler(file_handler)
+
         pop = load_population('data/population.json')
         pop = pop[:200] # limit to 200 for now
         model = City(pop, config)
