@@ -130,6 +130,16 @@ class City(Simulation):
                     self.start_firm(person, industry, building)
             self.initialized = True
 
+        self._log('business', {
+            'firms': [{
+                'id': firm.id,
+                'owner': firm.owner.name,
+                'revenue': firm.revenue,
+                'costs': firm.costs,
+                'employees': len(firm.workers),
+            } for firm in self.firms]
+        })
+
         # month change
         if prev_month != self.date.month:
             # pay rent

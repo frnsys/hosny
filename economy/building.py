@@ -20,7 +20,9 @@ class Building():
         self.log({'event': 'added_tenant',
                   'tenant': {
                       'type': type(tenant).__name__,
-                      'id': tenant.id
+                      'id': tenant.id,
+                      'name': tenant.name,
+                      'owner': tenant.owner.name
                   }})
         return True
 

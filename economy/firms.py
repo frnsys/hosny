@@ -2,6 +2,7 @@ import json
 import math
 import logging
 import numpy as np
+import random
 from scipy import optimize
 from cess import Agent
 from cess.util import random_choice
@@ -9,6 +10,9 @@ from cess.agent.learn import QLearner
 from world.work import offer_prob, precompute_employment_dist
 
 logger = logging.getLogger('simulation.firms')
+
+with open('data/adjectives.txt', 'r') as f:
+    adjs = [l.strip() for l in f.readlines()]
 
 # save time, precompute and cache
 emp_dist = precompute_employment_dist()
@@ -37,6 +41,11 @@ class Firm(Agent):
         action_ids = [i for i in range(len(self.actions))]
         states_actions = {s: action_ids for s in range(5)}
         self.learner = QLearner(states_actions, self.reward, discount=0.5, explore=0.01, learning_rate=0.8)
+
+        self.name = self.gen_name()
+
+    def gen_name(self):
+        return ''
 
     @property
     def id(self):
@@ -123,7 +132,8 @@ class Firm(Agent):
             hired.append(worker)
             logger.info('person:{}'.format(json.dumps({
                 'event': 'hired',
-                'id': worker.id
+                'id': worker.id,
+                'wage': wage
             })))
             self.worker_change -= 1
 
@@ -328,9 +338,69 @@ class ConsumerGoodFirm(Firm):
         # how many materials are still required
         return required_materials - self.materials, to_purchase
 
+    def gen_name(self):
+        pre = [
+            'Fresh',
+            'Whole',
+            'Organic',
+            'Natural'
+        ]
+        suf = [
+            'Market',
+            'Mart',
+            'Grocery',
+            'Supermarket',
+            'Foods'
+        ]
+        parts = []
+        if random.random() <= 0.3:
+            parts.append(random.choice(pre))
+        elif random.random() <= 0.3:
+            parts.append("{}'s".format(self.owner.split(' ')[-1]))
+        else:
+            parts.append(random.choice(adjs))
+        parts.append(random.choice(suf))
+        return ' '.join(parts)
+
 
 class CapitalEquipmentFirm(ConsumerGoodFirm):
-    pass
+    def gen_name(self):
+        pre = [
+            'International',
+            'Global',
+            'Enterprise',
+            'Capital'
+        ]
+        cat = [
+            'Electronics',
+            'Hardware',
+            'Heavy Machinery',
+            'Technologies',
+            'Engineering',
+            'Robotics',
+            'Industries',
+            'Solutions',
+            'Machines',
+            'Manufacturing',
+            'Equipment',
+        ]
+        suf = [
+            'LLC',
+            'Inc',
+            'Corporation',
+            'Associated'
+        ]
+        parts = []
+        if random.random() <= 0.1:
+            parts.append(random.choice(pre))
+        elif random.random() <= 0.2:
+            parts.append("{}'s".format(self.owner.split(' ')[-1]))
+        else:
+            parts.append(random.choice(adjs))
+        parts.append(random.choice(cat))
+        if random.random() <= 0.2:
+            parts.append(random.choice(suf))
+        return ' '.join(parts)
 
 
 class Hospital(Firm):
@@ -353,6 +423,47 @@ class Hospital(Firm):
 
         return self.supply, self.price
 
+    def gen_name(self):
+        suf = [
+            'Clinic',
+            'Center',
+            'Hospital',
+            'Treatment Center'
+        ]
+        parts = []
+        if random.random() <= 0.7:
+            parts.append(self.owner.split(' ')[-1])
+        else:
+            parts.append(random.choice(adjs))
+        parts.append(random.choice(suf))
+        return ' '.join(parts)
+
 
 class RawMaterialFirm(Firm):
-    pass
+    def gen_name(self):
+        suf = [
+            'Mining',
+            'Farming',
+            'Foresters',
+            'Oil',
+            'Energy',
+            'Gas',
+            'Electric',
+            'Metals',
+            'Fuels',
+            'Lumber',
+            'Steel',
+            'Alloys',
+            'Drilling',
+            'Agriculture',
+            'Fishers',
+            'Extraction',
+            'Resources'
+        ]
+        parts = []
+        if random.random() <= 0.4:
+            parts.append("{}'s".format(self.owner.split(' ')[-1]))
+        else:
+            parts.append(random.choice(adjs))
+        parts.append(random.choice(suf))
+        return ' '.join(parts)
