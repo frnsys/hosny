@@ -4,7 +4,7 @@ This is an (in-progress) New York City simulator.
 
 Using Census and other data (see below for references), a population of plausible simulated New Yorkers are generated and distributed through the simulated city. They live their lives day to day, trying their best, as the world around them changes according to historical data points (unemployment rates, market data, etc) from 2005 to 2014.
 
-A static demo can be explored with here: [Public Science Agency](http://pubsci.agency)
+A static demo can be explored here: [Public Science Agency](http://pubsci.agency)
 
 ---
 
